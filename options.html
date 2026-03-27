@@ -75,6 +75,24 @@
                 </div>
 
                 <div class="card">
+    <h2>🎡 Configuração de Passeios (Cotação)</h2>
+    <div id="form-passeio">
+        <input type="text" id="nomePasseio" placeholder="Nome do Passeio (Ex: Cristo Redentor)">
+        <div id="container-precos" style="margin-top: 10px;">
+            <div class="linha-preco" style="display: flex; gap: 5px; margin-bottom: 5px;">
+                <input type="text" placeholder="Tipo (Ex: Adulto)" class="tipo-ingresso" style="flex: 2;">
+                <input type="number" placeholder="Valor" class="valor-ingresso" style="flex: 1;">
+            </div>
+        </div>
+        <button id="btn-add-tipo" style="background: #eee; border: 1px dashed #ccc; width: 100%; cursor: pointer; padding: 5px; font-size: 11px;">+ Adicionar Categoria de Preço</button>
+        <button id="btn-salvar-passeio" class="btn-add" style="background: #25D366; margin-top: 10px;">Salvar Passeio</button>
+    </div>
+    <hr>
+    <div id="lista-passeios-config" style="max-height: 200px; overflow-y: auto;">
+        </div>
+</div>
+
+                <div class="card">
                     <h2>💾 Backup e Segurança</h2>
                     <div class="btn-group">
                         <button id="btnExportar" class="btn-sec" style="background: #34B7F1;">📤 Exportar Backup</button>
@@ -84,7 +102,7 @@
                 </div>
 
                 <div class="status" style="text-align: center; margin-top: 20px; color: #777; font-size: 12px;">
-                    ICD Hub v2.0 | Desenvolvido por Bruno Ferreira
+                    ICD Hub v2.5 | Desenvolvido por Bruno Ferreira
                 </div>
             </div>
         </div>

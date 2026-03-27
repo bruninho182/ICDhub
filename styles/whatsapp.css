@@ -1,29 +1,31 @@
 /* =========================================================
-   ICD HUB - ESTILOS DA BARRA LATERAL (DINÂMICO)
+   ICD HUB - ESTILOS DA BARRA LATERAL (DINÂMICO V1.5)
    ========================================================= */
 
-/* Barra Lateral Base */
+/* 1. ESTRUTURA BASE (Comum a todas as posições) */
 #menu-automacao-hub {
     position: fixed;
     background: #f0f2f5;
     z-index: 9999;
     transition: all 0.3s ease-in-out;
-    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    box-shadow: 0 0 15px rgba(0,0,0,0.2);
     display: flex;
     flex-direction: column;
-    padding: 20px 10px;
     box-sizing: border-box;
+    border: 1px solid #ddd;
 }
 
-/* --- POSIÇÃO: DIREITA (Padrão) --- */
+/* 2. CONFIGURAÇÕES POR POSIÇÃO */
+
+/* --- DIREITA (Padrão) --- */
 .pos-direita {
     top: 0;
-    right: -250px; /* Escondida */
-    width: 250px;
+    right: -260px; /* Escondida */
+    width: 260px;
     height: 100vh;
-    border-left: 1px solid #ddd;
 }
-.pos-direita.aberto { right: 0; }
+.pos-direita.aberto { right: 0 !important; }
+
 .pos-direita #aba-gatilho {
     left: -40px;
     top: 50%;
@@ -31,15 +33,15 @@
     border-radius: 10px 0 0 10px;
 }
 
-/* --- POSIÇÃO: ESQUERDA --- */
+/* --- ESQUERDA --- */
 .pos-esquerda {
     top: 0;
-    left: -250px; /* Escondida */
-    width: 250px;
+    left: -260px; /* Escondida */
+    width: 260px;
     height: 100vh;
-    border-right: 1px solid #ddd;
 }
-.pos-esquerda.aberto { left: 0; }
+.pos-esquerda.aberto { left: 0 !important; }
+
 .pos-esquerda #aba-gatilho {
     right: -40px;
     top: 50%;
@@ -47,35 +49,48 @@
     border-radius: 0 10px 10px 0;
 }
 
-/* --- POSIÇÃO: TOPO --- */
+/* --- TOPO (Ajustado para fechar corretamente) --- */
 .pos-topo {
-    top: -250px; /* Escondida */
+    top: 0;
     left: 0;
     width: 100%;
-    height: 250px;
-    border-bottom: 1px solid #ddd;
-    flex-direction: row !important; /* Muda para horizontal no topo */
-    flex-wrap: wrap;
-    justify-content: center;
+    height: auto;
+    max-height: 80vh; /* Não deixa ocupar a tela toda se tiver muita coisa */
+    /* Em vez de 'top', usamos transform para esconder 100% da própria altura */
+    transform: translateY(-100%); 
+    border-bottom: 2px solid #612d87;
+    transition: transform 0.3s ease-in-out !important;
 }
-.pos-topo.aberto { top: 0; }
+
+.pos-topo.aberto {
+    transform: translateY(0) !important;
+}
+
 .pos-topo #aba-gatilho {
-    bottom: -40px;
+    top: 100%; /* Fixa a aba exatamente na borda de baixo do menu */
     left: 50%;
     transform: translateX(-50%);
     width: 80px !important;
-    height: 40px !important;
+    height: 35px !important;
     border-radius: 0 0 10px 10px;
-}
-.pos-topo #container-botoes-hub {
-    flex-direction: row;
-    flex-wrap: wrap;
+    display: flex;
+    align-items: center;
     justify-content: center;
 }
 
-/* --- ELEMENTOS INTERNOS --- */
+/* Grid de botões automático apenas quando estiver no TOPO */
+.pos-topo #container-botoes-hub {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 10px;
+    padding: 15px;
+    max-height: 300px; /* Scroll interno se tiver muitos botões */
+    overflow-y: auto;
+}
 
-/* Aba para abrir/fechar (O "Gatilho") */
+/* 3. ELEMENTOS INTERNOS */
+
+/* Aba de Controle (Gatilho) */
 #aba-gatilho {
     position: absolute;
     width: 40px;
@@ -87,37 +102,37 @@
     align-items: center;
     justify-content: center;
     font-size: 20px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
     z-index: 10000;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
 }
 
-/* Título no topo da barra */
+/* Título */
 .titulo-hub {
     font-size: 14px;
     font-weight: bold;
     color: #612d87;
-    margin-bottom: 20px;
+    margin: 15px 0;
     text-align: center;
     border-bottom: 2px solid #612d87;
-    padding-bottom: 10px;
+    padding-bottom: 8px;
     width: 100%;
 }
 
-/* Container dos Botões */
+/* Container de Botões (Scroll lateral) */
 #container-botoes-hub {
     overflow-y: auto;
     flex-grow: 1;
     display: flex;
     flex-direction: column;
-    gap: 10px;
-    padding: 5px;
+    gap: 8px;
+    padding: 10px;
 }
 
-/* Estilo dos Botões de Atalho */
+/* Botões de Atalho */
 .btn-atalho-hub {
     background: white;
     border: 1px solid #ddd;
-    padding: 12px;
+    padding: 10px;
     border-radius: 8px;
     cursor: pointer;
     font-size: 13px;
@@ -130,24 +145,39 @@
 .btn-atalho-hub:hover {
     background: #612d87;
     color: white;
+    transform: translateY(-2px);
 }
 
-/* Estilo para Miniaturas Arrastáveis */
-.btn-atalho-hub img, 
+/* 4. COMPONENTES ESPECÍFICOS */
+
+/* Calculadora 🧮 */
+#btn-cotacao-hub {
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+#btn-cotacao-hub:hover {
+    background: #4a1d6a !important;
+    transform: scale(1.1) rotate(5deg);
+}
+
+/* Imagens Arrastáveis */
 img[draggable="true"] {
-    transition: transform 0.2s;
+    transition: transform 0.2s, border-color 0.2s;
+    border: 2px solid #612d87;
 }
 
 img[draggable="true"]:hover {
-    transform: scale(1.1);
-    border-color: #FF9800 !important; /* Laranja no hover da imagem */
+    transform: scale(1.2);
+    border-color: #25D366 !important; /* Verde WhatsApp no hover */
+    z-index: 10;
 }
 
-/* Ajuste de Scrollbar */
+/* 5. CUSTOMIZAÇÃO DE SCROLL */
 #container-botoes-hub::-webkit-scrollbar {
-    width: 6px;
+    width: 5px;
 }
 #container-botoes-hub::-webkit-scrollbar-thumb {
-    background: #ccc;
+    background: #612d87;
     border-radius: 10px;
 }

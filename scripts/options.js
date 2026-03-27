@@ -205,3 +205,146 @@ document.getElementById('btnSalvarEmailConfig').onclick = () => {
         alert("Configurações de e-mail salvas!");
     });
 };
+
+/* =========================================================
+   LÓGICA DA CALCULADORA DE COTAÇÃO (OPÇÕES COM EDIÇÃO)
+   ========================================================= */
+
+let editPasseioIndex = -1; // -1 significa que estamos criando um novo
+
+// 1. Adicionar nova linha de Categoria de Preço
+document.getElementById('btn-add-tipo').onclick = () => {
+    adicionarLinhaPreco("", "");
+};
+
+function adicionarLinhaPreco(tipo = "", valor = "") {
+    const container = document.getElementById('container-precos');
+    const novaLinha = document.createElement('div');
+    novaLinha.className = 'linha-preco';
+    novaLinha.style = "display: flex; gap: 5px; margin-bottom: 5px;";
+    novaLinha.innerHTML = `
+        <input type="text" placeholder="Tipo (Ex: Infantil)" class="tipo-ingresso" value="${tipo}" style="flex: 2; padding: 5px;">
+        <input type="number" placeholder="Valor" class="valor-ingresso" value="${valor}" style="flex: 1; padding: 5px;">
+        <button class="btn-remover-preco" style="background:none; border:none; cursor:pointer;">❌</button>
+    `;
+    container.appendChild(novaLinha);
+    novaLinha.querySelector('.btn-remover-preco').onclick = () => novaLinha.remove();
+}
+
+// 2. Salvar ou Atualizar o Passeio
+document.getElementById('btn-salvar-passeio').onclick = () => {
+    const nome = document.getElementById('nomePasseio').value;
+    const tipos = document.querySelectorAll('.tipo-ingresso');
+    const valores = document.querySelectorAll('.valor-ingresso');
+    const btnSalvar = document.getElementById('btn-salvar-passeio');
+    
+    if (!nome) return alert("Digite o nome do passeio!");
+
+    let ingressos = [];
+    tipos.forEach((t, i) => {
+        if (t.value && valores[i].value) {
+            ingressos.push({
+                tipo: t.value,
+                valor: parseFloat(valores[i].value)
+            });
+        }
+    });
+
+    if (ingressos.length === 0) return alert("Adicione pelo menos um tipo de ingresso!");
+
+    chrome.storage.local.get(['listaPasseios'], (res) => {
+        let lista = res.listaPasseios || [];
+
+        if (editPasseioIndex === -1) {
+            // NOVO PASSEIO
+            lista.push({ nome, ingressos });
+        } else {
+            // EDITANDO EXISTENTE
+            lista[editPasseioIndex] = { nome, ingressos };
+            editPasseioIndex = -1;
+            btnSalvar.innerText = "Salvar Passeio";
+            btnSalvar.style.background = "#25D366";
+        }
+        
+        chrome.storage.local.set({ listaPasseios: lista }, () => {
+            alert("Passeio salvo com sucesso!");
+            limparFormularioPasseio();
+            renderizarListaPasseios();
+        });
+    });
+};
+
+function limparFormularioPasseio() {
+    document.getElementById('nomePasseio').value = "";
+    document.getElementById('container-precos').innerHTML = `
+        <div class="linha-preco" style="display: flex; gap: 5px; margin-bottom: 5px;">
+            <input type="text" placeholder="Tipo (Ex: Adulto)" class="tipo-ingresso" style="flex: 2; padding: 5px;">
+            <input type="number" placeholder="Valor" class="valor-ingresso" style="flex: 1; padding: 5px;">
+        </div>
+    `;
+}
+
+// 3. Renderizar a lista com botões de Editar e Excluir
+function renderizarListaPasseios() {
+    chrome.storage.local.get(['listaPasseios'], (res) => {
+        const container = document.getElementById('lista-passeios-config');
+        const lista = res.listaPasseios || [];
+        container.innerHTML = "";
+
+        lista.forEach((p, index) => {
+            const item = document.createElement('div');
+            item.style = "background: #f4f4f4; padding: 10px; margin-bottom: 8px; border-radius: 5px; display: flex; justify-content: space-between; align-items: center; border-left: 4px solid #612d87;";
+            item.innerHTML = `
+                <div style="font-size: 12px;">
+                    <strong>${p.nome}</strong><br>
+                    <small>${p.ingressos.length} categorias cadastradas</small>
+                </div>
+                <div style="display: flex; gap: 5px;">
+                    <button class="btn-editar-p" data-index="${index}" style="background:#34B7F1; color:white; border:none; border-radius:3px; cursor:pointer; padding: 4px 8px; font-size:10px;">Editar</button>
+                    <button class="btn-excluir-p" data-index="${index}" style="background:#ff4d4d; color:white; border:none; border-radius:3px; cursor:pointer; padding: 4px 8px; font-size:10px;">Excluir</button>
+                </div>
+            `;
+            container.appendChild(item);
+        });
+
+        // Evento EXCLUIR
+        container.querySelectorAll('.btn-excluir-p').forEach(btn => {
+            btn.onclick = (e) => {
+                if(confirm("Tem certeza que deseja excluir este passeio?")) {
+                    const idx = e.target.dataset.index;
+                    lista.splice(idx, 1);
+                    chrome.storage.local.set({ listaPasseios: lista }, renderizarListaPasseios);
+                }
+            };
+        });
+
+        // Evento EDITAR
+        container.querySelectorAll('.btn-editar-p').forEach(btn => {
+            btn.onclick = (e) => {
+                const idx = e.target.dataset.index;
+                const p = lista[idx];
+                
+                // Preenche o formulário
+                document.getElementById('nomePasseio').value = p.nome;
+                const containerPrecos = document.getElementById('container-precos');
+                containerPrecos.innerHTML = ""; // Limpa atuais
+                
+                p.ingressos.forEach(ing => {
+                    adicionarLinhaPreco(ing.tipo, ing.valor);
+                });
+
+                // Muda o estado para edição
+                editPasseioIndex = idx;
+                const btnSalvar = document.getElementById('btn-salvar-passeio');
+                btnSalvar.innerText = "Confirmar Alteração";
+                btnSalvar.style.background = "#ffa500";
+                
+                // Scroll para o topo do formulário
+                document.getElementById('nomePasseio').scrollIntoView({ behavior: 'smooth' });
+            };
+        });
+    });
+}
+
+// Inicializa a lista
+renderizarListaPasseios();
