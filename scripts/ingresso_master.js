@@ -1,20 +1,45 @@
-console.log("✅ ICD Hub: Maestro do Ingresso com Desconto Ativado");
+console.log("✅ ICD Hub: Maestro do Ingresso com Desconto Ativado (Versão Híbrida 2.5)");
+
 
 chrome.storage.local.get(["dadosPedido", "nomeOperador", "bridgeData", "reservaGrayline", "usuarioConfigurado"], (res) => {
-    if (res.dadosPedido) preencherCamposGYG(res.dadosPedido, res.nomeOperador);
-    if (res.bridgeData) preencherHeadoutGrayline(res.bridgeData, res.usuarioConfigurado);
-    if (res.reservaGrayline) preencherHeadoutGrayline(res.reservaGrayline, res.usuarioConfigurado);
+    executarComTentativas(res);
 });
 
 chrome.storage.onChanged.addListener((changes, area) => {
     if (area === 'local') {
-        chrome.storage.local.get(["nomeOperador", "usuarioConfigurado"], (res) => {
-            if (changes.dadosPedido?.newValue) preencherCamposGYG(changes.dadosPedido.newValue, res.nomeOperador);
-            if (changes.bridgeData?.newValue) preencherHeadoutGrayline(changes.bridgeData.newValue, res.usuarioConfigurado);
-            if (changes.reservaGrayline?.newValue) preencherHeadoutGrayline(changes.reservaGrayline.newValue, res.usuarioConfigurado);
+        chrome.storage.local.get(["nomeOperador", "usuarioConfigurado", "dadosPedido", "bridgeData", "reservaGrayline"], (res) => {
+            executarComTentativas(res);
         });
     }
 });
+
+function executarComTentativas(res) {
+    let tentativas = 0;
+    const intervalo = setInterval(() => {
+        const sucesso = executarPreenchimento(res);
+        tentativas++;
+        if (sucesso || tentativas > 20) clearInterval(intervalo);
+    }, 600);
+}
+
+function executarPreenchimento(res) {
+    const isNovoSistema = window.location.href.includes("app.icdgrupo.com.br");
+
+    if (isNovoSistema) {
+        if (res.dadosPedido) return preencherNovoSistemaICD(res.dadosPedido, res.nomeOperador, "GYG");
+        if (res.bridgeData) return preencherNovoSistemaICD(res.bridgeData, res.usuarioConfigurado, "Bridge");
+        if (res.reservaGrayline) return preencherNovoSistemaICD(res.reservaGrayline, res.usuarioConfigurado, "Grayline");
+    } else {
+        // Sistema Antigo
+        if (res.dadosPedido) preencherCamposGYG(res.dadosPedido, res.nomeOperador);
+        if (res.bridgeData) preencherHeadoutGrayline(res.bridgeData, res.usuarioConfigurado);
+        if (res.reservaGrayline) preencherHeadoutGrayline(res.reservaGrayline, res.usuarioConfigurado);
+        return true; 
+    }
+    return false;
+}
+
+// --- 2. CONFIGURAÇÕES ---
 
 const textoPadraoEmail = `Dear visitor,
 
@@ -34,6 +59,55 @@ We are at your disposal!
 Best regards,`;
 
 
+function findInputByMuiText(term) {
+    const textToFind = term.toLowerCase();
+    const elements = Array.from(document.querySelectorAll('span, label, p, legend'));
+    const target = elements.find(el => el.innerText.toLowerCase().trim().includes(textToFind));
+
+    if (target) {
+        const container = target.closest('.MuiFormControl-root, .MuiTextField-root, div.MuiGrid-item');
+        if (container) {
+            const input = container.querySelector('input');
+            if (input) return input;
+        }
+    }
+    return null;
+}
+
+function preencherNovoSistemaICD(dados, operador, dataType) {
+    if (!dados) return false;
+
+    const idReserva = dados.gyg || dados.bookingId || "";
+    const refExterna = `${idReserva} - ${operador || "OPERADOR"}`;
+
+    const mapeamento = [
+        { busca: "E-mail", valor: dados.email },
+        { busca: "Nome", valor: dados.nome },
+        { busca: "Número do documento", valor: idReserva },
+        { busca: "Referência Externa", valor: refExterna }
+    ];
+
+    let count = 0;
+    mapeamento.forEach(item => {
+        const input = findInputByMuiText(item.busca);
+        if (input) {
+            forceReactValue(input, item.valor);
+            count++;
+        }
+    });
+
+    if (count > 0) {
+        prepararDadosEmail(idReserva, dados.nome, dados.email);
+        setTimeout(() => {
+            const keys = dataType === "GYG" ? ["dadosPedido"] : ["bridgeData", "reservaGrayline"];
+            chrome.storage.local.remove(keys);
+        }, 3000);
+        return true;
+    }
+    return false;
+}
+
+
 function preencherAposTexto(numero, valor) {
     const todosElementos = Array.from(document.querySelectorAll('td, span, font, b'));
     const elementoAlvo = todosElementos.find(el => el.innerText.trim() === numero.toString());
@@ -45,13 +119,10 @@ function preencherAposTexto(numero, valor) {
         );
 
         if (inputCorreto) {
-            inputCorreto.value = valor;
-            inputCorreto.dispatchEvent(new Event('input', { bubbles: true }));
-            inputCorreto.dispatchEvent(new Event('change', { bubbles: true }));
+            forceReactValue(inputCorreto, valor);
         }
     }
 }
-
 
 function preencherCamposGYG(dados, nomeOperador) {
     if (!dados) return;
@@ -64,19 +135,10 @@ function preencherCamposGYG(dados, nomeOperador) {
     ];
     campos.forEach(c => {
         const el = document.getElementsByName(c.nome)[0];
-        if (el) {
-            el.value = c.valor;
-            el.dispatchEvent(new Event('input', { bubbles: true }));
-            el.dispatchEvent(new Event('change', { bubbles: true }));
-        }
+        if (el) forceReactValue(el, c.valor);
     });
 
-    const dadosEmail = {
-        email: dados.email,
-        assunto: `${dados.gyg} - ${dados.nome}`,
-        corpo: textoPadraoEmail
-    };
-    chrome.storage.local.set({ dadosParaEmail: dadosEmail });
+    prepararDadosEmail(dados.gyg, dados.nome, dados.email);
     setTimeout(() => { chrome.storage.local.remove("dadosPedido"); }, 2000);
 }
 
@@ -91,18 +153,32 @@ function preencherHeadoutGrayline(d, nomeUsuario) {
     const valorFormatadoCV = `${d.bookingId} - ${operador}`;
     preencherAposTexto(15, valorFormatadoCV);
     
-    const dadosEmail = {
-        email: d.email,
-        assunto: `${d.bookingId} - ${d.nome}`,
-        corpo: textoPadraoEmail
-    };
-    chrome.storage.local.set({ dadosParaEmail: dadosEmail });
+    prepararDadosEmail(d.bookingId, d.nome, d.email);
 
     console.log("✅ Preenchimento concluído! Dados de e-mail preparados.");
-
     setTimeout(() => { 
         chrome.storage.local.remove(["bridgeData", "reservaGrayline"]); 
     }, 2000);
+}
+
+
+function forceReactValue(input, value) {
+    if (!input) return;
+    input.focus();
+    const nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, "value").set;
+    nativeInputValueSetter.call(input, value);
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+    input.dispatchEvent(new Event('change', { bubbles: true }));
+    input.blur();
+}
+
+function prepararDadosEmail(id, nome, email) {
+    const dadosEmail = {
+        email: email,
+        assunto: `${id} - ${nome}`,
+        corpo: textoPadraoEmail
+    };
+    chrome.storage.local.set({ dadosParaEmail: dadosEmail });
 }
 
 function renomear() {

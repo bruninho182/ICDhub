@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "ICD Hub - Integrador Universal",
-  "version": "2.0",
+  "version": "3.0",
   "description": "Desenvolvido por : Bruno Ferreira",
   "permissions": [
     "storage",
@@ -13,6 +13,7 @@
     "https://admin.tourcms.com/*",
     "https://www.ingressocomdesconto.com.br/*",
     "https://*.ingressocomdesconto.com.br/*",
+    "https://app.icdgrupo.com.br/*",
     "*://hub.headout.com/*",
     "https://*.postimg.cc/*",
     "https://*.whatsapp.com/*",
@@ -56,7 +57,10 @@
       "css": ["styles/whatsapp.css"]
     },
     {
-      "matches": ["*://*.ingressocomdesconto.com.br/*"],
+      "matches": [
+        "*://*.ingressocomdesconto.com.br/*",
+        "https://app.icdgrupo.com.br/*"
+      ],
       "js": ["scripts/ingresso_master.js"],
       "all_frames": true
     },
