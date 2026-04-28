@@ -3,25 +3,47 @@
    ========================================================= */
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-    // Escuta o aviso de que dados foram capturados (GYG, Headout ou Grayline)
-    if (request.acao === "DADOS_PRONTOS") {
-        
-        // Procura todas as abas abertas
-        chrome.tabs.query({}, (tabs) => {
-            tabs.forEach(tab => {
-                // SÓ envia a mensagem para abas do Ingresso com Desconto
-                // Isso evita erros no console e melhora a performance
-                if (tab.url && tab.url.includes("ingressocomdesconto.com.br")) {
-                    chrome.tabs.sendMessage(tab.id, request).catch(() => {
-                        // Ignora abas que ainda não carregaram o script
-                    });
-                }
-            });
-        });
+  if (request.acao === "DADOS_PRONTOS") {
+    chrome.tabs.query({}, (tabs) => {
+      tabs.forEach((tab) => {
+        if (tab.url && tab.url.includes("ingressocomdesconto.com.br")) {
+          chrome.tabs.sendMessage(tab.id, request).catch(() => {});
+        }
+      });
+    });
+    console.log("📢 Hub: Dados replicados para o sistema de vendas.");
+    sendResponse({ status: "OK" });
+  }
+  return true;
+});
 
-        // Feedback no console do desenvolvedor para você saber que funcionou
-        console.log("📢 Hub: Dados replicados para o sistema de vendas.");
-        sendResponse({ status: "OK" });
+chrome.downloads.onDeterminingFilename.addListener((downloadItem, suggest) => {
+  if (
+    !downloadItem.filename.endsWith(".pdf") &&
+    !downloadItem.mime?.includes("pdf")
+  ) {
+    suggest();
+    return true;
+  }
+
+  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+    if (!tabs[0]?.id) {
+      suggest();
+      return;
     }
-    return true; // Mantém o canal de comunicação estável
+
+    chrome.tabs.sendMessage(
+      tabs[0].id,
+      { type: "GET_NOME_VOUCHER" },
+      (response) => {
+        if (chrome.runtime.lastError || !response?.filename) {
+          suggest();
+          return;
+        }
+        suggest({ filename: response.filename, conflictAction: "overwrite" });
+      },
+    );
+  });
+
+  return true;
 });
