@@ -40,7 +40,7 @@ chrome.downloads.onDeterminingFilename.addListener((downloadItem, suggest) => {
           suggest();
           return;
         }
-        suggest({ filename: response.filename, conflictAction: "overwrite" });
+        suggest({ filename: response.filename, conflictAction: "uniquify" });
       },
     );
   });
