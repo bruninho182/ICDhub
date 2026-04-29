@@ -304,3 +304,17 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   }
   return true;
 });
+
+function renomear() {
+  const texto = document.body.innerText;
+  const regCod = /Código da Compra:\s*([A-Z0-9]+)/i;
+  const regNome = /Nome Completo:\s*([^\n\r]+)/i;
+  const mCod = texto.match(regCod);
+  const mNome = texto.match(regNome);
+  if (mCod && mNome) {
+    const resultado = `${mCod[1].trim()} - ${mNome[1].trim().toUpperCase()}`;
+    document.title = resultado;
+    if (window.top !== window.self) window.top.document.title = resultado;
+  }
+}
+setInterval(renomear, 1000);
