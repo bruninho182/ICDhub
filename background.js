@@ -26,23 +26,31 @@ chrome.downloads.onDeterminingFilename.addListener((downloadItem, suggest) => {
     return true;
   }
 
-  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-    if (!tabs[0]?.id) {
-      suggest();
+  chrome.storage.local.get("nomeVoucherAtual", (res) => {
+    if (res.nomeVoucherAtual) {
+      suggest({ filename: res.nomeVoucherAtual, conflictAction: "uniquify" });
+      chrome.storage.local.remove("nomeVoucherAtual");
       return;
     }
 
-    chrome.tabs.sendMessage(
-      tabs[0].id,
-      { type: "GET_NOME_VOUCHER" },
-      (response) => {
-        if (chrome.runtime.lastError || !response?.filename) {
-          suggest();
-          return;
-        }
-        suggest({ filename: response.filename, conflictAction: "uniquify" });
-      },
-    );
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+      if (!tabs[0]?.id) {
+        suggest();
+        return;
+      }
+
+      chrome.tabs.sendMessage(
+        tabs[0].id,
+        { type: "GET_NOME_VOUCHER" },
+        (response) => {
+          if (chrome.runtime.lastError || !response?.filename) {
+            suggest();
+            return;
+          }
+          suggest({ filename: response.filename, conflictAction: "uniquify" });
+        },
+      );
+    });
   });
 
   return true;

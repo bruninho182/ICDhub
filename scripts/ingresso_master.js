@@ -35,7 +35,6 @@ function executarComTentativas(res) {
   const intervalo = setInterval(() => {
     const sucesso = executarPreenchimento(res);
     tentativas++;
-    // Tenta por até 12 segundos (20 tentativas de 600ms)
     if (sucesso || tentativas > 20) clearInterval(intervalo);
   }, 600);
 }
@@ -59,7 +58,6 @@ function executarPreenchimento(res) {
         "Grayline",
       );
   } else {
-    // Sistema Antigo
     if (res.dadosPedido) preencherCamposGYG(res.dadosPedido, res.nomeOperador);
     if (res.bridgeData)
       preencherHeadoutGrayline(res.bridgeData, res.usuarioConfigurado);
@@ -111,7 +109,6 @@ function findInputByMuiText(term) {
   return null;
 }
 
-// Função para clicar e selecionar em Barras (País e Sexo)
 async function selecionarBarraMui(labelBusca, valorAlvo) {
   const f = findInputByMuiText(labelBusca);
   if (!f) return;
@@ -121,7 +118,6 @@ async function selecionarBarraMui(labelBusca, valorAlvo) {
     elClique.focus();
     elClique.click();
 
-    // Aguarda a lista de opções "nascer" no HTML
     setTimeout(() => {
       const opcoes = Array.from(
         document.querySelectorAll(
@@ -146,14 +142,13 @@ function preencherNovoSistemaICD(dados, operador, dataType) {
   const idReserva = dados.gyg || dados.bookingId || "";
   const refExterna = `${idReserva} - ${operador || "OPERADOR"}`;
 
-  // A. Campos de Texto e Data
   const mapeamento = [
     { busca: "E-mail", valor: dados.email },
     { busca: "Nome", valor: dados.nome },
     { busca: "Telefone", valor: dados.telefone },
     { busca: "Número do documento", valor: idReserva },
     { busca: "Referência Externa", valor: refExterna },
-    { busca: "nascimento", valor: "01/01/2001" }, // Padronizado
+    { busca: "nascimento", valor: "01/01/2001" },
   ];
 
   let count = 0;
@@ -239,7 +234,6 @@ function forceReactValue(input, value) {
   if (!input || !value) return;
 
   let valorFinal = value;
-  // Fix para campos de data (HTML5 exige YYYY-MM-DD)
   if (value === "01/01/2001" || input.type === "date") {
     valorFinal = "2001-01-01";
   }
@@ -291,6 +285,18 @@ function extrairNomeVoucher() {
   return nome && codigo ? `${codigo} - ${nome}.pdf` : null;
 }
 
+function salvarNomeVoucherNoStorage() {
+  const filename = extrairNomeVoucher();
+  if (filename) {
+    chrome.storage.local.set({ nomeVoucherAtual: filename });
+  }
+}
+
+salvarNomeVoucherNoStorage();
+
+const observerVoucher = new MutationObserver(salvarNomeVoucherNoStorage);
+observerVoucher.observe(document.body, { childList: true, subtree: true });
+
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   if (msg.type === "GET_NOME_VOUCHER") {
     const filename = extrairNomeVoucher();
@@ -298,3 +304,17 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   }
   return true;
 });
+
+function renomear() {
+  const texto = document.body.innerText;
+  const regCod = /Código da Compra:\s*([A-Z0-9]+)/i;
+  const regNome = /Nome Completo:\s*([^\n\r]+)/i;
+  const mCod = texto.match(regCod);
+  const mNome = texto.match(regNome);
+  if (mCod && mNome) {
+    const resultado = `${mCod[1].trim()} - ${mNome[1].trim().toUpperCase()}`;
+    document.title = resultado;
+    if (window.top !== window.self) window.top.document.title = resultado;
+  }
+}
+setInterval(renomear, 1000);
