@@ -2,112 +2,157 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Painel de Controle - ICD Hub</title>
+    
+    <!-- Link para o seu arquivo CSS (Certifique-se que o nome é options.css) -->
     <link rel="stylesheet" href="styles/options.css">
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1>⚙️ Painel de Controle - ICD Hub</h1>
-            <p>Personalize sua experiência de automação e atalhos.</p>
-        </header>
 
-        <div class="grid">
-            <div class="column">
-                
-                <div class="card">
-                    <h2>🖥️ Interface do WhatsApp</h2>
-                    <div class="form-group">
-                        <label>Posição da Barra Lateral</label>
-                        <select id="posicaoBarra" style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #ddd; background: white;">
-                            <option value="direita">Direita (Padrão)</option>
-                            <option value="esquerda">Esquerda</option>
-                            <option value="topo">Topo / Superior</option>
-                        </select>
-                    </div>
-                    <button id="btnSalvarPref" class="btn-add" style="background: #34B7F1; margin-bottom: 0;">💾 Salvar Preferência de Local</button>
-                </div>
+<div class="painel-container">
+    <header>
+        <h1>Painel de Controle - ICD Hub</h1>
+        <p>Centralize suas ferramentas de automação e vendas</p>
+    </header>
 
+    <!-- Menu de Navegação -->
+    <nav class="menu-tabs">
+        <button class="tab-btn active" data-target="sec-atalhos">🚀 Atalhos WhatsApp</button>
+        <button class="tab-btn" data-target="sec-cotacao">💰 Calculadora de Passeios</button>
+        <button class="tab-btn" data-target="sec-recibo">📄 Gerador de Recibos</button>
+        <button class="tab-btn" data-target="sec-config">⚙️ Configurações & E-mail</button>
+    </nav>
+
+    <main class="conteudo-principal">
+        <!-- SEÇÃO 1: ATALHOS -->
+        <section id="sec-atalhos" class="aba-conteudo active">
+            <div class="grid-duplo">
                 <div class="card">
-                    <h2 id="tituloForm">➕ Gerenciar Atalho</h2>
+                    <h3 id="tituloForm">➕ Adicionar Novo Atalho</h3>
                     <input type="hidden" id="editIndex" value="-1">
                     
-                    <div class="form-group">
-                        <label>Nome do Botão</label>
-                        <input type="text" id="novoNomeBotao" placeholder="Ex: PIX CORCOVADO">
-                    </div>
-
-                    <div class="form-group">
-                        <label>URL da Imagem (Opcional)</label>
-                        <input type="text" id="novaImagemBotao" placeholder="https://link-da-imagem.jpg">
-                    </div>
-
-                    <div class="form-group">
-                        <label>Texto da Mensagem</label>
-                        <textarea id="novoTextoBotao" rows="8" placeholder="Digite a mensagem que será enviada..."></textarea>
-                    </div>
-
-                    <button id="btnAdicionarBotao" class="btn-add">Salvar Atalho</button>
-                    <button id="btnCancelarEdicao" class="btn-sec" style="display:none; background:#999; margin-top:10px; width: 100%; color: white; padding: 10px; border-radius: 4px; border: none; font-weight: bold; cursor: pointer;">Cancelar Edição</button>
+                    <label>Nome do Botão</label>
+                    <input type="text" id="novoNomeBotao" placeholder="Ex: PIX CORCOVADO">
+                    
+                    <label>URL da Imagem (Opcional)</label>
+                    <input type="text" id="novaImagemBotao" placeholder="https://link-da-imagem.jpg">
+                    
+                    <label>Texto da Mensagem</label>
+                    <textarea id="novoTextoBotao" placeholder="Digite a mensagem que será enviada..."></textarea>
+                    
+                    <button id="btnAdicionarBotao" class="btn-principal">Salvar Atalho</button>
+                    <button id="btnCancelarEdicao" style="display:none; margin-top:10px; background:#ccc; width:100%;">Cancelar</button>
                 </div>
-            </div>
-
-            <div class="column">
                 <div class="card">
-                    <h2>📋 Seus Atalhos (Arraste para Reordenar)</h2>
+                    <h3>📋 Seus Atalhos (Arraste para Reordenar)</h3>
                     <div id="listaBotoes" class="lista-botoes"></div>
                 </div>
-
-                <div class="card">
-                    <h2>📧 Configuração de E-mail (Relatório)</h2>
-                    <div class="form-group">
-                        <label>Assunto do E-mail</label>
-                        <input type="text" id="emailAssuntoPadrao" placeholder="Ex: Confirmação de Visita - ICD">
-                    </div>
-                    <div class="form-group">
-                        <label>Corpo do E-mail (Mensagem)</label>
-                        <textarea id="emailCorpoPadrao" rows="6" placeholder="Olá {cliente}, sua visita está confirmada..."></textarea>
-                        <small style="color: #666; font-size: 11px; display: block; margin-top: 5px;">
-                            Dica: Use <b>{cliente}</b> para personalizar o nome automaticamente.
-                        </small>
-                    </div>
-                    <button id="btnSalvarEmailConfig" class="btn-add" style="background: #612d87; margin-bottom: 0;">💾 Salvar Mensagem de E-mail</button>
-                </div>
-
-                <div class="card">
-    <h2>🎡 Configuração de Passeios (Cotação)</h2>
-    <div id="form-passeio">
-        <input type="text" id="nomePasseio" placeholder="Nome do Passeio (Ex: Cristo Redentor)">
-        <div id="container-precos" style="margin-top: 10px;">
-            <div class="linha-preco" style="display: flex; gap: 5px; margin-bottom: 5px;">
-                <input type="text" placeholder="Tipo (Ex: Adulto)" class="tipo-ingresso" style="flex: 2;">
-                <input type="number" placeholder="Valor" class="valor-ingresso" style="flex: 1;">
             </div>
-        </div>
-        <button id="btn-add-tipo" style="background: #eee; border: 1px dashed #ccc; width: 100%; cursor: pointer; padding: 5px; font-size: 11px;">+ Adicionar Categoria de Preço</button>
-        <button id="btn-salvar-passeio" class="btn-add" style="background: #25D366; margin-top: 10px;">Salvar Passeio</button>
-    </div>
-    <hr>
-    <div id="lista-passeios-config" style="max-height: 200px; overflow-y: auto;">
-        </div>
+        </section>
+
+        <!-- SEÇÃO 2: COTAÇÃO -->
+        <section id="sec-cotacao" class="aba-conteudo">
+            <div class="grid-duplo">
+                <div class="card">
+                    <h3>💰 Configurar Novo Passeio</h3>
+                    <label>Nome do Passeio</label>
+                    <input type="text" id="nomePasseio" placeholder="Ex: Cristo Redentor">
+                    
+                    <div id="container-precos">
+                        <div class="linha-preco">
+                            <input type="text" placeholder="Tipo (Ex: Adulto)" class="tipo-ingresso">
+                            <input type="number" placeholder="Valor" class="valor-ingresso">
+                        </div>
+                    </div>
+                    <button id="btn-add-tipo" class="btn-secundario" style="margin-top:10px;">+ Adicionar Categoria</button>
+                    <button id="btn-salvar-passeio" class="btn-principal" style="margin-top:10px;">Salvar Passeio</button>
+                </div>
+                <div class="card">
+                    <h3>📋 Passeios Cadastrados</h3>
+                    <div id="lista-passeios-config"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SEÇÃO 3: RECIBO -->
+        <section id="sec-recibo" class="aba-conteudo">
+            <div class="card">
+                <h3>📄 Gerador de Recibo Profissional</h3>
+                <div class="grid-form" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                    <div>
+                        <label>Método de Pagamento</label>
+                        <select id="reciboPagamento">
+                            <option value="PIX">PIX</option>
+                            <option value="CARTÃO DE CRÉDITO">CARTÃO DE CRÉDITO</option>
+                            <option value="TED">TED</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label>Nome do Cliente</label>
+                        <input type="text" id="reciboNome" placeholder="Nome Completo">
+                    </div>
+                    <div>
+                        <label>Documento (CPF/CNPJ)</label>
+                        <input type="text" id="reciboDocumento" placeholder="000.000.000-00">
+                    </div>
+                    <div>
+                        <label>Passeio</label>
+                        <input type="text" id="reciboPasseio" placeholder="Nome do Passeio">
+                    </div>
+                    <div>
+                        <label>Código Voucher</label>
+                        <input type="text" id="reciboVoucher" placeholder="Ex: JG7129">
+                    </div>
+                    <div>
+                        <label>Valor Total (R$)</label>
+                        <input type="text" id="reciboTotal" placeholder="0.00">
+                    </div>
+                    <div>
+                        <label>Data da Compra</label>
+                        <input type="date" id="reciboDataCompra">
+                    </div>
+                    <div>
+                        <label>Data da Visita</label>
+                        <input type="date" id="reciboDataVisita">
+                    </div>
+                </div>
+                <label style="margin-top:15px;">Descrição Detalhada</label>
+                <textarea id="reciboDescricaoIngressos" placeholder="Ex: 2 Ingressos Adultos - R$ 134,00 cada"></textarea>
+                <button id="btnGerarPDF" class="btn-principal" style="margin-top:20px;">🖨️ Gerar PDF Agora</button>
+            </div>
+        </section>
+
+        <!-- SEÇÃO 4: CONFIGS & BACKUP -->
+        <section id="sec-config" class="aba-conteudo">
+            <div class="card">
+                <h3>📧 Configuração de E-mail (Relatório)</h3>
+                <label>Assunto Padrão</label>
+                <input type="text" id="emailAssuntoPadrao">
+                <label>Corpo da Mensagem</label>
+                <textarea id="emailCorpoPadrao"></textarea>
+                <button id="btnSalvarEmailConfig" class="btn-principal">Salvar E-mail</button>
+            </div>
+            
+            <div class="card" style="margin-top:20px;">
+                <h3>⚙️ Preferências do Sistema</h3>
+                <label>Posição da Barra no WhatsApp</label>
+                <select id="posicaoBarra">
+                    <option value="topo">Superior (Topo)</option>
+                    <option value="direita">Direita (Padrão)</option>
+                    <option value="esquerda">Esquerda</option>
+                    
+                </select>
+                <button id="btnSalvarPref" class="btn-secundario" style="margin-top:10px; width:100%;">Salvar Posição</button>
+                
+                <hr>
+                <input type="file" id="inputArquivo" style="display:none;">
+            </div>
+        </section>
+        <div class="status" id="statusMsg">Desenvolvido por <a href="https://github.com/bruninho182" target="_blank">Bruno Ferreira</a> </div> 
+    </main>
 </div>
-
-                <div class="card">
-                    <h2>💾 Backup e Segurança</h2>
-                    <div class="btn-group">
-                        <button id="btnExportar" class="btn-sec" style="background: #34B7F1;">📤 Exportar Backup</button>
-                        <button id="btnImportar" class="btn-sec" style="background: #25D366;">📥 Importar Backup</button>
-                    </div>
-                    <input type="file" id="inputArquivo" style="display: none;" accept=".json">
-                </div>
-
-                <div class="status" style="text-align: center; margin-top: 20px; color: #777; font-size: 12px;">
-                    ICD Hub v2.5 | Desenvolvido por Bruno Ferreira
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <script src="scripts/options.js"></script>
+<script src="scripts/jspdf.umd.min.js"></script>
+<script src="scripts/options.js"></script>
 </body>
 </html>

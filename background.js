@@ -1,7 +1,3 @@
-/* =========================================================
-   ICD HUB - BACKGROUND CENTRAL
-   ========================================================= */
-
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.acao === "DADOS_PRONTOS") {
     chrome.tabs.query({}, (tabs) => {

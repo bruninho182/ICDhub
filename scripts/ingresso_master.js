@@ -1,4 +1,6 @@
-console.log("✅ ICD Hub: Ativado");
+console.log("✅ ICD Hub: Ativado (Versão TicketGo + Voucher Fix)");
+
+// --- 1. MONITORAMENTO DE DADOS ---
 
 chrome.storage.local.get(
   [
@@ -6,6 +8,7 @@ chrome.storage.local.get(
     "nomeOperador",
     "bridgeData",
     "reservaGrayline",
+    "ticketgoData", // Adicionado TicketGo
     "usuarioConfigurado",
   ],
   (res) => {
@@ -22,6 +25,7 @@ chrome.storage.onChanged.addListener((changes, area) => {
         "dadosPedido",
         "bridgeData",
         "reservaGrayline",
+        "ticketgoData", // Adicionado TicketGo
       ],
       (res) => {
         executarComTentativas(res);
@@ -43,21 +47,21 @@ function executarPreenchimento(res) {
   const isNovoSistema = window.location.href.includes("app.icdgrupo.com.br");
 
   if (isNovoSistema) {
+    // Prioridade TicketGo
+    if (res.ticketgoData)
+      return preencherNovoSistemaICD(res.ticketgoData, res.nomeOperador, "TicketGo");
+    
     if (res.dadosPedido)
       return preencherNovoSistemaICD(res.dadosPedido, res.nomeOperador, "GYG");
+    
     if (res.bridgeData)
-      return preencherNovoSistemaICD(
-        res.bridgeData,
-        res.usuarioConfigurado,
-        "Bridge",
-      );
+      return preencherNovoSistemaICD(res.bridgeData, res.usuarioConfigurado, "Bridge");
+    
     if (res.reservaGrayline)
-      return preencherNovoSistemaICD(
-        res.reservaGrayline,
-        res.usuarioConfigurado,
-        "Grayline",
-      );
+      return preencherNovoSistemaICD(res.reservaGrayline, res.usuarioConfigurado, "Grayline");
+    
   } else {
+    // Sistema Antigo
     if (res.dadosPedido) preencherCamposGYG(res.dadosPedido, res.nomeOperador);
     if (res.bridgeData)
       preencherHeadoutGrayline(res.bridgeData, res.usuarioConfigurado);
@@ -67,6 +71,8 @@ function executarPreenchimento(res) {
   }
   return false;
 }
+
+// --- 2. CONFIGURAÇÕES E TEXTOS ---
 
 const textoPadraoEmail = `Dear visitor,
 
@@ -84,6 +90,8 @@ Phone: (11) 3939-0435 / (21) 4063-3003
 We are at your disposal!
 
 Best regards,`;
+
+// --- 3. SNIPER MUI (SISTEMA NOVO) ---
 
 function findInputByMuiText(term) {
   const textToFind = term.toLowerCase();
@@ -139,7 +147,8 @@ async function selecionarBarraMui(labelBusca, valorAlvo) {
 function preencherNovoSistemaICD(dados, operador, dataType) {
   if (!dados) return false;
 
-  const idReserva = dados.gyg || dados.bookingId || "";
+  // Ajuste para TicketGo usar o Order Number como Documento
+  const idReserva = dados.orderNumber || dados.gyg || dados.bookingId || "";
   const refExterna = `${idReserva} - ${operador || "OPERADOR"}`;
 
   const mapeamento = [
@@ -166,16 +175,19 @@ function preencherNovoSistemaICD(dados, operador, dataType) {
   if (count > 0) {
     prepararDadosEmail(idReserva, dados.nome, dados.email);
     setTimeout(() => {
-      const keys =
-        dataType === "GYG"
-          ? ["dadosPedido"]
-          : ["bridgeData", "reservaGrayline"];
-      chrome.storage.local.remove(keys);
+      let keysToRemove = [];
+      if (dataType === "TicketGo") keysToRemove = ["ticketgoData"];
+      else if (dataType === "GYG") keysToRemove = ["dadosPedido"];
+      else keysToRemove = ["bridgeData", "reservaGrayline"];
+      
+      chrome.storage.local.remove(keysToRemove);
     }, 5000);
     return true;
   }
   return false;
 }
+
+// --- 4. FUNÇÕES DE SUPORTE E SISTEMA ANTIGO ---
 
 function preencherAposTexto(numero, valor) {
   const todosElementos = Array.from(
@@ -257,6 +269,8 @@ function prepararDadosEmail(id, nome, email) {
   };
   chrome.storage.local.set({ dadosParaEmail: dadosEmail });
 }
+
+// --- 5. LÓGICA DE VOUCHERS E TÍTULOS ---
 
 function extrairNomeVoucher() {
   let nome = "";

@@ -22,7 +22,7 @@ body {
     line-height: 1.6;
 }
 
-.container {
+.painel-container {
     max-width: 1100px;
     margin: 0 auto;
     padding: 40px 20px;
@@ -31,7 +31,7 @@ body {
 /* --- CABEÇALHO --- */
 header {
     text-align: center;
-    margin-bottom: 40px;
+    margin-bottom: 30px;
     padding-bottom: 20px;
     border-bottom: 2px solid var(--primary-color);
 }
@@ -49,15 +49,69 @@ header p {
     font-size: 16px;
 }
 
+/* =========================================================
+   🆕 ESTILOS DAS ABAS (EFEITO CORTINA)
+   ========================================================= */
+
+.menu-tabs {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 30px;
+    background: #eaedf0;
+    padding: 8px;
+    border-radius: 12px;
+}
+
+.tab-btn {
+    flex: 1;
+    padding: 12px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    font-weight: bold;
+    color: var(--text-light);
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    font-size: 13px;
+    letter-spacing: 0.5px;
+}
+
+.tab-btn:hover {
+    background: rgba(97, 45, 135, 0.05);
+    color: var(--primary-color);
+}
+
+.tab-btn.active {
+    background: var(--primary-color);
+    color: white;
+    box-shadow: 0 4px 12px rgba(97, 45, 135, 0.2);
+}
+
+/* Efeito de surgimento (Cortina) */
+.aba-conteudo {
+    display: none;
+    opacity: 0;
+    transform: translateY(15px);
+    transition: all 0.4s ease;
+}
+
+.aba-conteudo.active {
+    display: block;
+    opacity: 1;
+    transform: translateY(0);
+}
+
 /* --- GRID DE LAYOUT --- */
-.grid {
+.grid-duplo {
     display: grid;
-    grid-template-columns: 1fr 1.5fr; /* Coluna da direita é maior */
+    grid-template-columns: 1fr 1.5fr; 
     gap: 30px;
 }
 
 @media (max-width: 768px) {
-    .grid { grid-template-columns: 1fr; }
+    .grid-duplo { grid-template-columns: 1fr; }
+    .menu-tabs { flex-direction: column; }
 }
 
 /* --- CARDS (Containers) --- */
@@ -68,13 +122,14 @@ header p {
     box-shadow: 0 4px 15px rgba(0,0,0,0.05);
     border: 1px solid var(--border-color);
     transition: transform 0.2s;
+    margin-bottom: 20px;
 }
 
 .card:hover {
     transform: translateY(-2px);
 }
 
-.card h2 {
+.card h3 {
     color: var(--primary-color);
     font-size: 18px;
     margin-top: 0;
@@ -90,7 +145,7 @@ header p {
 
 label {
     display: block;
-    font-size: 12px;
+    font-size: 11px;
     font-weight: bold;
     color: var(--text-light);
     margin-bottom: 5px;
@@ -98,6 +153,9 @@ label {
 }
 
 input[type="text"],
+input[type="number"],
+input[type="date"],
+select,
 textarea {
     width: 100%;
     padding: 12px;
@@ -107,17 +165,18 @@ textarea {
     font-family: inherit;
     font-size: 14px;
     transition: border-color 0.2s;
+    background: #fff;
 }
 
-input[type="text"]:focus,
-textarea:focus {
+input:focus, textarea:focus, select:focus {
     outline: none;
     border-color: var(--primary-color);
     box-shadow: 0 0 0 3px rgba(97, 45, 135, 0.1);
 }
 
 textarea {
-    resize: vertical; 
+    resize: vertical;
+    min-height: 80px;
 }
 
 /* --- BOTÕES --- */
@@ -131,35 +190,32 @@ button {
     font-size: 14px;
 }
 
-.btn-add {
+.btn-principal {
     width: 100%;
     padding: 12px;
     background-color: var(--secondary-color);
     color: white;
 }
 
-.btn-add:hover {
+.btn-principal:hover {
     background-color: #e68a00;
     transform: translateY(-1px);
 }
 
-.btn-group {
-    display: flex;
-    gap: 10px;
-    margin-top: 15px;
+.btn-secundario {
+    background-color: var(--info-color);
+    color: white;
+    padding: 8px 15px;
 }
 
-.btn-sec {
-    flex: 1;
-    padding: 10px;
+.btn-backup {
+    padding: 10px 20px;
     color: white;
+    margin-right: 10px;
 }
 
 #btnExportar { background-color: var(--info-color); }
-#btnExportar:hover { background-color: #2da1d4; }
-
 #btnImportar { background-color: var(--success-color); }
-#btnImportar:hover { background-color: #1eb957; }
 
 hr {
     border: 0;
@@ -167,92 +223,28 @@ hr {
     margin: 25px 0;
 }
 
-/* --- LISTA DE BOTÕES (COLUNA DIREITA) --- */
-.lista-botoes {
-    max-height: 400px; /* Limita a altura e cria rolagem */
+/* --- LISTA DE BOTÕES / ITENS --- */
+#listaBotoes, #lista-passeios-config {
+    max-height: 500px;
     overflow-y: auto;
-    padding-right: 10px;
+    padding-right: 5px;
 }
 
 .item-lista {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 15px;
-    background-color: #fbfcfc;
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    margin-bottom: 10px;
-    transition: background-color 0.2s;
-}
-
-.item-lista:hover {
-    background-color: #f1f3f4;
-}
-
-.item-lista .info {
-    flex: 1;
-    margin-right: 15px;
-}
-
-.item-lista strong {
-    color: var(--text-color);
-    font-size: 14px;
-    display: block;
-    margin-bottom: 2px;
-}
-
-.item-lista p {
-    color: var(--text-light);
-    font-size: 12px;
-    margin: 0;
-    /* Corta texto muito longo */
-    display: -webkit-box;
-    -webkit-line-clamp: 1;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-}
-
-.btn-del {
-    padding: 6px 12px;
-    background-color: transparent;
-    color: var(--danger-color);
-    border: 1px solid var(--danger-color);
-    font-size: 12px;
-}
-
-.btn-del:hover {
-    background-color: var(--danger-color);
-    color: white;
-}
-
-.acoes {
-    display: flex;
-    gap: 5px;
-}
-.btn-edit {
-    padding: 6px 12px;
-    background-color: var(--info-color);
-    color: white;
-    font-size: 12px;
-}
-
-
-.item-lista {
-    cursor: grab; /* Muda o cursor para uma mãozinha */
+    cursor: grab;
     display: flex;
     align-items: center;
     gap: 15px;
     background: #fff;
     border: 1px solid var(--border-color);
-    margin-bottom: 8px;
-    padding: 10px 15px;
+    margin-bottom: 10px;
+    padding: 12px 15px;
     border-radius: 8px;
+    transition: background 0.2s;
 }
 
-.item-lista:active {
-    cursor: grabbing;
-}
+.item-lista:active { cursor: grabbing; }
+.item-lista:hover { background-color: #f8f9f9; }
 
 .drag-handle {
     color: #ccc;
@@ -262,11 +254,33 @@ hr {
     border-right: 1px solid #eee;
 }
 
-.item-lista:hover .drag-handle {
-    color: var(--primary-color);
+.info { flex: 1; }
+.info strong { display: block; font-size: 14px; color: var(--text-color); }
+.info p { margin: 0; font-size: 12px; color: var(--text-light); }
+
+.acoes { display: flex; gap: 8px; }
+
+.btn-edit {
+    padding: 6px 12px;
+    background-color: var(--info-color);
+    color: white;
+    font-size: 11px;
 }
 
-.lista-botoes::-webkit-scrollbar { width: 6px; }
-.lista-botoes::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 10px; }
-.lista-botoes::-webkit-scrollbar-thumb { background: #ccc; border-radius: 10px; }
-.lista-botoes::-webkit-scrollbar-thumb:hover { background: #999; }
+.btn-del {
+    padding: 6px 12px;
+    background-color: transparent;
+    color: var(--danger-color);
+    border: 1px solid var(--danger-color);
+    font-size: 11px;
+}
+
+.btn-del:hover {
+    background-color: var(--danger-color);
+    color: white;
+}
+
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 10px; }
+::-webkit-scrollbar-thumb { background: #ccc; border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: #999; }

@@ -15,7 +15,8 @@
     "https://web.whatsapp.com/*",
     "https://supplier.getyourguide.com/*",
     "https://webmail-seguro.com.br/*",
-    "https://webmail.locaweb.com.br/*"
+    "https://webmail.locaweb.com.br/*",
+    "https://admin.ticketgotourism.com/*"
   ],
   "action": {
     "default_popup": "popup.html",
@@ -34,6 +35,12 @@
     "128": "icon.png"
   },
   "content_scripts": [
+
+    {
+    "matches": ["https://admin.ticketgotourism.com/*"],
+    "js": ["scripts/ticketgo_bridge.js"]
+    },
+
     {
       "matches": [
         "https://admin.tourcms.com/admin/bookings/bookings_edit.php?bid=*"

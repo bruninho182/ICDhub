@@ -1,4 +1,23 @@
+
 document.addEventListener('DOMContentLoaded', () => {
+
+    const tabButtons = document.querySelectorAll('.tab-btn');
+    const tabContents = document.querySelectorAll('.aba-conteudo');
+
+    tabButtons.forEach(btn => {
+        btn.onclick = () => {
+            const target = btn.dataset.target;
+
+            // Alterna classes nos botões e nas seções
+            tabButtons.forEach(b => b.classList.remove('active'));
+            tabContents.forEach(c => c.classList.remove('active'));
+ 
+            btn.classList.add('active');
+            const targetElement = document.getElementById(target);
+            if (targetElement) targetElement.classList.add('active');
+        };
+    });
+
     const listaBotoesDiv = document.getElementById('listaBotoes');
     const inputArquivo = document.getElementById('inputArquivo');
     const editIndexField = document.getElementById('editIndex');
@@ -22,7 +41,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (res.emailCorpo) document.getElementById('emailCorpoPadrao').value = res.emailCorpo;
     });
 
-    // Salvar Preferência de Posição
     btnSalvarPref.onclick = () => {
         const posicao = seletorPosicao.value;
         chrome.storage.local.set({ posicaoBarra: posicao }, () => {
@@ -30,7 +48,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     };
 
-    // Adicionar/Editar Botão
+  
     document.getElementById('btnAdicionarBotao').onclick = () => {
         const nome = document.getElementById('novoNomeBotao').value.trim();
         const texto = document.getElementById('novoTextoBotao').value.trim();
@@ -52,7 +70,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 configBotoes[idx] = dadosBotao;
             }
 
-            salvar();
+            salvarShortcuts();
             limparFormulario();
         } else {
             alert("Por favor, preencha pelo menos o nome e o texto da mensagem.");
@@ -97,13 +115,12 @@ document.addEventListener('DOMContentLoaded', () => {
             b.onclick = (e) => {
                 if(confirm("Deseja realmente excluir este atalho?")) {
                     configBotoes.splice(e.target.dataset.index, 1);
-                    salvar();
+                    salvarShortcuts();
                 }
             };
         });
     }
 
-    // --- LÓGICA DE ARRASTAR ---
     function handleDragStart(e) {
         dragSrcIndex = this.dataset.index;
         this.style.opacity = '0.4';
@@ -119,7 +136,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (dragSrcIndex !== targetIndex) {
             const movedItem = configBotoes.splice(dragSrcIndex, 1)[0];
             configBotoes.splice(targetIndex, 0, movedItem);
-            salvar();
+            salvarShortcuts();
         }
         return false;
     }
@@ -147,56 +164,42 @@ document.addEventListener('DOMContentLoaded', () => {
 
     btnCancelar.onclick = limparFormulario;
 
-    function salvar() {
+    function salvarShortcuts() {
         chrome.storage.local.set({ configMaster: configBotoes }, () => {
             renderizarLista();
         });
     }
 
-    // =========================================================
-    // 📦 BACKUP ATUALIZADO (EXPORTA TUDO: BOTÕES + PASSEIOS + CONFIGS)
-    // =========================================================
     document.getElementById('btnExportar').onclick = () => {
         chrome.storage.local.get(null, (todosOsDados) => {
             if (Object.keys(todosOsDados).length === 0) return alert("Não há dados para exportar.");
-            
             const blob = new Blob([JSON.stringify(todosOsDados, null, 2)], {type: "application/json"});
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             const dataHora = new Date().toLocaleDateString().replace(/\//g, '-');
-            
             a.href = url; 
             a.download = `backup_completo_icd_hub_${dataHora}.json`; 
             a.click();
             URL.revokeObjectURL(url);
-            console.log("✅ Backup completo gerado.");
         });
     };
 
-    // ======================
-    // 📥 IMPORTAÇÃO 
-    // ======================
     document.getElementById('btnImportar').onclick = () => inputArquivo.click();
     
     inputArquivo.onchange = (e) => {
         const arquivo = e.target.files[0];
         if (!arquivo) return;
-
         const reader = new FileReader();
         reader.onload = (ev) => {
             try {
                 const dadosRestaurados = JSON.parse(ev.target.result);
-                
                 chrome.storage.local.set(dadosRestaurados, () => {
                     alert("✅ Todas as configurações e tarifários foram restaurados!");
                     location.reload(); 
                 });
-            } catch (err) {
-                alert("❌ Erro ao ler o arquivo. Verifique se é um backup válido.");
-            }
+            } catch (err) { alert("❌ Erro ao ler o arquivo."); }
         };
         reader.readAsText(arquivo);
-        inputArquivo.value = "";
     };
 
     document.getElementById('btnSalvarEmailConfig').onclick = () => {
@@ -206,11 +209,66 @@ document.addEventListener('DOMContentLoaded', () => {
             alert("✅ Configurações de e-mail salvas!");
         });
     };
-});
 
-/* =========================================================
-   CALCULADORA DE COTAÇÃO (TARIFÁRIOS)
-   ========================================================= */
+    document.getElementById('btnGerarPDF').onclick = function() {
+        if (!window.jspdf) return alert("❌ Erro: Biblioteca jspdf não encontrada!");
+        
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        const roxoICD = [97, 45, 135];
+
+        // 1. Título e Dados do Form
+        doc.setTextColor(roxoICD[0], roxoICD[1], roxoICD[2]);
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(22);
+        doc.text("Recibo", 105, 45, { align: "center" });
+
+        doc.setTextColor(0, 0, 0);
+        doc.setFontSize(11);
+        doc.setFont("helvetica", "normal");
+        
+        const pagamento = document.getElementById('reciboPagamento').value;
+        const nome = document.getElementById('reciboNome').value.toUpperCase();
+        const docCliente = document.getElementById('reciboDocumento').value;
+        const textoDeclaracao = `O GRUPO ICD, inscrito no CNPJ 10.335.415/0001-70, declara ter recebido os valores descritos abaixo, referente ao pagamento via ${pagamento} pago por ${nome}, inscrito no documento: ${docCliente}.`;
+        
+        const splitTexto = doc.splitTextToSize(textoDeclaracao, 175);
+        doc.text(splitTexto, 20, 65);
+
+        doc.setDrawColor(roxoICD[0], roxoICD[1], roxoICD[2]);
+        doc.line(20, 115, 190, 115);
+        doc.setFont("helvetica", "bold");
+        doc.text("Data da Compra", 20, 122);
+        doc.text("Voucher", 75, 122);
+        doc.text("Data da Visita", 125, 122);
+        doc.text("Valor", 170, 122);
+
+        doc.setFont("helvetica", "normal");
+        const dCompra = formatarDataBR(document.getElementById('reciboDataCompra').value);
+        const dVisita = formatarDataBR(document.getElementById('reciboDataVisita').value);
+        const vTotal = document.getElementById('reciboTotal').value;
+
+        doc.text(dCompra, 20, 131);
+        doc.text(document.getElementById('reciboVoucher').value, 75, 131);
+        doc.text(dVisita, 125, 131);
+        doc.text(`R$ ${vTotal}`, 170, 131);
+        doc.line(20, 138, 190, 138);
+
+        // 3. Data por Extenso
+        const dataAtual = new Date();
+        const meses = ["janeiro", "fevereiro", "março", "abril", "maio", "junho", "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"];
+        const dataExtenso = `Itatiba, ${dataAtual.getDate()} de ${meses[dataAtual.getMonth()]} de ${dataAtual.getFullYear()}.`;
+        doc.text(dataExtenso, 190, 168, { align: "right" });
+
+        doc.save(`RECIBO_${document.getElementById('reciboVoucher').value}.pdf`);
+    };
+
+    function formatarDataBR(dataISO) {
+        if (!dataISO) return "";
+        const [ano, mes, dia] = dataISO.split("-");
+        return `${dia}/${mes}/${ano}`;
+    }
+});
 
 let editPasseioIndex = -1; 
 
