@@ -1,7 +1,7 @@
 console.log("✅ ICD Hub: TicketGo Bridge - Sniper Ativado");
 
 function injetarBotaoTicketGo() {
-    // Procura o cabeçalho do modal para injetar o botão
+
     const header = document.querySelector('.modal-header') || document.body;
     
     if (document.getElementById('btn-copy-ticketgo')) return;
@@ -15,7 +15,27 @@ function injetarBotaoTicketGo() {
         const firstName = document.getElementsByName('firstname')[0]?.value || "";
         const lastName = document.getElementsByName('lastname')[0]?.value || "";
         const email = document.getElementsByName('email')[0]?.value || "";
-        const phone = document.getElementsByName('phone')[0]?.value || "";
+
+
+        let phone = document.getElementsByName('phone')[0]?.value || "";
+
+        if (!phone.trim()) {
+            const todosInputs = document.querySelectorAll('input');
+            for (let input of todosInputs) {
+                let valor = input.value.trim();
+                
+
+                if (valor.startsWith('+') && valor.length >= 9) {
+
+                    let soNumeros = valor.substring(1).replace(/\s/g, ''); 
+                    if (!isNaN(soNumeros)) {
+                        phone = valor;
+                        console.log("✅ Telefone escondido encontrado na TicketGo:", phone);
+                        break; 
+                    }
+                }
+            }
+        }
 
         const orderField = document.getElementsByName('order_uuid')[0] || 
                            document.querySelector('[id*="order_uuid"]');

@@ -16,7 +16,8 @@
     "https://supplier.getyourguide.com/*",
     "https://webmail-seguro.com.br/*",
     "https://webmail.locaweb.com.br/*",
-    "https://admin.ticketgotourism.com/*"
+    "https://admin.ticketgotourism.com/*",
+    "*://navio.ingressocomdesconto.com.br/*"
   ],
   "action": {
     "default_popup": "popup.html",
@@ -37,8 +38,13 @@
   "content_scripts": [
 
     {
-    "matches": ["https://admin.ticketgotourism.com/*"],
-    "js": ["scripts/ticketgo_bridge.js"]
+      "matches": ["https://admin.ticketgotourism.com/*"],
+      "js": ["scripts/ticketgo_bridge.js"]
+    },
+
+    {
+      "matches": ["*://navio.ingressocomdesconto.com.br/*"],
+      "js": ["scripts/navio_bridge.js"]
     },
 
     {

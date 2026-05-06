@@ -1,4 +1,4 @@
-console.log("✅ ICD Hub: Ativado (Versão TicketGo + Voucher Fix)");
+console.log("✅ ICD Hub: Ativado (Versão TicketGo + Voucher Fix + Navio)");
 
 // --- 1. MONITORAMENTO DE DADOS ---
 
@@ -8,7 +8,8 @@ chrome.storage.local.get(
     "nomeOperador",
     "bridgeData",
     "reservaGrayline",
-    "ticketgoData", // Adicionado TicketGo
+    "ticketgoData", 
+    "navioDataBridge", // Adicionado Navio
     "usuarioConfigurado",
   ],
   (res) => {
@@ -25,7 +26,8 @@ chrome.storage.onChanged.addListener((changes, area) => {
         "dadosPedido",
         "bridgeData",
         "reservaGrayline",
-        "ticketgoData", // Adicionado TicketGo
+        "ticketgoData", 
+        "navioDataBridge", // Adicionado Navio
       ],
       (res) => {
         executarComTentativas(res);
@@ -47,6 +49,10 @@ function executarPreenchimento(res) {
   const isNovoSistema = window.location.href.includes("app.icdgrupo.com.br");
 
   if (isNovoSistema) {
+    // Prioridade Navio
+    if (res.navioDataBridge)
+      return preencherNovoSistemaICD(res.navioDataBridge, res.nomeOperador, "Navio");
+
     // Prioridade TicketGo
     if (res.ticketgoData)
       return preencherNovoSistemaICD(res.ticketgoData, res.nomeOperador, "TicketGo");
@@ -147,8 +153,8 @@ async function selecionarBarraMui(labelBusca, valorAlvo) {
 function preencherNovoSistemaICD(dados, operador, dataType) {
   if (!dados) return false;
 
-  // Ajuste para TicketGo usar o Order Number como Documento
-  const idReserva = dados.orderNumber || dados.gyg || dados.bookingId || "";
+  // Ajuste para pegar as diferentes fontes de ID (Incluído dados.idOriginal do Navio)
+  const idReserva = dados.orderNumber || dados.gyg || dados.bookingId || dados.idOriginal || "";
   const refExterna = `${idReserva} - ${operador || "OPERADOR"}`;
 
   const mapeamento = [
@@ -177,6 +183,7 @@ function preencherNovoSistemaICD(dados, operador, dataType) {
     setTimeout(() => {
       let keysToRemove = [];
       if (dataType === "TicketGo") keysToRemove = ["ticketgoData"];
+      else if (dataType === "Navio") keysToRemove = ["navioDataBridge"]; // Limpa storage do Navio
       else if (dataType === "GYG") keysToRemove = ["dadosPedido"];
       else keysToRemove = ["bridgeData", "reservaGrayline"];
       
