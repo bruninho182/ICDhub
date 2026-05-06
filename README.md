@@ -1,6 +1,6 @@
-# 🚀 ICD Hub - Integrador Universal v2.5
+# 🚀 ICD Hub - Integrador Universal v3.0
 
-O **ICD Hub** é uma extensão de alta performance para Google Chrome, desenvolvida exclusivamente para otimizar o ecossistema de operações da **Ingresso com Desconto**. A ferramenta atua como o "cérebro" da operação, integrando plataformas de turismo, comunicação via WhatsApp e gestão de e-mails em um único fluxo automatizado.
+O **ICD Hub** é uma extensão de alta performance iniclamente para Google Chrome porém hoje funciona em diversos navegadores, desenvolvida exclusivamente para otimizar o ecossistema de operações da **Ingresso com Desconto**. A ferramenta atua como o "cérebro" da operação, integrando plataformas de turismo, comunicação via WhatsApp e gestão de e-mails em um único fluxo automatizado.
 
 ---
 
@@ -30,43 +30,52 @@ Integração profunda com o Webmail Locaweb.
 * **Preservação de Assinatura:** O script detecta a assinatura oficial do operador e a mantém no final do corpo do e-mail, injetando o texto no topo.
 * **Disparo em Massa (CCO):** Preenchimento automático de múltiplos e-mails em Cópia Oculta a partir do relatório de visitas.
 
-### 🌉 4. Bridge & Automação de Dados
+### 🌉 4. Bridge Multiplataformas & Sniper MUI
 Ponte de dados entre sistemas internacionais e o sistema ICD.
-* **Auto-fill Multiplataforma:** Extração de dados do **TourCMS (Grayline)**, **Headout** e **GetYourGuide**.
+* **Auto-fill Inteligente (Sniper MUI):** Bypassa o Virtual DOM do React (setNativeValue) no novo painel da ICD, forçando o preenchimento automático de campos dinâmicos e selecionando opções em dropdowns (Material-UI) automaticamente.
 * **Smart Rename:** Renomeia automaticamente o título da aba do navegador com o `Código da Venda - Nome do Cliente`, facilitando a organização e o salvamento de PDFs.
 * **Sincronização de Operador:** O nome do operador configurado é replicado em todos os registros de venda e logs.
+* **Navio Ingressos Bridge:** Extrai dados de reservas do painel Navio e injeta automaticamente os dados via listener, sem necessidade de cliques adicionais no destino.
+* **TicketGo Bridge:** Caça e extrai de forma inteligente telefones em campos dinâmicos (Order-Level Requirements), nomes, emails e Order Numbers.
+* **Smart Rename & Vouchers:** Renomeia automaticamente o título da aba do navegador com o Código da Venda - Nome do Cliente, facilitando o salvamento de PDFs e localizando Vouchers pelo MuiChip-label.
 
 ### ⚙️ 5. Painel de Gestão (CRUD)
 Área administrativa completa dentro das opções da extensão.
 * **Gestão de Tarifários:** Adicione, exclua e **edite** passeios e categorias de preços (Adulto, Criança, etc.).
-* **Configurador de Atalhos:** Personalize as mensagens e links de fotos que aparecem na barra do WhatsApp.
+* **Configurador de Atalhos:** Personalize as mensagens e links de fotos que aparecem na barra do WhatsApp com suporte a Reordenação (Drag & Drop).
+* **Gerador de Recibo PDF:** Motor nativo usando jsPDF para gerar recibos de pagamento formatados, com conversão de datas (BR) e cores padrão da marca.
+* **CSistema de Backup Global:** Importe e exporte arquivos .json com todas as suas configurações (tarifários, e-mails, atalhos), blindando a operação contra perdas de dados.
 
 ---
 
 ## 🛠️ Tecnologias Utilizadas
 * **Engine:** JavaScript (ES6+) e Chrome Extension API (v3).
-* **Storage:** `chrome.storage.local` para persistência de tarifários e preferências.
-* **UI/UX:** CSS Grid e Flexbox dinâmico para interfaces responsivas sobre o WhatsApp Web.
-* **Graphics:** HTML5 Canvas para processamento de imagens em tempo real.
-
+* **Bypass de Frameworks:** Manipulação direta de protótipos (`Object.getOwnPropertyDescriptor`) para preenchimento forçado em React/Material-UI.
+* **Storage & Listeners:** `chrome.storage.local` com `onChanged.addListener` para comunicação em tempo real entre diferentes abas.
+* **UI/UX:** CSS Grid, Flexbox e componentes dinâmicos de interface limpa.
+* **Bibliotecas Externas:** `jsPDF` para geração de relatórios e recibos client-side.
 ---
 
 ## 📁 Estrutura do Projeto
 ```text
-ICD-Hub/
-├── manifest.json         # Manifesto V3 (Permissões e Rotas)
-├── options.html          # Painel de Controle e Gestão de Tarifários
+ICDhub-main/
+├── manifest.json            # Manifesto V3 (Permissões e Rotas)
+├── options.html             # Painel Administrativo em Abas
+├── options.js               # Gestão CRUD, PDF, Backup e Preferências
 ├── scripts/
-│   ├── whatsapp_tool.js  # Sidebar, Calculadora e Lógica de Chat
-│   ├── ingresso_master.js# Automação de preenchimento e "Bridge"
-│   ├── mail_tool.js      # Integração e Concatenação de Assinatura
-│   ├── relatorio_tool.js # Lógica de CCO e Relatórios
-│   └── enviar_voucher.js # Script isolado para página de Voucher
+│   ├── whatsapp_tool.js     # Sidebar, Calculadora e Lógica de Chat
+│   ├── ingresso_master.js   # O "Cérebro": Automação, Sniper MUI e Bridge GYG/Grayline
+│   ├── ticketgo_bridge.js   # Extrator inteligente para a plataforma TicketGo
+│   ├── navio_bridge.js      # Extrator de dados para pré-venda Navio
+│   ├── mail_tool.js         # Integração e Concatenação de Assinatura
+│   ├── relatorio_tool.js    # Lógica de CCO e Relatórios
+│   ├── enviar_voucher.js    # Script isolado para página de Voucher
+│   └── jspdf.umd.min.js     # Biblioteca de processamento de PDFs
 └── styles/
-    ├── whatsapp.css      # Design responsivo e estados (aberto/fechado)
-    └── options.css       # Estilização do Painel Administrativo
+    ├── whatsapp.css         # Design responsivo e estados (aberto/fechado)
+    └── options.css          # Estilização do Painel Administrativo
 
 
-    Bruno Ferreira Especialista em Automação de Processos e Desenvolvimento Web.
+  Bruno Ferreira - Especialista em Automação de Processos e Desenvolvimento Web.
 
 Este software é de uso exclusivo interno. Todos os direitos reservados à equipe de desenvolvimento e ICD.
