@@ -17,6 +17,8 @@
     "https://webmail-seguro.com.br/*",
     "https://webmail.locaweb.com.br/*",
     "https://admin.ticketgotourism.com/*",
+    "https://report.ingressocomdesconto.com.br/adm/paginas/*",
+    "https://*.ingressocomdesconto.com.br/adm/paginas/*",
     "*://navio.ingressocomdesconto.com.br/*"
   ],
   "action": {
@@ -83,12 +85,14 @@
     },
     {
       "matches": [
-        "https://www.ingressocomdesconto.com.br/adm/paginas/relatorio_previsaovisitas.asp*"
+        "https://www.ingressocomdesconto.com.br/adm/paginas/relatorio_previsaovisitas.asp*",
+        "https://report.ingressocomdesconto.com.br/adm/paginas/*",
+        "https://*.ingressocomdesconto.com.br/adm/paginas/*"
       ],
       "js": ["scripts/relatorio_tool.js"]
     },
     {
-      "matches": [
+      "matches": [  
         "https://www.ingressocomdesconto.com.br/adm/paginas/voucher.asp*"
       ],
       "js": ["scripts/enviar_voucher.js"]

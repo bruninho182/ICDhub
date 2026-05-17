@@ -10,25 +10,52 @@ function injetarFerramentasRelatorio() {
     
     document.body.appendChild(btnMassa);
 
-
     const linhas = document.querySelectorAll('table tr'); 
 
     linhas.forEach((linha, index) => {
-        const celulas = linha.querySelectorAll('td');
-        
+        // Pegar th também para não quebrar o alinhamento do cabeçalho
+        const celulas = Array.from(linha.querySelectorAll('td, th')); 
 
-        if (celulas.length >= 5) {
-            const nomeCliente = celulas[2]?.innerText.trim();
-            const emailCliente = celulas[3]?.innerText.trim();
+        if (celulas.length >= 4) {
+            let emailCliente = "";
+            let nomeCliente = "Cliente";
+            let encontrouEmail = false;
 
-            if (emailCliente && emailCliente.includes('@')) {
+            // Busca universal: Varre todas as células da linha atrás de um e-mail
+            for (let i = 0; i < celulas.length; i++) {
+                const texto = celulas[i].innerText.trim();
+                
+                // Padrão (Regex) que identifica um e-mail em qualquer lugar do texto
+                const matchEmail = texto.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/);
 
+                if (matchEmail) {
+                    emailCliente = matchEmail[0];
+                    encontrouEmail = true;
+
+                    // Tática de Extração de Nome baseada no Layout
+                    if (texto.includes('\n') || texto.includes('/')) {
+                        // É o layout NOVO (Tudo na mesma célula separado por barra ou linha)
+                        const partes = texto.split(/[\n\/]/);
+                        if (partes.length > 0 && !partes[0].includes('@')) {
+                            nomeCliente = partes[0].trim();
+                        }
+                    } else if (i > 0) {
+                        // É o layout ANTIGO (E-mail sozinho na célula). O nome está na coluna anterior.
+                        nomeCliente = celulas[i - 1].innerText.trim();
+                    }
+                    break; // Achou o e-mail, pode parar de procurar nessa linha
+                }
+            }
+
+            // Se achou o e-mail na linha, injeta as ferramentas
+            if (encontrouEmail) {
+                // Injeta a Checkbox no início
                 const tdCheck = document.createElement('td');
                 tdCheck.style.textAlign = "center";
                 tdCheck.innerHTML = `<input type="checkbox" class="check-email-icd" value="${emailCliente}" data-nome="${nomeCliente}" style="width:18px; height:18px; cursor:pointer;">`;
                 linha.prepend(tdCheck);
 
-
+                // Injeta o botão individual no fim
                 const tdBtn = document.createElement('td');
                 const btnIndiv = document.createElement('button');
                 btnIndiv.innerText = "📧 Enviar";
@@ -36,8 +63,10 @@ function injetarFerramentasRelatorio() {
                 btnIndiv.onclick = () => prepararEnvioCCO([emailCliente]);
                 tdBtn.appendChild(btnIndiv);
                 linha.appendChild(tdBtn);
-            } else if (index === 0 || celulas.length > 1) {
-                const tdVazio = document.createElement('td');
+                
+            } else if (celulas.length > 1) {
+                // Se for cabeçalho ou linha vazia, adiciona um TD fantasma para a tabela não ficar torta
+                const tdVazio = document.createElement(celulas[0].tagName); 
                 linha.prepend(tdVazio);
             }
         }
