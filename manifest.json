@@ -86,8 +86,8 @@
     {
       "matches": [
         "https://www.ingressocomdesconto.com.br/adm/paginas/relatorio_previsaovisitas.asp*",
-        "https://report.ingressocomdesconto.com.br/adm/paginas/*",
-        "https://*.ingressocomdesconto.com.br/adm/paginas/*"
+        "https://report.ingressocomdesconto.com.br/adm/paginas/relatorio_passaportesE.asp?emp=*",
+        "https://ingressocomdesconto.com.br/adm/paginas/relatorio_passaportesE.asp?emp=*"
       ],
       "js": ["scripts/relatorio_tool.js"]
     },

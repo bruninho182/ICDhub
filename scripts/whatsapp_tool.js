@@ -1,7 +1,3 @@
-/* =========================================================
-   TOOL: WHATSAPP SIDEBAR HUB (ULTIMATE VERSION + CALCULATOR)
-   ========================================================= */
-
 // 1. Textos Padronizados
 const textosPadrao = {
     apresentacao: "Olá! Bem-vindo ao nosso atendimento. Como posso ajudar?",
