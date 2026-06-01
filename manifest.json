@@ -40,6 +40,15 @@
   "content_scripts": [
 
     {
+      "matches": ["*://*.civitatis.com/*"],
+      "js": [
+        "scripts/pdf.min.js",
+        "scripts/pdf.worker.min.js",
+        "scripts/civitatis_bridge.js"
+      ]
+    },
+
+    {
       "matches": ["https://admin.ticketgotourism.com/*"],
       "js": ["scripts/ticketgo_bridge.js"]
     },
@@ -99,6 +108,10 @@
     }
   ],
   "web_accessible_resources": [
+    {
+      "resources": ["scripts/pdf.min.js", "scripts/pdf.worker.min.js"],
+      "matches": ["*://*.civitatis.com/*"]
+    },
     {
       "resources": ["icon.png"],
       "matches": ["<all_urls>"]
