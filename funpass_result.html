@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Relatório Funpass</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 30px; background: #f4f7f6; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        h1 { color: #333; margin: 0; }
+        .btn-email { background: #ff2a5f; color: white; padding: 12px 20px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: 0.2s; }
+        .btn-email:hover { transform: scale(1.05); }
+        .table-container { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; font-size: 12px; }
+        th, td { border: 1px solid #ddd; padding: 10px; text-align: center; }
+        tr:nth-child(even) { background-color: #f9f9f9; }
+        /* Estilo da mensagem de carregamento */
+        #loadingMensagem { text-align: center; font-size: 18px; color: #612d87; margin-top: 50px; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1 id="tituloRelatorio">Relatório Funpass</h1>
+        <button id="btnNotificar" class="btn-email" style="display: none;">📧 Notificar Funpass</button>
+    </div>
+
+    <!-- MENSAGEM QUE APARECE ENQUANTO ELE LÊ INVISIVELMENTE -->
+    <div id="loadingMensagem">
+        ⏳ Varrendo o sistema... Você pode mudar de aba, eu aviso quando terminar!
+    </div>
+
+    <div class="table-container" id="tabelaContainer" style="display: none;">
+        <table>
+            <thead id="tabelaCabecalho"></thead>
+            <tbody id="tabelaCorpo"></tbody>
+        </table>
+    </div>
+
+    <script src="scripts/funpass_result.js"></script>
+</body>
+</html>

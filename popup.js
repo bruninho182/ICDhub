@@ -124,3 +124,33 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     }
 });
+
+//Nova função para o botão funpass
+
+document.getElementById('btnFunpass').addEventListener('click', async () => {
+    const hoje = new Date();
+    const dia = String(hoje.getDate()).padStart(2, '0');
+    const mes = String(hoje.getMonth() + 1).padStart(2, '0');
+    const ano = hoje.getFullYear();
+    const dataPadrao = `${dia}/${mes}/${ano}`;
+
+    const dataEscolhida = prompt("Qual data você quer buscar? (DD/MM/YYYY)", dataPadrao);
+    if (!dataEscolhida) return;
+
+    // Pega o token da aba logada atual
+    chrome.tabs.query({active: true, currentWindow: true}, (tabs) => {
+        let keyword = "";
+        try {
+            const urlAtiva = new URL(tabs[0].url);
+            keyword = urlAtiva.searchParams.get('keyword') || "";
+        } catch (e) {}
+
+        // Salva as INSTRUÇÕES para a nova aba e abre ela na mesma hora!
+        chrome.storage.local.set({ 
+            funpassParams: { data: dataEscolhida, keyword: keyword } 
+        }, () => {
+            chrome.tabs.create({ url: chrome.runtime.getURL("funpass_result.html") });
+            // Não precisamos fazer mais nada aqui. O popup já pode fechar!
+        });
+    });
+});

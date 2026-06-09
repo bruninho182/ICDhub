@@ -3,7 +3,7 @@
   "name": "ICD Hub - Integrador Universal",
   "version": "3.0",
   "description": "Desenvolvido por : Bruno Ferreira",
-  "permissions": ["storage", "downloads", "activeTab", "scripting"],
+  "permissions": ["storage", "downloads", "activeTab", "scripting", "alarms","notifications"],
   "host_permissions": [
     "https://admin.tourcms.com/*",
     "https://www.ingressocomdesconto.com.br/*",

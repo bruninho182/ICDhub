@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <style>
-    body { width: 350px; font-family: sans-serif; padding: 15px; background: #f4f4f9; }
+    body { width: 350px; font-family: sans-serif; padding: 15px; background: #f4f4f9; border-radius: 15px;overflow: hidden; box-shadow: 0 8px 20px rgba(0,0,0,0.15); margin: 0;}
     h2 { color: #612d87; font-size: 18px; margin: 0 0 15px 0; text-align: center; }
     .card { background: white; padding: 12px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); margin-bottom: 15px; }
     label { font-size: 11px; font-weight: bold; color: #555; display: block; margin-bottom: 5px; text-transform: uppercase; }
@@ -22,7 +22,8 @@
     .status { font-size: 11px; color: #666; text-align: center; margin-top: 10px; }
   </style>
 </head>
-<body>
+<body style="border-radius: 15px; overflow: hidden; padding: 20px; font-family: sans-serif;">
+    </body>
   <h2>ICD Hub - Gerenciador</h2>
   
   <div class="card">
@@ -31,17 +32,14 @@
     <button id="btnSalvarNome" class="btn-main">Salvar Nome</button>
   </div>
 
-  <div class="card">
-    <label>Novo Botão de Atalho</label>
-    <input type="text" id="novoNomeBotao" placeholder="Nome do Botão (Ex: PIX)">
-    <textarea id="novoTextoBotao" rows="3" placeholder="Texto que será enviado no WhatsApp..."></textarea>
-    <button id="btnAdicionarBotao" class="btn-add">+ Adicionar Botão</button>
-    
-    <label>Botões Atuais</label>
-    <div id="listaBotoes"></div>
-  </div>
-
   <button id="btnAbrirConfig" class="btn-main">⚙️ Configurar Botões (Tela Cheia)</button>
+
+  <br>
+  <br>
+
+  <button id="btnFunpass" style="width: 100%; padding: 8px; margin-top: 10px; background-color: #ff2a5f; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 14px; box-shadow: 0 4px 10px rgba(0,0,0,0.2);">
+  🎟️ Compras Funpass
+  </button>
 
   <br>
   <br>
