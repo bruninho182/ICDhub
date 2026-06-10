@@ -3,7 +3,7 @@
   "name": "ICD Hub - Integrador Universal",
   "version": "3.0",
   "description": "Desenvolvido por : Bruno Ferreira",
-  "permissions": ["storage", "downloads", "activeTab", "scripting", "alarms","notifications"],
+  "permissions": ["storage", "downloads", "activeTab", "scripting", "alarms","notifications","tabs","cookies"],
   "host_permissions": [
     "https://admin.tourcms.com/*",
     "https://www.ingressocomdesconto.com.br/*",
@@ -19,7 +19,8 @@
     "https://admin.ticketgotourism.com/*",
     "https://report.ingressocomdesconto.com.br/adm/paginas/*",
     "https://*.ingressocomdesconto.com.br/adm/paginas/*",
-    "*://navio.ingressocomdesconto.com.br/*"
+    "*://navio.ingressocomdesconto.com.br/*",
+     "*://*.ingressocomdesconto.com.br/*"
   ],
   "action": {
     "default_popup": "popup.html",
