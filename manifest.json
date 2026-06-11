@@ -3,7 +3,7 @@
   "name": "ICD Hub",
   "version": "3.0",
   "description": "Desenvolvido por : Bruno Ferreira",
-  "permissions": ["storage", "downloads", "activeTab", "scripting", "alarms","notifications","tabs","cookies"],
+  "permissions": ["storage", "downloads", "activeTab", "scripting", "alarms", "notifications", "tabs", "cookies"],
   "host_permissions": [
     "https://admin.tourcms.com/*",
     "https://www.ingressocomdesconto.com.br/*",
@@ -20,7 +20,7 @@
     "https://report.ingressocomdesconto.com.br/adm/paginas/*",
     "https://*.ingressocomdesconto.com.br/adm/paginas/*",
     "*://navio.ingressocomdesconto.com.br/*",
-     "*://*.ingressocomdesconto.com.br/*"
+    "*://*.ingressocomdesconto.com.br/*"
   ],
   "action": {
     "default_popup": "popup.html",
@@ -39,7 +39,6 @@
     "128": "icon.png"
   },
   "content_scripts": [
-
     {
       "matches": ["*://*.civitatis.com/*"],
       "js": [
@@ -48,17 +47,14 @@
         "scripts/civitatis_bridge.js"
       ]
     },
-
     {
       "matches": ["https://admin.ticketgotourism.com/*"],
       "js": ["scripts/ticketgo_bridge.js"]
     },
-
     {
       "matches": ["*://navio.ingressocomdesconto.com.br/*"],
       "js": ["scripts/navio_bridge.js"]
     },
-
     {
       "matches": [
         "https://admin.tourcms.com/admin/bookings/bookings_edit.php?bid=*"
@@ -102,7 +98,7 @@
       "js": ["scripts/relatorio_tool.js"]
     },
     {
-      "matches": [  
+      "matches": [
         "https://www.ingressocomdesconto.com.br/adm/paginas/voucher.asp*"
       ],
       "js": ["scripts/enviar_voucher.js"]

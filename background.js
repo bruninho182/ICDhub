@@ -65,7 +65,11 @@ chrome.alarms.onAlarm.addListener((alarm) => {
             "💧 Hora de hidratar! Beba um copo d'água.",
             "🧘 O corpo agradece! Vamos fazer um alongamento rápido?",
             "☕ Pausa merecida! Que tal um cafezinho agora?",
-            "👀 Regra 20-20-20: Olhe para um ponto distante por 20 segundos para descansar a vista."
+            "👀 Regra 20-20-20: Olhe para um ponto distante por 20 segundos para descansar a vista.",
+            "😮‍💨​ Não esqueça de bater seu ponto , quando for sair!",
+            "​😃 Mantenha seu relatótio em dia ! Evite stress no futuro.",
+            "🦖 Alimente seu PET , faça uma pausa.", ​
+            "​🙏🏻 Deus é bom ! Tire alguns segundos para agardecer.",
         ];
         
     
