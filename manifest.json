@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "ICD Hub - Integrador Universal",
+  "name": "ICD Hub",
   "version": "3.0",
   "description": "Desenvolvido por : Bruno Ferreira",
   "permissions": ["storage", "downloads", "activeTab", "scripting", "alarms","notifications","tabs","cookies"],

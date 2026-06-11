@@ -263,3 +263,187 @@ chrome.storage.onChanged.addListener((changes) => {
     if (changes.configMaster) carregarBotoes();
     if (changes.posicaoBarra) aplicarPosicao();
 });
+
+// 
+
+// =========================================================
+// ICD HUB - SISTEMA DE TRACKING DE PRODUTIVIDADE
+// =========================================================
+
+// Objeto para armazenar sessão atual
+const sessaoAtual = {
+    inicio: Date.now(),
+    ultimoRegistro: Date.now(),
+    plataforma: 'whatsapp',
+    operador: '',
+    atalhosUsados: [],
+    cotacoesRealizadas: [],
+    recibosGerados: [],
+    mensagensEnviadas: 0,
+    tempoDigitacao: 0,
+    pausas: []
+};
+
+// Carregar nome do operador
+function carregarOperador() {
+    return new Promise((resolve) => {
+        chrome.storage.local.get(['nomeOperador'], (res) => {
+            sessaoAtual.operador = res.nomeOperador || 'Não identificado';
+            resolve();
+        });
+    });
+}
+
+// Função para registrar uso de atalho
+function registrarUsoAtalho(nomeAtalho, texto) {
+    sessaoAtual.atalhosUsados.push({
+        atalho: nomeAtalho,
+        timestamp: Date.now(),
+        texto: texto.substring(0, 100)
+    });
+    sessaoAtual.mensagensEnviadas++;
+    sessaoAtual.ultimoRegistro = Date.now();
+    
+    // Salvar periodicamente
+    salvarDadosSessao();
+}
+
+// Função para registrar cotação
+function registrarCotacao(passeio, valor) {
+    sessaoAtual.cotacoesRealizadas.push({
+        passeio: passeio,
+        valor: valor,
+        timestamp: Date.now()
+    });
+    sessaoAtual.ultimoRegistro = Date.now();
+    
+    // Salvar periodicamente
+    salvarDadosSessao();
+}
+
+// Função para registrar recibo
+function registrarReciboGerado(cliente, valor) {
+    sessaoAtual.recibosGerados.push({
+        cliente: cliente,
+        valor: valor,
+        timestamp: Date.now()
+    });
+    sessaoAtual.ultimoRegistro = Date.now();
+    
+    // Salvar periodicamente
+    salvarDadosSessao();
+}
+
+// Função para salvar dados da sessão
+function salvarDadosSessao() {
+    const dados = {
+        ...sessaoAtual,
+        tempoAtivo: Date.now() - sessaoAtual.inicio
+    };
+    
+    chrome.storage.local.set({ sessaoAtual: dados });
+}
+
+// Monitorar digitação
+let tempoDigitacaoInicio = null;
+document.addEventListener('input', (e) => {
+    if (e.target.isContentEditable || e.target.tagName === 'TEXTAREA') {
+        if (!tempoDigitacaoInicio) {
+            tempoDigitacaoInicio = Date.now();
+        }
+        clearTimeout(window.tempoDigitacaoTimeout);
+        window.tempoDigitacaoTimeout = setTimeout(() => {
+            sessaoAtual.tempoDigitacao += (Date.now() - tempoDigitacaoInicio);
+            tempoDigitacaoInicio = null;
+            salvarDadosSessao();
+        }, 5000); // 5 segundos sem digitar = parou
+    }
+});
+
+// Monitorar pausas (ausência do teclado/mouse)
+let pausaInicio = null;
+document.addEventListener('mousemove', () => {
+    clearTimeout(window.pausaTimeout);
+    if (pausaInicio) {
+        sessaoAtual.pausas.push({
+            inicio: pausaInicio,
+            fim: Date.now(),
+            duracao: Date.now() - pausaInicio
+        });
+        pausaInicio = null;
+    }
+    window.pausaTimeout = setTimeout(() => {
+        pausaInicio = Date.now();
+    }, 120000); // 2 minutos sem atividade = pausa
+});
+
+// Salvar sessão ao fechar
+window.addEventListener('beforeunload', () => {
+    sessaoAtual.ultimoRegistro = Date.now();
+    salvarDadosSessao();
+    arquivarSessao();
+});
+
+// Arquivar sessão no histórico
+function arquivarSessao() {
+    const dadosSessao = {
+        ...sessaoAtual,
+        fim: Date.now(),
+        duracaoTotal: Date.now() - sessaoAtual.inicio,
+        data: new Date().toISOString().split('T')[0],
+        horarioInicio: new Date(sessaoAtual.inicio).toLocaleTimeString(),
+        horarioFim: new Date().toLocaleTimeString()
+    };
+    
+    chrome.storage.local.get(['historicoSessoes'], (res) => {
+        const historico = res.historicoSessoes || [];
+        historico.push(dadosSessao);
+        
+        // Manter apenas últimos 30 dias
+        const historicoFiltrado = historico.slice(-100);
+        
+        chrome.storage.local.set({ historicoSessoes: historicoFiltrado });
+    });
+}
+
+// Sobrescrever função enviarTexto para registrar
+const enviarTextoOriginal = enviarTexto;
+enviarTexto = function(txt) {
+    // Registrar uso
+    registrarUsoAtalho('mensagem_manual', txt);
+    
+    // Chamar função original
+    return enviarTextoOriginal(txt);
+};
+
+// Inicializar tracking
+async function inicializarTracking() {
+    await carregarOperador();
+    
+    // Recuperar sessão anterior se existir
+    chrome.storage.local.get(['sessaoAtual'], (res) => {
+        if (res.sessaoAtual) {
+            const tempoParado = Date.now() - res.sessaoAtual.ultimoRegistro;
+            // Se parado há mais de 30 minutos, considera nova sessão
+            if (tempoParado < 1800000) {
+                Object.assign(sessaoAtual, res.sessaoAtual);
+            }
+        }
+    });
+    
+    // Salvar a cada 30 segundos
+    setInterval(salvarDadosSessao, 30000);
+    
+    console.log('📊 ICD Hub: Tracking de produtividade ativado!');
+}
+
+// Inicializar
+inicializarTracking();
+
+// Exportar para uso em outras funções
+window.ICDHubTracking = {
+    registrarUsoAtalho,
+    registrarCotacao,
+    registrarReciboGerado,
+    getSessaoAtual: () => sessaoAtual
+};

@@ -4,30 +4,652 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Painel de Controle - ICD Hub</title>
+    
+    <!-- Font Awesome para ícones modernos -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+      
+      :root {
+        --bg-primary: #0f172a;
+        --bg-secondary: #1e293b;
+        --bg-card: rgba(30, 41, 59, 0.8);
+        --glass-bg: rgba(255, 255, 255, 0.05);
+        --glass-border: rgba(255, 255, 255, 0.1);
+        --text-primary: #f1f5f9;
+        --text-secondary: #94a3b8;
+        --accent-blue: #3b82f6;
+        --accent-purple: #8b5cf6;
+        --accent-green: #10b981;
+        --accent-orange: #f59e0b;
+        --accent-red: #ef4444;
+        --gradient-1: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        --gradient-2: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        --gradient-3: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        --gradient-4: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+        --shadow-lg: 0 10px 40px rgba(0, 0, 0, 0.3);
+        --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.2);
+      }
 
-    <!-- Link para o seu arquivo CSS (Certifique-se que o nome é options.css) -->
-    <link rel="stylesheet" href="styles/options.css" />
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+
+      body {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        background: linear-gradient(135deg, var(--bg-primary) 0%, #1a1a2e 50%, var(--bg-secondary) 100%);
+        color: var(--text-primary);
+        line-height: 1.6;
+        min-height: 100vh;
+        padding: 20px;
+      }
+
+      .painel-container {
+        max-width: 1400px;
+        margin: 0 auto;
+        position: relative;
+      }
+
+      /* Header Moderno com Logo */
+      header {
+        background: var(--glass-bg);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid var(--glass-border);
+        border-radius: 24px;
+        padding: 40px;
+        margin-bottom: 30px;
+        position: relative;
+        overflow: hidden;
+        box-shadow: var(--shadow-lg);
+        display: flex;
+        align-items: center;
+        gap: 30px;
+      }
+
+      header::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(139, 92, 246, 0.1) 0%, transparent 70%);
+        animation: rotate 20s linear infinite;
+      }
+
+      @keyframes rotate {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+
+      .header-logo-container {
+        flex-shrink: 0;
+        position: relative;
+        z-index: 1;
+      }
+
+      .logo-empresa {
+        width: 80px;
+        height: 80px;
+        object-fit: contain;
+        filter: drop-shadow(0 4px 15px rgba(168, 85, 247, 0.4));
+        animation: logoFloat 3s ease-in-out infinite;
+      }
+
+      @keyframes logoFloat {
+        0%, 100% { transform: translateY(0px); }
+        50% { transform: translateY(-8px); }
+      }
+
+      .header-texto {
+        position: relative;
+        z-index: 1;
+      }
+
+      header h1 {
+        font-size: 2.5em;
+        font-weight: 700;
+        background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin-bottom: 10px;
+      }
+
+      header p {
+        color: var(--text-secondary);
+        font-size: 1.1em;
+      }
+
+      @media (max-width: 768px) {
+        header {
+          flex-direction: column;
+          text-align: center;
+          padding: 30px 20px;
+        }
+        .logo-empresa {
+          width: 60px;
+          height: 60px;
+        }
+        header h1 {
+          font-size: 1.8em;
+        }
+      }
+
+      /* Navegação com Tabs */
+      .menu-tabs {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 30px;
+        flex-wrap: wrap;
+        background: var(--glass-bg);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid var(--glass-border);
+        border-radius: 20px;
+        padding: 10px;
+        box-shadow: var(--shadow-md);
+      }
+
+      .tab-btn {
+        background: transparent;
+        border: none;
+        color: var(--text-secondary);
+        padding: 12px 24px;
+        border-radius: 12px;
+        font-size: 0.95em;
+        font-weight: 500;
+        cursor: pointer;
+        position: relative;
+        font-family: 'Inter', sans-serif;
+        white-space: nowrap;
+      }
+
+      .tab-btn:hover {
+        background: rgba(255, 255, 255, 0.1);
+        color: var(--text-primary);
+        transform: translateY(-2px);
+      }
+
+      .tab-btn.active {
+        background: var(--gradient-1);
+        color: white;
+        box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+        animation: pulse 2s infinite;
+      }
+
+      @keyframes pulse {
+        0%, 100% { box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4); }
+        50% { box-shadow: 0 8px 35px rgba(102, 126, 234, 0.6); }
+      }
+
+      /* Cards Modernos */
+      .card {
+        background: var(--bg-card);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid var(--glass-border);
+        border-radius: 20px;
+        padding: 30px;
+        box-shadow: var(--shadow-md);
+        transition: all 0.3s ease;
+      }
+
+      .card:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--shadow-lg);
+        border-color: rgba(139, 92, 246, 0.3);
+      }
+
+      .card h3 {
+        color: var(--text-primary);
+        margin-bottom: 20px;
+        font-size: 1.3em;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      /* Grid Layout */
+      .grid-duplo {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+        gap: 25px;
+        margin-bottom: 30px;
+      }
+
+      /* Formulários Modernos */
+      label {
+        display: block;
+        margin-bottom: 8px;
+        color: var(--text-secondary);
+        font-weight: 500;
+        font-size: 0.9em;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      input, select, textarea {
+        width: 100%;
+        padding: 12px 16px;
+        background: rgba(15, 23, 42, 0.8);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 12px;
+        color: var(--text-primary);
+        font-family: 'Inter', sans-serif;
+        font-size: 0.95em;
+        margin-bottom: 15px;
+        outline: none;
+      }
+
+      input:focus, select:focus, textarea:focus {
+        border-color: var(--accent-purple);
+        box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.2);
+        background: rgba(15, 23, 42, 1);
+      }
+
+      textarea {
+        min-height: 100px;
+        resize: vertical;
+      }
+
+      /* Botões Modernos */
+      .btn-principal {
+        background: var(--gradient-1);
+        color: white;
+        border: none;
+        padding: 14px 28px;
+        border-radius: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        width: 100%;
+        box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+        font-family: 'Inter', sans-serif;
+        font-size: 1em;
+      }
+
+      .btn-principal:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 12px 35px rgba(102, 126, 234, 0.5);
+      }
+
+      .btn-secundario {
+        background: rgba(255, 255, 255, 0.1);
+        color: var(--text-primary);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        padding: 14px 28px;
+        border-radius: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        width: 100%;
+        font-family: 'Inter', sans-serif;
+        font-size: 1em;
+      }
+
+      .btn-secundario:hover {
+        background: rgba(255, 255, 255, 0.2);
+        border-color: var(--accent-purple);
+      }
+
+      /* Status Bar */
+      .status {
+        background: var(--glass-bg);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid var(--glass-border);
+        border-radius: 20px;
+        padding: 20px;
+        text-align: center;
+        margin-top: 30px;
+        box-shadow: var(--shadow-md);
+      }
+
+      .status a {
+        color: var(--accent-purple);
+        text-decoration: none;
+        font-weight: 600;
+      }
+
+      .status a:hover {
+        text-decoration: underline;
+      }
+
+      /* =========================================================
+         LISTA DE ATALHOS - DRAG AND DROP MELHORADO
+         ========================================================= */
+
+      #listaBotoes {
+        max-height: 500px;
+        overflow-y: auto;
+        padding-right: 8px;
+        min-height: 200px;
+      }
+
+      .lista-vazia {
+        text-align: center;
+        padding: 40px 20px;
+        color: var(--text-secondary);
+        font-size: 14px;
+      }
+
+      .lista-vazia i {
+        font-size: 40px;
+        display: block;
+        margin-bottom: 10px;
+        opacity: 0.5;
+      }
+
+      /* Item da lista */
+      .item-lista {
+        cursor: grab;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        background: rgba(15, 23, 42, 0.6);
+        border: 2px solid var(--glass-border);
+        margin-bottom: 10px;
+        padding: 14px 16px;
+        border-radius: 12px;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        user-select: none;
+        animation: slideInRight 0.3s ease forwards;
+      }
+
+      @keyframes slideInRight {
+        from {
+          opacity: 0;
+          transform: translateX(-20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateX(0);
+        }
+      }
+
+      .item-lista:nth-child(1) { animation-delay: 0.05s; }
+      .item-lista:nth-child(2) { animation-delay: 0.1s; }
+      .item-lista:nth-child(3) { animation-delay: 0.15s; }
+      .item-lista:nth-child(4) { animation-delay: 0.2s; }
+      .item-lista:nth-child(5) { animation-delay: 0.25s; }
+
+      .item-lista:active { 
+        cursor: grabbing; 
+      }
+
+      .item-lista:hover { 
+        background: rgba(15, 23, 42, 0.9);
+        border-color: rgba(139, 92, 246, 0.4);
+        transform: translateX(5px);
+        box-shadow: 0 4px 20px rgba(139, 92, 246, 0.2);
+      }
+
+      /* Estado durante o arrasto */
+      .item-lista.dragging {
+        opacity: 0.5;
+        background: rgba(139, 92, 246, 0.2);
+        border-color: var(--accent-purple);
+        box-shadow: 0 8px 30px rgba(139, 92, 246, 0.3);
+        transform: scale(0.95);
+        cursor: grabbing;
+      }
+
+      /* Item sobre o qual está sendo arrastado */
+      .item-lista.drag-over {
+        border-color: var(--accent-purple);
+        background: rgba(139, 92, 246, 0.15);
+        transform: scale(1.02);
+        box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.3);
+        margin-top: 30px;
+        margin-bottom: 30px;
+      }
+
+      /* Indicador de posição de drop */
+      .item-lista.drop-indicator::before {
+        content: '';
+        position: absolute;
+        top: -15px;
+        left: 10%;
+        width: 80%;
+        height: 3px;
+        background: var(--accent-purple);
+        border-radius: 3px;
+        box-shadow: 0 0 10px rgba(139, 92, 246, 0.5);
+        animation: dropPulse 1s infinite;
+      }
+
+      @keyframes dropPulse {
+        0%, 100% { opacity: 0.5; }
+        50% { opacity: 1; }
+      }
+
+      /* Alça de arrasto */
+      .drag-handle {
+        color: var(--text-secondary);
+        font-size: 20px;
+        user-select: none;
+        padding: 8px 12px;
+        border-right: 2px solid var(--glass-border);
+        cursor: grab;
+        display: flex;
+        align-items: center;
+        transition: all 0.2s ease;
+        border-radius: 8px;
+      }
+
+      .drag-handle:hover {
+        color: var(--accent-purple);
+        background: rgba(139, 92, 246, 0.1);
+      }
+
+      .drag-handle:active {
+        cursor: grabbing;
+        transform: scale(1.1);
+      }
+
+      .drag-handle::before {
+        content: '⋮⋮';
+        font-size: 18px;
+        letter-spacing: 2px;
+      }
+
+      /* Informações do item */
+      .info { 
+        flex: 1;
+        min-width: 0;
+      }
+
+      .info strong { 
+        display: block; 
+        font-size: 14px; 
+        color: var(--text-primary);
+        margin-bottom: 4px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .info p { 
+        margin: 0; 
+        font-size: 11px; 
+        color: var(--text-secondary);
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      /* Badge de posição */
+      .posicao-badge {
+        position: absolute;
+        top: -8px;
+        left: -8px;
+        background: var(--accent-purple);
+        color: white;
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 11px;
+        font-weight: 700;
+        box-shadow: 0 2px 8px rgba(139, 92, 246, 0.3);
+      }
+
+      /* Botões de ação */
+      .acoes { 
+        display: flex; 
+        gap: 8px;
+        flex-shrink: 0;
+      }
+
+      .btn-edit {
+        padding: 8px 14px;
+        background: rgba(59, 130, 246, 0.2);
+        color: var(--accent-blue);
+        border: 1px solid rgba(59, 130, 246, 0.3);
+        font-size: 12px;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+      }
+
+      .btn-edit:hover {
+        background: rgba(59, 130, 246, 0.3);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+      }
+
+      .btn-del {
+        padding: 8px 14px;
+        background: transparent;
+        color: var(--accent-red);
+        border: 1px solid rgba(239, 68, 68, 0.3);
+        font-size: 12px;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+      }
+
+      .btn-del:hover {
+        background: rgba(239, 68, 68, 0.2);
+        border-color: var(--accent-red);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
+      }
+
+      /* Responsividade */
+      @media (max-width: 768px) {
+        .grid-duplo {
+          grid-template-columns: 1fr;
+        }
+        .menu-tabs {
+          flex-direction: column;
+        }
+        .tab-btn {
+          width: 100%;
+          text-align: center;
+        }
+        .acoes {
+          flex-direction: column;
+          gap: 5px;
+        }
+        .btn-edit, .btn-del {
+          padding: 6px 10px;
+          font-size: 11px;
+        }
+      }
+
+      /* Seções Ocultas */
+      .aba-conteudo {
+        display: none;
+        opacity: 0;
+        transform: translateY(20px);
+      }
+
+      .aba-conteudo.active {
+        display: block;
+        opacity: 1;
+        transform: translateY(0);
+        animation: fadeInUp 0.5s ease;
+      }
+
+      @keyframes fadeInUp {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      /* Scrollbar Personalizada */
+      ::-webkit-scrollbar {
+        width: 6px;
+      }
+
+      ::-webkit-scrollbar-track {
+        background: rgba(15, 23, 42, 0.3);
+        border-radius: 10px;
+      }
+
+      ::-webkit-scrollbar-thumb {
+        background: linear-gradient(180deg, #667eea, #764ba2);
+        border-radius: 10px;
+      }
+
+      ::-webkit-scrollbar-thumb:hover {
+        background: linear-gradient(180deg, #764ba2, #a855f7);
+      }
+
+      /* Animações */
+      @keyframes slideIn {
+        from { transform: translateX(100px); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+      }
+    </style>
   </head>
   <body>
     <div class="painel-container">
       <header>
-        <h1>Painel de Controle - ICD Hub</h1>
-        <p>Centralize suas ferramentas de automação e vendas</p>
+        <div class="header-logo-container">
+          <img src="icons/logo-icd.png" alt="ICD Hub" class="logo-empresa">
+        </div>
+        <div class="header-texto">
+          <h1>Painel de Controle - ICD Hub</h1>
+          <p>Centralize suas ferramentas de automação e vendas com estilo</p>
+        </div>
       </header>
 
       <!-- Menu de Navegação -->
       <nav class="menu-tabs">
         <button class="tab-btn active" data-target="sec-atalhos">
-          🚀 Atalhos WhatsApp
+          <i class="fas fa-rocket"></i> Atalhos WhatsApp
         </button>
         <button class="tab-btn" data-target="sec-cotacao">
-          💰 Calculadora de Passeios
+          <i class="fas fa-calculator"></i> Calculadora de Passeios
         </button>
         <button class="tab-btn" data-target="sec-recibo">
-          📄 Gerador de Recibos
+          <i class="fas fa-file-invoice"></i> Gerador de Recibos
         </button>
         <button class="tab-btn" data-target="sec-config">
-          ⚙️ Configurações & E-mail
+          <i class="fas fa-cog"></i> Configurações
         </button>
       </nav>
 
@@ -36,7 +658,7 @@
         <section id="sec-atalhos" class="aba-conteudo active">
           <div class="grid-duplo">
             <div class="card">
-              <h3 id="tituloForm">➕ Adicionar Novo Atalho</h3>
+              <h3><i class="fas fa-plus-circle"></i> Adicionar Novo Atalho</h3>
               <input type="hidden" id="editIndex" value="-1" />
 
               <label>Nome do Botão</label>
@@ -60,23 +682,35 @@
               ></textarea>
 
               <button id="btnAdicionarBotao" class="btn-principal">
-                Salvar Atalho
+                <i class="fas fa-save"></i> Salvar Atalho
               </button>
               <button
                 id="btnCancelarEdicao"
                 style="
                   display: none;
                   margin-top: 10px;
-                  background: #ccc;
+                  background: rgba(239, 68, 68, 0.2);
+                  border: 1px solid rgba(239, 68, 68, 0.3);
+                  color: #ef4444;
+                  padding: 14px 28px;
+                  border-radius: 12px;
+                  font-weight: 600;
+                  cursor: pointer;
                   width: 100%;
+                  font-family: 'Inter', sans-serif;
                 "
               >
-                Cancelar
+                <i class="fas fa-times"></i> Cancelar
               </button>
             </div>
             <div class="card">
-              <h3>📋 Seus Atalhos (Arraste para Reordenar)</h3>
-              <div id="listaBotoes" class="lista-botoes"></div>
+              <h3><i class="fas fa-list"></i> Seus Atalhos (Arraste para Reordenar)</h3>
+              <div id="listaBotoes">
+                <div class="lista-vazia">
+                  <i class="fas fa-inbox"></i>
+                  <p>Carregando atalhos...</p>
+                </div>
+              </div>
             </div>
           </div>
         </section>
@@ -85,7 +719,7 @@
         <section id="sec-cotacao" class="aba-conteudo">
           <div class="grid-duplo">
             <div class="card">
-              <h3>💰 Configurar Novo Passeio</h3>
+              <h3><i class="fas fa-ticket-alt"></i> Configurar Novo Passeio</h3>
               <label>Nome do Passeio</label>
               <input
                 type="text"
@@ -94,16 +728,18 @@
               />
 
               <div id="container-precos">
-                <div class="linha-preco">
+                <div class="linha-preco" style="display: flex; gap: 10px; margin-bottom: 10px;">
                   <input
                     type="text"
                     placeholder="Tipo (Ex: Adulto)"
                     class="tipo-ingresso"
+                    style="flex: 1;"
                   />
                   <input
                     type="number"
                     placeholder="Valor"
                     class="valor-ingresso"
+                    style="flex: 1;"
                   />
                 </div>
               </div>
@@ -112,18 +748,18 @@
                 class="btn-secundario"
                 style="margin-top: 10px"
               >
-                + Adicionar Categoria
+                <i class="fas fa-plus"></i> Adicionar Categoria
               </button>
               <button
                 id="btn-salvar-passeio"
                 class="btn-principal"
                 style="margin-top: 10px"
               >
-                Salvar Passeio
+                <i class="fas fa-check-circle"></i> Salvar Passeio
               </button>
             </div>
             <div class="card">
-              <h3>📋 Passeios Cadastrados</h3>
+              <h3><i class="fas fa-map-marked-alt"></i> Passeios Cadastrados</h3>
               <div id="lista-passeios-config"></div>
             </div>
           </div>
@@ -132,75 +768,21 @@
         <!-- SEÇÃO 3: RECIBO -->
         <section id="sec-recibo" class="aba-conteudo">
           <div class="card">
-            <h3>📄 Gerador de Recibo Profissional</h3>
-            <div
-              class="grid-form"
-              style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px"
-            >
-              <div>
-                <label>Método de Pagamento</label>
-                <select id="reciboPagamento">
-                  <option value="PIX">PIX</option>
-                  <option value="CARTÃO DE CRÉDITO">CARTÃO DE CRÉDITO</option>
-                  <option value="TED">TED</option>
-                </select>
-              </div>
-              <div>
-                <label>Nome do Cliente</label>
-                <input
-                  type="text"
-                  id="reciboNome"
-                  placeholder="Nome Completo"
-                />
-              </div>
-              <div>
-                <label>Documento (CPF/CNPJ)</label>
-                <input
-                  type="text"
-                  id="reciboDocumento"
-                  placeholder="000.000.000-00"
-                />
-              </div>
-              <div>
-                <label>Passeio</label>
-                <input
-                  type="text"
-                  id="reciboPasseio"
-                  placeholder="Nome do Passeio"
-                />
-              </div>
-              <div>
-                <label>Código Voucher</label>
-                <input
-                  type="text"
-                  id="reciboVoucher"
-                  placeholder="Ex: JG7129"
-                />
-              </div>
-              <div>
-                <label>Valor Total (R$)</label>
-                <input type="text" id="reciboTotal" placeholder="0.00" />
-              </div>
-              <div>
-                <label>Data da Compra</label>
-                <input type="date" id="reciboDataCompra" />
-              </div>
-              <div>
-                <label>Data da Visita</label>
-                <input type="date" id="reciboDataVisita" />
-              </div>
+            <h3><i class="fas fa-file-pdf"></i> Gerador de Recibo Profissional</h3>
+            <div class="grid-form" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px">
+              <div><label>Método de Pagamento</label><select id="reciboPagamento"><option value="PIX">PIX</option><option value="CARTÃO DE CRÉDITO">CARTÃO DE CRÉDITO</option><option value="TED">TED</option></select></div>
+              <div><label>Nome do Cliente</label><input type="text" id="reciboNome" placeholder="Nome Completo" /></div>
+              <div><label>Documento (CPF/CNPJ)</label><input type="text" id="reciboDocumento" placeholder="000.000.000-00" /></div>
+              <div><label>Passeio</label><input type="text" id="reciboPasseio" placeholder="Nome do Passeio" /></div>
+              <div><label>Código Voucher</label><input type="text" id="reciboVoucher" placeholder="Ex: JG7129" /></div>
+              <div><label>Valor Total (R$)</label><input type="text" id="reciboTotal" placeholder="0.00" /></div>
+              <div><label>Data da Compra</label><input type="date" id="reciboDataCompra" /></div>
+              <div><label>Data da Visita</label><input type="date" id="reciboDataVisita" /></div>
             </div>
             <label style="margin-top: 15px">Descrição Detalhada</label>
-            <textarea
-              id="reciboDescricaoIngressos"
-              placeholder="Ex: 2 Ingressos Adultos - R$ 134,00 cada"
-            ></textarea>
-            <button
-              id="btnGerarPDF"
-              class="btn-principal"
-              style="margin-top: 20px"
-            >
-              🖨️ Gerar PDF Agora
+            <textarea id="reciboDescricaoIngressos" placeholder="Ex: 2 Ingressos Adultos - R$ 134,00 cada"></textarea>
+            <button id="btnGerarPDF" class="btn-principal" style="margin-top: 20px">
+              <i class="fas fa-print"></i> Gerar PDF Agora
             </button>
           </div>
         </section>
@@ -208,57 +790,320 @@
         <!-- SEÇÃO 4: CONFIGS & BACKUP -->
         <section id="sec-config" class="aba-conteudo">
           <div class="card">
-            <h3>📧 Configuração de E-mail (Relatório)</h3>
+            <h3><i class="fas fa-envelope"></i> Configuração de E-mail (Relatório)</h3>
             <label>Assunto Padrão</label>
             <input type="text" id="emailAssuntoPadrao" />
             <label>Corpo da Mensagem</label>
             <textarea id="emailCorpoPadrao"></textarea>
             <button id="btnSalvarEmailConfig" class="btn-principal">
-              Salvar E-mail
+              <i class="fas fa-paper-plane"></i> Salvar E-mail
             </button>
           </div>
 
           <div class="card" style="margin-top: 20px">
-            <h3>⚙️ Preferências do Sistema</h3>
+            <h3><i class="fas fa-sliders-h"></i> Preferências do Sistema</h3>
             <label>Posição da Barra no WhatsApp</label>
             <select id="posicaoBarra">
               <option value="topo">Superior (Topo)</option>
               <option value="direita">Direita (Padrão)</option>
               <option value="esquerda">Esquerda</option>
             </select>
-            <button
-              id="btnSalvarPref"
-              class="btn-secundario"
-              style="margin-top: 10px; width: 100%"
-            >
-              Salvar Posição
+            <button id="btnSalvarPref" class="btn-secundario" style="margin-top: 10px; width: 100%">
+              <i class="fas fa-check"></i> Salvar Posição
             </button>
 
-            <hr />
-            <h3>💾 Backup & Restauração</h3>
+            <hr style="border-color: rgba(255,255,255,0.1); margin: 20px 0;" />
+            <h3><i class="fas fa-database"></i> Backup & Restauração</h3>
             <button id="btnExportar" class="btn-principal">
-              ⬇️ Exportar Configurações
+              <i class="fas fa-download"></i> Exportar Configurações
             </button>
-            <button
-              id="btnImportar"
-              class="btn-secundario"
-              style="margin-top: 10px; width: 100%"
-            >
-              ⬆️ Importar Configurações
+            <button id="btnImportar" class="btn-secundario" style="margin-top: 10px; width: 100%">
+              <i class="fas fa-upload"></i> Importar Configurações
             </button>
-            <input type="file" id="inputArquivo" style="display: none" />
             <input type="file" id="inputArquivo" style="display: none" />
           </div>
         </section>
+        
         <div class="status" id="statusMsg">
-          Desenvolvido por
-          <a href="https://github.com/bruninho182" target="_blank"
-            >Bruno Ferreira</a
-          >
+          <i class="fas fa-code"></i> Desenvolvido por
+          <a href="https://github.com/bruninho182" target="_blank">
+            <i class="fab fa-github"></i> Bruno Ferreira
+          </a>
+          <span style="display: block; margin-top: 5px; font-size: 0.9em; color: #94a3b8;">
+            © 2024 ICD Hub - Todos os direitos reservados
+          </span>
         </div>
       </main>
     </div>
+    
     <script src="scripts/jspdf.umd.min.js"></script>
     <script src="scripts/options.js"></script>
+    
+    <script>
+      // =========================================================
+      // SISTEMA DE TABS
+      // =========================================================
+      document.addEventListener('DOMContentLoaded', function() {
+        const tabButtons = document.querySelectorAll('.tab-btn');
+        const tabContents = document.querySelectorAll('.aba-conteudo');
+        
+        tabButtons.forEach(button => {
+          button.addEventListener('click', () => {
+            tabButtons.forEach(btn => btn.classList.remove('active'));
+            tabContents.forEach(content => content.classList.remove('active'));
+            
+            button.classList.add('active');
+            
+            const targetId = button.getAttribute('data-target');
+            document.getElementById(targetId).classList.add('active');
+          });
+        });
+
+        // Inicializar lista de atalhos
+        renderizarListaAtalhos();
+      });
+
+      // =========================================================
+      // SISTEMA DE DRAG AND DROP
+      // =========================================================
+      let draggedItem = null;
+      let dragSourceIndex = null;
+
+      function renderizarListaAtalhos() {
+        chrome.storage.local.get(['configMaster'], (res) => {
+          const container = document.getElementById('listaBotoes');
+          const botoes = res.configMaster || [];
+
+          if (botoes.length === 0) {
+            container.innerHTML = `
+              <div class="lista-vazia">
+                <i class="fas fa-inbox"></i>
+                <p>Nenhum atalho configurado</p>
+                <p style="font-size: 11px; margin-top: 5px;">Adicione seu primeiro atalho ao lado ➔</p>
+              </div>
+            `;
+            return;
+          }
+
+          container.innerHTML = '';
+          
+          botoes.forEach((botao, index) => {
+            const item = document.createElement('div');
+            item.className = 'item-lista';
+            item.draggable = true;
+            item.dataset.index = index;
+
+            // Badge de posição
+            const badge = document.createElement('span');
+            badge.className = 'posicao-badge';
+            badge.textContent = index + 1;
+
+            // Alça de arrasto
+            const dragHandle = document.createElement('span');
+            dragHandle.className = 'drag-handle';
+            dragHandle.title = 'Arraste para reordenar';
+
+            // Informações
+            const info = document.createElement('div');
+            info.className = 'info';
+            
+            const nomeBotao = botao.nome || 'Sem nome';
+            const textoPreview = (botao.texto || 'Sem texto configurado').substring(0, 60) + '...';
+            
+            info.innerHTML = `
+              <strong>${nomeBotao}</strong>
+              <p>${textoPreview}</p>
+            `;
+
+            // Botões de ação
+            const acoes = document.createElement('div');
+            acoes.className = 'acoes';
+            
+            const btnEdit = document.createElement('button');
+            btnEdit.className = 'btn-edit';
+            btnEdit.innerHTML = '<i class="fas fa-edit"></i> Editar';
+            btnEdit.onclick = (e) => {
+              e.stopPropagation();
+              editarBotao(index);
+            };
+
+            const btnDel = document.createElement('button');
+            btnDel.className = 'btn-del';
+            btnDel.innerHTML = '<i class="fas fa-trash"></i> Excluir';
+            btnDel.onclick = (e) => {
+              e.stopPropagation();
+              excluirBotao(index);
+            };
+
+            acoes.appendChild(btnEdit);
+            acoes.appendChild(btnDel);
+
+            // Montar item
+            item.appendChild(badge);
+            item.appendChild(dragHandle);
+            item.appendChild(info);
+            item.appendChild(acoes);
+
+            // Eventos de Drag and Drop
+            item.addEventListener('dragstart', handleDragStart);
+            item.addEventListener('dragover', handleDragOver);
+            item.addEventListener('dragleave', handleDragLeave);
+            item.addEventListener('drop', handleDrop);
+            item.addEventListener('dragend', handleDragEnd);
+
+            container.appendChild(item);
+          });
+        });
+      }
+
+      function handleDragStart(e) {
+        draggedItem = this;
+        dragSourceIndex = parseInt(this.dataset.index);
+        
+        this.classList.add('dragging');
+        
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/plain', this.dataset.index);
+        
+        setTimeout(() => {
+          if (draggedItem) {
+            draggedItem.style.opacity = '0.5';
+          }
+        }, 0);
+      }
+
+      function handleDragOver(e) {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+        
+        this.classList.add('drag-over');
+        
+        const container = document.getElementById('listaBotoes');
+        const items = container.querySelectorAll('.item-lista');
+        items.forEach(item => item.classList.remove('drop-indicator'));
+        
+        const rect = this.getBoundingClientRect();
+        const midY = rect.top + rect.height / 2;
+        
+        if (e.clientY < midY) {
+          this.classList.add('drop-indicator');
+        } else if (this.nextElementSibling) {
+          this.nextElementSibling.classList.add('drop-indicator');
+        }
+      }
+
+      function handleDragLeave(e) {
+        this.classList.remove('drag-over', 'drop-indicator');
+      }
+
+      function handleDrop(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        this.classList.remove('drag-over', 'drop-indicator');
+        
+        if (draggedItem === this) return;
+        
+        const targetIndex = parseInt(this.dataset.index);
+        
+        chrome.storage.local.get(['configMaster'], (res) => {
+          const botoes = res.configMaster || [];
+          
+          const [itemMovido] = botoes.splice(dragSourceIndex, 1);
+          
+          const rect = this.getBoundingClientRect();
+          const midY = rect.top + rect.height / 2;
+          let novaPosicao = targetIndex;
+          
+          if (e.clientY > midY) {
+            novaPosicao = targetIndex + 1;
+          }
+          
+          if (dragSourceIndex < novaPosicao) {
+            novaPosicao--;
+          }
+          
+          botoes.splice(novaPosicao, 0, itemMovido);
+          
+          chrome.storage.local.set({ configMaster: botoes }, () => {
+            renderizarListaAtalhos();
+            mostrarNotificacao('✅ Ordem atualizada com sucesso!', 'success');
+          });
+        });
+      }
+
+      function handleDragEnd(e) {
+        this.classList.remove('dragging');
+        this.style.opacity = '1';
+        
+        const container = document.getElementById('listaBotoes');
+        const items = container.querySelectorAll('.item-lista');
+        items.forEach(item => {
+          item.classList.remove('drag-over', 'drop-indicator', 'dragging');
+          item.style.opacity = '1';
+        });
+        
+        draggedItem = null;
+        dragSourceIndex = null;
+      }
+
+      function editarBotao(index) {
+        chrome.storage.local.get(['configMaster'], (res) => {
+          const botoes = res.configMaster || [];
+          const botao = botoes[index];
+          
+          if (botao) {
+            document.getElementById('novoNomeBotao').value = botao.nome || '';
+            document.getElementById('novaImagemBotao').value = botao.imagem || '';
+            document.getElementById('novoTextoBotao').value = botao.texto || '';
+            document.getElementById('editIndex').value = index;
+            document.getElementById('btnAdicionarBotao').innerHTML = '<i class="fas fa-sync"></i> Atualizar Atalho';
+            document.getElementById('btnCancelarEdicao').style.display = 'block';
+            
+            document.getElementById('sec-atalhos').querySelector('.card').scrollIntoView({ behavior: 'smooth' });
+          }
+        });
+      }
+
+      function excluirBotao(index) {
+        if (confirm('Tem certeza que deseja excluir este atalho?')) {
+          chrome.storage.local.get(['configMaster'], (res) => {
+            const botoes = res.configMaster || [];
+            botoes.splice(index, 1);
+            chrome.storage.local.set({ configMaster: botoes }, () => {
+              renderizarListaAtalhos();
+              mostrarNotificacao('🗑️ Atalho excluído!', 'info');
+            });
+          });
+        }
+      }
+
+      function mostrarNotificacao(mensagem, tipo = 'info') {
+        const notificacao = document.createElement('div');
+        notificacao.style.cssText = `
+          position: fixed;
+          top: 20px;
+          right: 20px;
+          background: ${tipo === 'success' ? 'linear-gradient(135deg, #10b981, #059669)' : 'linear-gradient(135deg, #3b82f6, #2563eb)'};
+          color: white;
+          padding: 14px 24px;
+          border-radius: 12px;
+          z-index: 10000;
+          font-family: 'Inter', sans-serif;
+          font-size: 14px;
+          box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+          animation: slideIn 0.3s ease;
+        `;
+        notificacao.textContent = mensagem;
+        
+        document.body.appendChild(notificacao);
+        
+        setTimeout(() => {
+          notificacao.style.opacity = '0';
+          notificacao.style.transform = 'translateX(100px)';
+          setTimeout(() => notificacao.remove(), 300);
+        }, 3000);
+      }
+    </script>
   </body>
 </html>

@@ -2,58 +2,409 @@
 <html lang="pt-br">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ICD Hub - Popup</title>
+  
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  
   <style>
-    body { width: 350px; font-family: sans-serif; padding: 15px; background: #f4f4f9; border-radius: 15px;overflow: hidden; box-shadow: 0 8px 20px rgba(0,0,0,0.15); margin: 0;}
-    h2 { color: #612d87; font-size: 18px; margin: 0 0 15px 0; text-align: center; }
-    .card { background: white; padding: 12px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); margin-bottom: 15px; }
-    label { font-size: 11px; font-weight: bold; color: #555; display: block; margin-bottom: 5px; text-transform: uppercase; }
-    input, textarea { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; margin-bottom: 10px; font-family: inherit; }
-    
-    .btn-main { width: 100%; padding: 10px; background: #612d87; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
-    .btn-add { background: #25D366; color: white; border: none; padding: 8px; border-radius: 4px; cursor: pointer; width: 100%; font-weight: bold; margin-bottom: 10px; }
-    
-    .btn-group { display: flex; gap: 5px; }
-    .btn-sec { flex: 1; padding: 8px; font-size: 11px; border: none; border-radius: 4px; cursor: pointer; color: white; font-weight: bold; }
-    
-    #listaBotoes { margin-top: 10px; max-height: 150px; overflow-y: auto; border-top: 1px solid #eee; padding-top: 10px; }
-    .item-botao { display: flex; justify-content: space-between; align-items: center; font-size: 12px; padding: 5px; border-bottom: 1px solid #f9f9f9; }
-    .btn-del { color: red; cursor: pointer; font-weight: bold; border: none; background: none; }
-    
-    .status { font-size: 11px; color: #666; text-align: center; margin-top: 10px; }
+    :root {
+      --bg-primary: #0f172a;
+      --bg-secondary: #1e293b;
+      --bg-card: rgba(30, 41, 59, 0.6);
+      --glass-bg: rgba(255, 255, 255, 0.05);
+      --glass-border: rgba(255, 255, 255, 0.1);
+      --text-primary: #f1f5f9;
+      --text-secondary: #94a3b8;
+      --accent-blue: #3b82f6;
+      --accent-purple: #a855f7;
+      --accent-purple-hover: #9333ea;
+      --accent-pink: #ec4899;
+      --accent-cyan: #06b6d4;
+      --accent-green: #10b981;
+      --accent-red: #ef4444;
+      --gradient-purple: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      --gradient-pink: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+      --gradient-cyan: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+      --gradient-funpass: linear-gradient(135deg, #ff2a5f 0%, #ff5e84 100%);
+      --shadow-lg: 0 10px 40px rgba(0, 0, 0, 0.3);
+      --shadow-md: 0 4px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    body {
+      width: 380px;
+      min-height: 600px;
+      margin: 0;
+      padding: 20px;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: linear-gradient(135deg, var(--bg-primary) 0%, #1a1a2e 50%, var(--bg-secondary) 100%);
+      color: var(--text-primary);
+      position: relative;
+      overflow-x: hidden;
+      overflow-y: auto;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle at 30% 20%, rgba(139, 92, 246, 0.15) 0%, transparent 50%),
+                  radial-gradient(circle at 70% 80%, rgba(236, 72, 153, 0.1) 0%, transparent 50%);
+      animation: rotate 30s linear infinite;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    @keyframes rotate {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .header-logo, .glass-card, button, .status {
+      position: relative;
+      z-index: 1;
+    }
+
+    /* Header com logo - mais compacto */
+    .header-logo {
+      text-align: center;
+      margin-bottom: 16px;
+      background: var(--glass-bg);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid var(--glass-border);
+      border-radius: 16px;
+      padding: 16px 20px;
+      box-shadow: var(--shadow-md);
+    }
+
+    .logo-container {
+      margin-bottom: 8px;
+    }
+
+    .logo-empresa {
+      width: 60px;
+      height: 60px;
+      object-fit: contain;
+      filter: drop-shadow(0 4px 12px rgba(168, 85, 247, 0.3));
+      animation: logoFloat 3s ease-in-out infinite;
+    }
+
+    @keyframes logoFloat {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-5px); }
+    }
+
+    .header-logo .subtitle {
+      font-size: 9px;
+      color: var(--text-secondary);
+      letter-spacing: 2px;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .header-logo .subtitle::before,
+    .header-logo .subtitle::after {
+      content: '';
+      width: 20px;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--accent-purple), transparent);
+    }
+
+    /* Cards com efeito glass - mais compactos */
+    .glass-card {
+      background: var(--bg-card);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid var(--glass-border);
+      border-radius: 14px;
+      padding: 16px;
+      margin-bottom: 12px;
+      box-shadow: var(--shadow-md);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .glass-card:hover {
+      border-color: rgba(139, 92, 246, 0.3);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-lg);
+    }
+
+    label {
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 8px;
+    }
+
+    label i {
+      font-size: 12px;
+      color: var(--accent-purple);
+    }
+
+    input[type="text"] {
+      width: 100%;
+      background: rgba(15, 23, 42, 0.8);
+      border: 1px solid var(--glass-border);
+      color: var(--text-primary);
+      padding: 10px 14px;
+      border-radius: 10px;
+      font-family: 'Inter', sans-serif;
+      font-size: 13px;
+      box-sizing: border-box;
+      margin-bottom: 10px;
+      outline: none;
+    }
+
+    input[type="text"]:focus {
+      border-color: var(--accent-purple);
+      box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.2);
+      background: rgba(15, 23, 42, 1);
+    }
+
+    input[type="text"]::placeholder {
+      color: rgba(148, 163, 184, 0.5);
+    }
+
+    .btn {
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: 10px;
+      font-family: 'Inter', sans-serif;
+      font-weight: 600;
+      font-size: 13px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      color: #fff;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .btn:active {
+      transform: scale(0.98);
+    }
+
+    .btn i {
+      font-size: 14px;
+    }
+
+    .btn-main {
+      background: var(--gradient-purple);
+      box-shadow: 0 6px 20px rgba(139, 92, 246, 0.3);
+    }
+
+    .btn-main:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 30px rgba(139, 92, 246, 0.5);
+    }
+
+    .btn-funpass {
+      background: var(--gradient-funpass);
+      margin: 12px 0;
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      box-shadow: 0 6px 20px rgba(255, 42, 95, 0.4);
+      animation: funpassGlow 2s infinite;
+      padding: 14px;
+    }
+
+    .btn-funpass:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 30px rgba(255, 42, 95, 0.6);
+    }
+
+    @keyframes funpassGlow {
+      0%, 100% { box-shadow: 0 6px 20px rgba(255, 42, 95, 0.4); }
+      50% { box-shadow: 0 6px 30px rgba(255, 42, 95, 0.7); }
+    }
+
+    .btn-outline {
+      background: transparent;
+      border: 1px solid var(--glass-border);
+      color: var(--text-secondary);
+      font-weight: 500;
+      margin-bottom: 12px;
+    }
+
+    .btn-outline:hover {
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--text-primary);
+      border-color: var(--accent-purple);
+    }
+
+    .btn-group {
+      display: flex;
+      gap: 8px;
+    }
+
+    .btn-group .btn {
+      padding: 10px;
+      font-size: 12px;
+      flex: 1;
+    }
+
+    .btn-export {
+      background: rgba(6, 182, 212, 0.15);
+      color: var(--accent-cyan);
+      border: 1px solid rgba(6, 182, 212, 0.3);
+      font-weight: 600;
+    }
+
+    .btn-export:hover {
+      background: rgba(6, 182, 212, 0.25);
+      box-shadow: 0 6px 20px rgba(6, 182, 212, 0.2);
+    }
+
+    .btn-import {
+      background: rgba(16, 185, 129, 0.15);
+      color: var(--accent-green);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      font-weight: 600;
+    }
+
+    .btn-import:hover {
+      background: rgba(16, 185, 129, 0.25);
+      box-shadow: 0 6px 20px rgba(16, 185, 129, 0.2);
+    }
+
+    .card-gerenciamento {
+      padding: 14px;
+    }
+
+    .card-gerenciamento label {
+      text-align: center;
+      display: flex;
+      justify-content: center;
+      margin-bottom: 12px;
+    }
+
+    .status {
+      font-size: 11px;
+      color: var(--text-secondary);
+      text-align: center;
+      margin-top: 12px;
+      padding: 12px;
+      background: var(--glass-bg);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid var(--glass-border);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+    }
+
+    .status a {
+      color: var(--accent-purple);
+      text-decoration: none;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .status a:hover {
+      text-decoration: underline;
+    }
+
+    /* Scrollbar personalizada */
+    ::-webkit-scrollbar {
+      width: 4px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--accent-purple);
+      border-radius: 10px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--accent-blue);
+    }
+
+    /* Remover partículas para evitar scroll extra */
+    .particle {
+      display: none;
+    }
   </style>
 </head>
-<body style="border-radius: 15px; overflow: hidden; padding: 20px; font-family: sans-serif;">
-    </body>
-  <h2>ICD Hub - Gerenciador</h2>
-  
-  <div class="card">
-    <label>Seu Nome (Operador)</label>
-    <input type="text" id="nomeOperador" placeholder="Ex: BRUNO">
-    <button id="btnSalvarNome" class="btn-main">Salvar Nome</button>
+<body>
+
+  <div class="header-logo">
+    <div class="logo-container">
+      <img src="icons/logo-icd.png" alt="ICD Hub" class="logo-empresa">
+    </div>
+    <div class="subtitle">WORKSPACE</div>
   </div>
 
-  <button id="btnAbrirConfig" class="btn-main">⚙️ Configurar Botões (Tela Cheia)</button>
+  <div class="glass-card">
+    <label><i class="fas fa-user-circle"></i> Identificação do Operador</label>
+    <input type="text" id="nomeOperador" placeholder="Ex: BRUNO FERREIRA">
+    <button id="btnSalvarNome" class="btn btn-main">
+      <i class="fas fa-save"></i> Salvar Nome
+    </button>
+  </div>
 
-  <br>
-  <br>
-
-  <button id="btnFunpass" style="width: 100%; padding: 8px; margin-top: 10px; background-color: #ff2a5f; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 14px; box-shadow: 0 4px 10px rgba(0,0,0,0.2);">
-  🎟️ Compras Funpass
+  <button id="btnAbrirConfig" class="btn btn-outline">
+    <i class="fas fa-cog"></i> Abrir Painel de Configurações
   </button>
 
-  <br>
-  <br>
+  <button id="btnFunpass" class="btn btn-funpass">
+    <i class="fas fa-ticket-alt"></i> Sistema Funpass
+  </button>
 
-  <div class="card">
-  <label>BACKUP DOS BOTÕES</label>
-  <div class="btn-group" style="display: flex; gap: 10px; margin-top: 5px;">
-    <button id="btnExportar" class="btn-sec" style="background: #34B7F1; flex: 1; padding: 10px; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">📤 Salvar Arquivo</button>
-    <button id="btnImportar" class="btn-sec" style="background: #25D366; flex: 1; padding: 10px; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">📥 Abrir Arquivo</button>
+  <div class="glass-card card-gerenciamento">
+    <label>
+      <i class="fas fa-database"></i> Gerenciamento de Dados
+    </label>
+    <div class="btn-group">
+      <button id="btnExportar" class="btn btn-export">
+        <i class="fas fa-download"></i> Exportar
+      </button>
+      <button id="btnImportar" class="btn btn-import">
+        <i class="fas fa-upload"></i> Importar
+      </button>
+    </div>
+    <input type="file" id="inputArquivo" style="display: none;" accept=".json">
   </div>
-  <input type="file" id="inputArquivo" style="display: none;" accept=".json">
-</div>
 
-  <div class="status" id="statusMsg">Desenvolvido por <a href="https://github.com/bruninho182" target="_blank">Bruno Ferreira</a> </div> 
+  <div class="status" id="statusMsg">
+    <i class="fas fa-code"></i> Desenvolvido por 
+    <a href="https://github.com/bruninho182" target="_blank">
+      <i class="fab fa-github"></i> Bruno Ferreira
+    </a>
+  </div>
 
   <script src="popup.js"></script>
 </body>

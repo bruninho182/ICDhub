@@ -1,18 +1,22 @@
 /* =========================================================
-   ICD HUB - ESTILOS DA BARRA LATERAL (DINÂMICO V1.5)
+   ICD HUB - ESTILOS DA BARRA LATERAL (V2.0 MODERNO)
    ========================================================= */
 
 /* 1. ESTRUTURA BASE (Comum a todas as posições) */
 #menu-automacao-hub {
     position: fixed;
-    background: #f0f2f5;
+    background: linear-gradient(180deg, 
+        rgba(15, 23, 42, 0.95) 0%, 
+        rgba(30, 41, 59, 0.98) 100%);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
     z-index: 9999;
-    transition: all 0.3s ease-in-out;
-    box-shadow: 0 0 15px rgba(0,0,0,0.2);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
     display: flex;
     flex-direction: column;
     box-sizing: border-box;
-    border: 1px solid #ddd;
+    border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 /* 2. CONFIGURAÇÕES POR POSIÇÃO */
@@ -20,46 +24,52 @@
 /* --- DIREITA (Padrão) --- */
 .pos-direita {
     top: 0;
-    right: -260px; /* Escondida */
-    width: 260px;
+    right: -280px;
+    width: 280px;
     height: 100vh;
+    border-radius: 20px 0 0 20px;
 }
-.pos-direita.aberto { right: 0 !important; }
+.pos-direita.aberto { 
+    right: 0 !important; 
+}
 
 .pos-direita #aba-gatilho {
-    left: -40px;
+    left: -45px;
     top: 50%;
     transform: translateY(-50%);
-    border-radius: 10px 0 0 10px;
+    border-radius: 12px 0 0 12px;
 }
 
 /* --- ESQUERDA --- */
 .pos-esquerda {
     top: 0;
-    left: -260px; /* Escondida */
-    width: 260px;
+    left: -280px;
+    width: 280px;
     height: 100vh;
+    border-radius: 0 20px 20px 0;
 }
-.pos-esquerda.aberto { left: 0 !important; }
+.pos-esquerda.aberto { 
+    left: 0 !important; 
+}
 
 .pos-esquerda #aba-gatilho {
-    right: -40px;
+    right: -45px;
     top: 50%;
     transform: translateY(-50%);
-    border-radius: 0 10px 10px 0;
+    border-radius: 0 12px 12px 0;
 }
 
-/* --- TOPO (Ajustado para fechar corretamente) --- */
+/* --- TOPO --- */
 .pos-topo {
     top: 0;
     left: 0;
     width: 100%;
     height: auto;
-    max-height: 80vh; /* Não deixa ocupar a tela toda se tiver muita coisa */
-    /* Em vez de 'top', usamos transform para esconder 100% da própria altura */
-    transform: translateY(-100%); 
-    border-bottom: 2px solid #612d87;
-    transition: transform 0.3s ease-in-out !important;
+    max-height: 80vh;
+    transform: translateY(-100%);
+    border-radius: 0 0 20px 20px;
+    border-bottom: 1px solid rgba(139, 92, 246, 0.3);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
 
 .pos-topo.aberto {
@@ -67,24 +77,25 @@
 }
 
 .pos-topo #aba-gatilho {
-    top: 100%; /* Fixa a aba exatamente na borda de baixo do menu */
+    top: 100%;
     left: 50%;
     transform: translateX(-50%);
-    width: 80px !important;
-    height: 35px !important;
-    border-radius: 0 0 10px 10px;
+    width: 100px !important;
+    height: 40px !important;
+    border-radius: 0 0 15px 15px;
     display: flex;
     align-items: center;
     justify-content: center;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3);
 }
 
-/* Grid de botões automático apenas quando estiver no TOPO */
 .pos-topo #container-botoes-hub {
     display: grid !important;
-    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-    gap: 10px;
-    padding: 15px;
-    max-height: 300px; /* Scroll interno se tiver muitos botões */
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 12px;
+    padding: 20px;
+    max-height: 350px;
     overflow-y: auto;
 }
 
@@ -93,91 +104,270 @@
 /* Aba de Controle (Gatilho) */
 #aba-gatilho {
     position: absolute;
-    width: 40px;
-    height: 80px;
-    background: #612d87;
+    width: 45px;
+    height: 90px;
+    background: linear-gradient(135deg, #667eea, #764ba2);
     color: white;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 20px;
+    font-size: 22px;
     z-index: 10000;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    box-shadow: 0 4px 15px rgba(139, 92, 246, 0.4);
+    transition: all 0.3s ease;
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+}
+
+#aba-gatilho:hover {
+    background: linear-gradient(135deg, #764ba2, #667eea);
+    box-shadow: 0 6px 25px rgba(139, 92, 246, 0.6);
+    transform: scale(1.05);
 }
 
 /* Título */
 .titulo-hub {
-    font-size: 14px;
-    font-weight: bold;
-    color: #612d87;
-    margin: 15px 0;
+    font-size: 15px;
+    font-weight: 700;
+    background: linear-gradient(135deg, #667eea, #a855f7);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin: 20px 0 15px;
     text-align: center;
-    border-bottom: 2px solid #612d87;
-    padding-bottom: 8px;
+    padding-bottom: 10px;
     width: 100%;
+    letter-spacing: 1px;
+    position: relative;
 }
 
-/* Container de Botões (Scroll lateral) */
+.titulo-hub::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60%;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, #a855f7, transparent);
+}
+
+/* Container de Botões */
 #container-botoes-hub {
     overflow-y: auto;
     flex-grow: 1;
     display: flex;
     flex-direction: column;
-    gap: 8px;
-    padding: 10px;
+    gap: 10px;
+    padding: 15px;
 }
 
-/* Botões de Atalho */
+/* Botões de Atalho - Estilo Moderno */
 .btn-atalho-hub {
-    background: white;
-    border: 1px solid #ddd;
-    padding: 10px;
-    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 12px 16px;
+    border-radius: 12px;
     cursor: pointer;
     font-size: 13px;
-    font-weight: bold;
-    color: #333;
-    transition: all 0.2s;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    font-weight: 600;
+    color: #e2e8f0;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    letter-spacing: 0.3px;
+    position: relative;
+    overflow: hidden;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+/* Efeito de brilho no hover */
+.btn-atalho-hub::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, 
+        transparent, 
+        rgba(255, 255, 255, 0.1), 
+        transparent);
+    transition: left 0.5s ease;
 }
 
 .btn-atalho-hub:hover {
-    background: #612d87;
+    background: linear-gradient(135deg, #667eea, #764ba2);
     color: white;
-    transform: translateY(-2px);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+    border-color: rgba(139, 92, 246, 0.5);
+}
+
+.btn-atalho-hub:hover::before {
+    left: 100%;
+}
+
+.btn-atalho-hub:active {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
 }
 
 /* 4. COMPONENTES ESPECÍFICOS */
 
-/* Calculadora 🧮 */
+/* Campo de Busca Moderno */
+#busca-botoes {
+    background: rgba(15, 23, 42, 0.8) !important;
+    border: 1px solid rgba(255, 255, 255, 0.15) !important;
+    color: #e2e8f0 !important;
+    border-radius: 10px !important;
+    padding: 10px 15px !important;
+    font-size: 13px !important;
+    transition: all 0.3s ease !important;
+    font-family: 'Inter', sans-serif !important;
+    outline: none !important;
+}
+
+#busca-botoes:focus {
+    border-color: #a855f7 !important;
+    box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.2) !important;
+    background: rgba(15, 23, 42, 0.95) !important;
+}
+
+#busca-botoes::placeholder {
+    color: rgba(148, 163, 184, 0.5) !important;
+}
+
+/* Calculadora - Estilo Moderno */
 #btn-cotacao-hub {
-    transition: all 0.2s ease;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    background: linear-gradient(135deg, #10b981, #059669) !important;
+    box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3) !important;
+    border: 1px solid rgba(16, 185, 129, 0.3) !important;
+    border-radius: 12px !important;
+    font-size: 20px !important;
 }
 
 #btn-cotacao-hub:hover {
-    background: #4a1d6a !important;
+    background: linear-gradient(135deg, #059669, #047857) !important;
     transform: scale(1.1) rotate(5deg);
+    box-shadow: 0 8px 25px rgba(16, 185, 129, 0.5) !important;
 }
 
-/* Imagens Arrastáveis */
+/* Imagens Arrastáveis - Visual Moderno */
 img[draggable="true"] {
-    transition: transform 0.2s, border-color 0.2s;
-    border: 2px solid #612d87;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 2px solid rgba(139, 92, 246, 0.4) !important;
+    border-radius: 8px !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
 img[draggable="true"]:hover {
-    transform: scale(1.2);
-    border-color: #25D366 !important; /* Verde WhatsApp no hover */
+    transform: scale(1.15);
+    border-color: #10b981 !important;
+    box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
     z-index: 10;
 }
 
-/* 5. CUSTOMIZAÇÃO DE SCROLL */
+/* 5. CUSTOMIZAÇÃO DE SCROLL MODERNA */
 #container-botoes-hub::-webkit-scrollbar {
-    width: 5px;
+    width: 4px;
 }
-#container-botoes-hub::-webkit-scrollbar-thumb {
-    background: #612d87;
+
+#container-botoes-hub::-webkit-scrollbar-track {
+    background: rgba(15, 23, 42, 0.3);
     border-radius: 10px;
+}
+
+#container-botoes-hub::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, #667eea, #764ba2);
+    border-radius: 10px;
+}
+
+#container-botoes-hub::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, #764ba2, #a855f7);
+}
+
+/* 6. ANIMAÇÕES */
+
+/* Animação de entrada dos botões */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.btn-atalho-hub {
+    animation: fadeInUp 0.3s ease forwards;
+}
+
+/* Atraso para animação em cascata */
+.btn-atalho-hub:nth-child(1) { animation-delay: 0.05s; }
+.btn-atalho-hub:nth-child(2) { animation-delay: 0.1s; }
+.btn-atalho-hub:nth-child(3) { animation-delay: 0.15s; }
+.btn-atalho-hub:nth-child(4) { animation-delay: 0.2s; }
+.btn-atalho-hub:nth-child(5) { animation-delay: 0.25s; }
+.btn-atalho-hub:nth-child(6) { animation-delay: 0.3s; }
+.btn-atalho-hub:nth-child(7) { animation-delay: 0.35s; }
+.btn-atalho-hub:nth-child(8) { animation-delay: 0.4s; }
+.btn-atalho-hub:nth-child(9) { animation-delay: 0.45s; }
+.btn-atalho-hub:nth-child(10) { animation-delay: 0.5s; }
+
+/* 7. BADGE DE NOTIFICAÇÃO (OPCIONAL) */
+.btn-atalho-hub .badge {
+    background: #ef4444;
+    color: white;
+    border-radius: 50%;
+    padding: 2px 6px;
+    font-size: 10px;
+    position: absolute;
+    top: -5px;
+    right: -5px;
+}
+
+/* 8. TOOLTIP MODERNO */
+[title] {
+    position: relative;
+}
+
+[title]:hover::after {
+    content: attr(title);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(15, 23, 42, 0.95);
+    color: white;
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 11px;
+    white-space: nowrap;
+    z-index: 10001;
+    margin-bottom: 5px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* 9. RESPONSIVIDADE */
+@media (max-width: 768px) {
+    .pos-direita,
+    .pos-esquerda {
+        width: 260px;
+    }
+    
+    .pos-topo #container-botoes-hub {
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 8px;
+        padding: 12px;
+    }
+    
+    .btn-atalho-hub {
+        padding: 10px 14px;
+        font-size: 12px;
+    }
 }

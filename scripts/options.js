@@ -396,15 +396,15 @@ document.addEventListener("DOMContentLoaded", () => {
       lista.forEach((p, index) => {
         const item = document.createElement("div");
         item.style =
-          "background: #f4f4f4; padding: 10px; margin-bottom: 8px; border-radius: 5px; display: flex; justify-content: space-between; align-items: center; border-left: 4px solid #612d87;";
+          "background: rgba(15, 23, 42, 0.6); padding: 16px; margin-bottom: 10px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; border: 1px solid rgba(255, 255, 255, 0.08); border-left: 4px solid #8b5cf6; transition: all 0.3s ease;";
         item.innerHTML = `
-                <div style="font-size: 12px;">
-                    <strong>${p.nome}</strong><br>
-                    <small>${p.ingressos.length} categorias cadastradas</small>
+                <div style="font-size: 13px; flex: 1; min-width: 0;">
+                    <strong style="color: #f1f5f9; display: block; margin-bottom: 4px;">${p.nome}</strong>
+                    <small style="color: #94a3b8;"><i class="fas fa-ticket-alt" style="color: #8b5cf6; font-size: 10px; margin-right: 5px;"></i>${p.ingressos.length} categorias cadastradas</small>
                 </div>
-                <div style="display: flex; gap: 5px;">
-                    <button class="btn-editar-p" data-index="${index}" style="background:#34B7F1; color:white; border:none; border-radius:3px; cursor:pointer; padding: 4px 8px; font-size:10px;">Editar</button>
-                    <button class="btn-excluir-p" data-index="${index}" style="background:#ff4d4d; color:white; border:none; border-radius:3px; cursor:pointer; padding: 4px 8px; font-size:10px;">Excluir</button>
+                <div style="display: flex; gap: 8px; flex-shrink: 0; margin-left: 15px;">
+                    <button class="btn-editar-p" data-index="${index}" style="background: rgba(59, 130, 246, 0.2); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 8px; cursor:pointer; padding: 8px 14px; font-size:11px; font-weight: 600; font-family: 'Inter', sans-serif;">Editar</button>
+                    <button class="btn-excluir-p" data-index="${index}" style="background: transparent; color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 8px; cursor:pointer; padding: 8px 14px; font-size:11px; font-weight: 600; font-family: 'Inter', sans-serif;">Excluir</button>
                 </div>
             `;
         container.appendChild(item);
