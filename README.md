@@ -5,7 +5,7 @@ O **ICD Hub** é uma extensão de alta performance para Google Chrome, desenvolv
 ---
 
 ## 📸 Demonstração
-<img src="./screenshots/banner.png" alt="Banner do Projeto" width="100%">
+<img src="./screenshot/banner.png" alt="Banner do Projeto" width="100%">
 
 *Central de Automação e Produtividade para Operadores ICD.*
 
