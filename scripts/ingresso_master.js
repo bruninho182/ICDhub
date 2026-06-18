@@ -1,4 +1,4 @@
-console.log("✅ ICD Hub: Ativado (Versão TicketGo + Voucher Fix + Navio)");
+console.log("✅ ICD Hub: Ativado (Versão TicketGo + Voucher Fix + Navio + Renomeador Híbrido)");
 
 // --- 1. MONITORAMENTO DE DADOS ---
 
@@ -326,16 +326,33 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   return true;
 });
 
+// AQUI FOI APLICADA A CORREÇÃO (Renomeador Híbrido: Funciona no sistema Novo e no Antigo)
 function renomear() {
-  const texto = document.body.innerText;
-  const regCod = /Código da Compra:\s*([A-Z0-9]+)/i;
-  const regNome = /Nome Completo:\s*([^\n\r]+)/i;
-  const mCod = texto.match(regCod);
-  const mNome = texto.match(regNome);
-  if (mCod && mNome) {
-    const resultado = `${mCod[1].trim()} - ${mNome[1].trim().toUpperCase()}`;
+  let resultado = null;
+
+  // 1. Tenta extrair pelo sistema novo (React/MUI)
+  const nomeNovoSistema = extrairNomeVoucher();
+  if (nomeNovoSistema) {
+    resultado = nomeNovoSistema.replace('.pdf', ''); // Remove o ".pdf" para ficar bonito na aba
+  } 
+  
+  // 2. Se não encontrou, tenta pelo padrão do sistema antigo (Classic ASP)
+  if (!resultado) {
+    const texto = document.body.innerText;
+    const regCod = /Código da Compra:\s*([A-Z0-9]+)/i;
+    const regNome = /Nome Completo:\s*([^\n\r]+)/i;
+    const mCod = texto.match(regCod);
+    const mNome = texto.match(regNome);
+    if (mCod && mNome) {
+      resultado = `${mCod[1].trim()} - ${mNome[1].trim().toUpperCase()}`;
+    }
+  }
+
+  // 3. Aplica o título caso tenha encontrado algo
+  if (resultado && document.title !== resultado) {
     document.title = resultado;
     if (window.top !== window.self) window.top.document.title = resultado;
   }
 }
+
 setInterval(renomear, 1000);
