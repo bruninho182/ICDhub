@@ -1,7 +1,3 @@
-/* =========================================================
-   ICD HUB - BACKGROUND CENTRAL & SERVICE WORKER
-   ========================================================= */
-
 // --- 1. COMUNICAÇÃO DE DADOS (HUB -> SISTEMAS) ---
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.acao === "DADOS_PRONTOS") {
@@ -23,7 +19,6 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
 // --- 2. GERENCIADOR DE DOWNLOADS (RENOMEADOR DE VOUCHERS) ---
 chrome.downloads.onDeterminingFilename.addListener((downloadItem, suggest) => {
-  // Se não for PDF, deixa o Chrome seguir o fluxo normal
   if (
     !downloadItem.filename.endsWith(".pdf") &&
     !downloadItem.mime?.includes("pdf")
@@ -68,7 +63,7 @@ chrome.downloads.onDeterminingFilename.addListener((downloadItem, suggest) => {
 
 // Cria o alarme quando a extensão for instalada ou atualizada
 chrome.runtime.onInstalled.addListener(() => {
-  chrome.alarms.create("wellnessAlarm", { periodInMinutes: 120 });
+  chrome.alarms.create("wellnessAlarm", { periodInMinutes: 150 });
 });
 
 chrome.alarms.onAlarm.addListener((alarm) => {
