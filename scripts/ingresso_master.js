@@ -433,9 +433,9 @@ function preencherNovoSistemaICD(dados, operador, dataType) {
     if (f && f.input) {
       let valorFinal = item.valor;
       // Se for o campo "Nome", aplica limpeza novamente para garantir
-      if (item.busca === "Nome") {
-        valorFinal = limparNome(valorFinal);
-      }
+      if (item.busca === "Nome" && dataType !== "Navio") {
+    valorFinal = limparNome(valorFinal);
+}
       forceReactValue(f.input, valorFinal);
       count++;
     }
