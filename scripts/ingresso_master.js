@@ -121,31 +121,17 @@ function limparNome(texto) {
     // Remove qualquer sequência de letras maiúsculas e números com 8+ caracteres (códigos)
     texto = texto.replace(/[A-Z0-9]{8,}/g, '');
     
-    // Remove tudo que não é letra (inclui números, símbolos, etc)
+    // Remove tudo que não é letra (inclui números, símbolos, etc), mas mantém espaços
     texto = texto.replace(/[^a-zA-ZÀ-ÿ\s]/g, '');
     
     // Remove espaços extras
     texto = texto.replace(/\s+/g, ' ').trim();
     
-    // Se ainda tiver mais de 3 palavras, pega só as duas primeiras que parecem nomes
-    const words = texto.split(' ');
-    if (words.length > 3) {
-        let nomeLimpo = '';
-        let count = 0;
-        for (const word of words) {
-            // Palavra que parece nome (começa com maiúscula e tem mais de 1 letra)
-            if (/^[A-ZÀ-ÿ][a-zà-ÿ]+$/.test(word) && word.length > 1) {
-                nomeLimpo += word + ' ';
-                count++;
-                if (count >= 2) break;
-            }
-        }
-        texto = nomeLimpo.trim();
-    }
-    
-    // Se ainda tiver vazio, tenta pegar duas palavras quaisquer
-    if (!texto || texto.length < 3) {
-        const match = texto.match(/([A-ZÀ-ÿ][a-zà-ÿ]+(?:\s+[A-ZÀ-ÿ][a-zà-ÿ]+)?)/);
+    // ---------- CORREÇÃO: NÃO LIMITAR A DUAS PALAVRAS ----------
+    // Mantém o nome completo (todas as palavras) desde que não contenha caracteres estranhos
+    // Se o texto estiver vazio ou muito curto, tenta pegar qualquer palavra que pareça nome
+    if (!texto || texto.length < 2) {
+        const match = texto.match(/([A-ZÀ-ÿ][a-zà-ÿ]+(?:\s+[A-ZÀ-ÿ][a-zà-ÿ]+)*)/);
         if (match) texto = match[1];
     }
     
@@ -155,7 +141,7 @@ function limparNome(texto) {
 function extrairNomeCliente() {
     const bodyText = document.body.innerText;
     
-    // 1. Tenta encontrar a seção "Dados do Cliente"
+    // 1. Tenta encontrar a seção "Dados do Cliente" e extrair Nome completo
     const sectionRegex = /Dados do Cliente[\s\S]*?(?=Telefone|E-mail|Email|Número|Data|País|Sexo|$)/i;
     const sectionMatch = bodyText.match(sectionRegex);
     if (sectionMatch) {
@@ -164,15 +150,10 @@ function extrairNomeCliente() {
         const nomeMatch = section.match(/Nome\s*[:]\s*([^\n]+?)(?=\s*(?:Telefone|E-mail|Email|Número|Data|País|Sexo|$))/i);
         if (nomeMatch) {
             let nome = nomeMatch[1].trim();
-            // Remove tudo que não é letra (incluindo números, @, +, etc)
-            nome = nome.replace(/[^a-zA-Z\s]/g, '').trim();
-            // Se tiver mais de 2 palavras, pega só as duas primeiras
-            const parts = nome.split(/\s+/);
-            if (parts.length > 2) {
-                nome = parts.slice(0, 2).join(' ');
-            }
+            // Remove lixo (telefones, emails, etc) mas mantém todas as palavras
+            nome = limparNome(nome);
             if (nome.length > 2) {
-                console.log("👤 Nome extraído da seção:", nome);
+                console.log("👤 Nome completo extraído da seção:", nome);
                 return nome;
             }
         }
@@ -182,25 +163,20 @@ function extrairNomeCliente() {
     const nomeMatch2 = bodyText.match(/Nome\s*[:]\s*([^\n]+?)(?=\s*(?:Telefone|E-mail|Email|Número|Data|País|Sexo|$))/i);
     if (nomeMatch2) {
         let nome = nomeMatch2[1].trim();
-        nome = nome.replace(/[^a-zA-Z\s]/g, '').trim();
-        const parts = nome.split(/\s+/);
-        if (parts.length > 2) {
-            nome = parts.slice(0, 2).join(' ');
-        }
+        nome = limparNome(nome);
         if (nome.length > 2) {
-            console.log("👤 Nome extraído via fallback:", nome);
+            console.log("👤 Nome completo extraído via fallback:", nome);
             return nome;
         }
     }
     
-    // 3. Último recurso: procura por duas palavras maiúsculas (nome e sobrenome)
-    const namePattern = /([A-Z][a-zÀ-ÿ]+(?:\s+[A-Z][a-zÀ-ÿ]+))/g;
+    // 3. Último recurso: procura por palavras que pareçam nome (pode pegar várias)
+    const namePattern = /([A-Z][a-zÀ-ÿ]+(?:\s+[A-Z][a-zÀ-ÿ]+)+)/g; // ao menos duas palavras
     const matches = bodyText.match(namePattern);
     if (matches) {
         for (const match of matches) {
-            // Verifica se não tem números ou @
             if (!/\d/.test(match) && !match.includes('@')) {
-                console.log("👤 Nome extraído via padrão:", match);
+                console.log("👤 Nome completo extraído via padrão:", match);
                 return match;
             }
         }
@@ -274,7 +250,7 @@ function extrairDadosGYG() {
             }
         }
         
-        // 2. Nome - usando a função melhorada
+        // 2. Nome completo
         const nome = extrairNomeCliente();
         if (nome) {
             dados.nome = nome;
@@ -434,8 +410,8 @@ function preencherNovoSistemaICD(dados, operador, dataType) {
       let valorFinal = item.valor;
       // Se for o campo "Nome", aplica limpeza novamente para garantir
       if (item.busca === "Nome" && dataType !== "Navio") {
-    valorFinal = limparNome(valorFinal);
-}
+        valorFinal = limparNome(valorFinal);
+      }
       forceReactValue(f.input, valorFinal);
       count++;
     }
@@ -550,45 +526,79 @@ function prepararDadosEmail(id, nome, email) {
   chrome.storage.local.set({ dadosParaEmail: dadosEmail });
 }
 
-// --- 6. LÓGICA DE VOUCHERS E TÍTULOS ---
+// --- 6. LÓGICA DE VOUCHERS E TÍTULOS (CORRIGIDA) ---
 
 function extrairNomeVoucher() {
   let nome = "";
   let codigo = "";
-  
-  const paragrafos = Array.from(document.querySelectorAll("p"));
-  for (const p of paragrafos) {
-    if (p.innerText.trim() === "Nome:" || p.innerText.trim() === "Name:") {
-      const next = p.nextElementSibling;
-      if (next) {
-        nome = limparNome(next.innerText.trim().toUpperCase());
+
+  // --- SISTEMA NOVO (app.icdgrupo.com.br) ---
+  if (window.location.href.includes("app.icdgrupo.com.br")) {
+    // 1. Código: procura por "Voucher:" ou "Código da Compra"
+    const voucherRegex = /Voucher:\s*([A-Z0-9]+)/i;
+    const codigoMatch = document.body.innerText.match(voucherRegex);
+    if (codigoMatch) codigo = codigoMatch[1].trim();
+
+    // 2. Nome: procura na seção "Dados do Cliente" - "Nome:"
+    const clienteSection = document.body.innerText.match(/Dados do Cliente[\s\S]*?Nome:\s*([^\n]+)/i);
+    if (clienteSection) {
+      let nomeRaw = clienteSection[1].trim();
+      // Limpa lixo (telefone, email, etc) mas mantém todas as palavras
+      nome = limparNome(nomeRaw);
+    }
+
+    //fallback para outros padrões
+    if (!codigo || !nome) {
+      const fallbackCod = document.body.innerText.match(/Código da Compra:\s*([A-Z0-9]+)/i);
+      if (fallbackCod) codigo = fallbackCod[1].trim();
+      const fallbackNome = document.body.innerText.match(/Nome Completo:\s*([^\n]+)/i);
+      if (fallbackNome) nome = limparNome(fallbackNome[1].trim());
+    }
+  } else {
+    // --- SISTEMA ANTIGO (ingressocomdesconto) ---
+    const paragrafos = Array.from(document.querySelectorAll("p"));
+    for (const p of paragrafos) {
+      if (p.innerText.trim() === "Nome:" || p.innerText.trim() === "Name:") {
+        const next = p.nextElementSibling;
+        if (next) {
+          nome = limparNome(next.innerText.trim().toUpperCase());
+          break;
+        }
+      }
+    }
+
+    const chips = Array.from(
+      document.querySelectorAll('span[class*="MuiChip-label"], .p-chip, [class*="chip"]'),
+    );
+    for (const chip of chips) {
+      const text = chip.innerText.trim();
+      if (/^[A-Z0-9]+-\d+$/.test(text) || /^GYG\d+/.test(text)) {
+        codigo = text;
         break;
       }
     }
-  }
 
-  const chips = Array.from(
-    document.querySelectorAll('span[class*="MuiChip-label"], .p-chip, [class*="chip"]'),
-  );
-  for (const chip of chips) {
-    const text = chip.innerText.trim();
-    if (/^[A-Z0-9]+-\d+$/.test(text) || /^GYG\d+/.test(text)) {
-      codigo = text;
-      break;
+    if (!codigo || !nome) {
+      const texto = document.body.innerText;
+      const regCod = /Código da Compra:\s*([A-Z0-9]+)/i;
+      const regNome = /Nome Completo:\s*([^\n\r]+)/i;
+      const mCod = texto.match(regCod);
+      const mNome = texto.match(regNome);
+      if (mCod && !codigo) codigo = mCod[1].trim();
+      if (mNome && !nome) nome = limparNome(mNome[1].trim().toUpperCase());
     }
   }
 
-  if (!codigo || !nome) {
-    const texto = document.body.innerText;
-    const regCod = /Código da Compra:\s*([A-Z0-9]+)/i;
-    const regNome = /Nome Completo:\s*([^\n\r]+)/i;
-    const mCod = texto.match(regCod);
-    const mNome = texto.match(regNome);
-    if (mCod && !codigo) codigo = mCod[1].trim();
-    if (mNome && !nome) nome = limparNome(mNome[1].trim().toUpperCase());
+  // Montagem final com formatação exata
+  if (nome && codigo) {
+    let nomeArquivo = `${codigo} - ${nome}.pdf`;
+    // Remove qualquer "voucher-" que possa ter vindo de outro lugar
+    nomeArquivo = nomeArquivo.replace(/^voucher-/, '');
+    console.log("📄 Nome do voucher gerado:", nomeArquivo);
+    return nomeArquivo;
   }
 
-  return nome && codigo ? `${codigo} - ${nome}.pdf` : null;
+  return null;
 }
 
 function salvarNomeVoucherNoStorage() {
@@ -628,7 +638,9 @@ function renomearAba() {
     const mCod = texto.match(regCod);
     const mNome = texto.match(regNome);
     if (mCod && mNome) {
-      resultado = `${mCod[1].trim()} - ${limparNome(mNome[1].trim().toUpperCase())}`;
+      let nomeAba = `${mCod[1].trim()} - ${limparNome(mNome[1].trim().toUpperCase())}`;
+      nomeAba = nomeAba.replace(/^voucher-/, '');
+      resultado = nomeAba;
     }
   }
   
@@ -638,7 +650,9 @@ function renomearAba() {
     if (match) {
       const nomeMatch = document.body.innerText.match(/Nome[:\s]+([^\n]+)/i);
       if (nomeMatch) {
-        resultado = `${match[0]} - ${limparNome(nomeMatch[1].trim().toUpperCase())}`;
+        let nomeAba = `${match[0]} - ${limparNome(nomeMatch[1].trim().toUpperCase())}`;
+        nomeAba = nomeAba.replace(/^voucher-/, '');
+        resultado = nomeAba;
       }
     }
   }

@@ -19,25 +19,41 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
 // --- 2. GERENCIADOR DE DOWNLOADS (RENOMEADOR DE VOUCHERS) ---
 chrome.downloads.onDeterminingFilename.addListener((downloadItem, suggest) => {
-  if (
-    !downloadItem.filename.endsWith(".pdf") &&
-    !downloadItem.mime?.includes("pdf")
-  ) {
-    suggest();
+  // Verifica se é um PDF (pela extensão ou MIME)
+  const isPDF = downloadItem.filename.endsWith(".pdf") || downloadItem.mime?.includes("pdf");
+  if (!isPDF) {
+    suggest(); // Não é PDF, mantém nome original
     return true;
+  }
+
+  // Função auxiliar para limpar o nome (remove prefixo "voucher-" e garante .pdf)
+  function limparNomeArquivo(nome) {
+    if (!nome) return null;
+    // Remove "voucher-" no início, se existir
+    let limpo = nome.replace(/^voucher-/, '');
+    // Se não tiver extensão .pdf, adiciona
+    if (!limpo.toLowerCase().endsWith('.pdf')) {
+      limpo += '.pdf';
+    }
+    return limpo;
   }
 
   // 1º Tenta pegar o nome salvo no Storage
   chrome.storage.local.get("nomeVoucherAtual", (res) => {
     if (res.nomeVoucherAtual) {
-      suggest({ filename: res.nomeVoucherAtual, conflictAction: "uniquify" });
-      chrome.storage.local.remove("nomeVoucherAtual");
-      return;
+      const nomeLimpo = limparNomeArquivo(res.nomeVoucherAtual);
+      if (nomeLimpo) {
+        console.log(`📥 Renomeando download para: ${nomeLimpo} (via storage)`);
+        suggest({ filename: nomeLimpo, conflictAction: "uniquify" });
+        chrome.storage.local.remove("nomeVoucherAtual");
+        return;
+      }
     }
 
     // 2º Se não tiver no Storage, pergunta direto para a aba ativa
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
       if (!tabs[0]?.id) {
+        console.warn("⚠️ Nenhuma aba ativa encontrada, mantendo nome original.");
         suggest();
         return;
       }
@@ -47,11 +63,18 @@ chrome.downloads.onDeterminingFilename.addListener((downloadItem, suggest) => {
         { type: "GET_NOME_VOUCHER" },
         (response) => {
           if (chrome.runtime.lastError || !response?.filename) {
+            console.warn("⚠️ Falha ao obter nome da aba, mantendo nome original.");
             suggest(); // Falhou, baixa com o nome padrão
             return;
           }
-          suggest({ filename: response.filename, conflictAction: "uniquify" }); // Sucesso, renomeia
-        },
+          const nomeLimpo = limparNomeArquivo(response.filename);
+          if (nomeLimpo) {
+            console.log(`📥 Renomeando download para: ${nomeLimpo} (via mensagem)`);
+            suggest({ filename: nomeLimpo, conflictAction: "uniquify" });
+          } else {
+            suggest(); // Fallback
+          }
+        }
       );
     });
   });
