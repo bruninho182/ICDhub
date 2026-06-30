@@ -140,49 +140,141 @@ function limparNome(texto) {
 
 function extrairNomeCliente() {
     const bodyText = document.body.innerText;
-    
-    // 1. Tenta encontrar a seção "Dados do Cliente" e extrair Nome completo
-    const sectionRegex = /Dados do Cliente[\s\S]*?(?=Telefone|E-mail|Email|Número|Data|País|Sexo|$)/i;
-    const sectionMatch = bodyText.match(sectionRegex);
-    if (sectionMatch) {
-        const section = sectionMatch[0];
-        // Procura por "Nome:" seguido de algo
-        const nomeMatch = section.match(/Nome\s*[:]\s*([^\n]+?)(?=\s*(?:Telefone|E-mail|Email|Número|Data|País|Sexo|$))/i);
-        if (nomeMatch) {
-            let nome = nomeMatch[1].trim();
-            // Remove lixo (telefones, emails, etc) mas mantém todas as palavras
+    const isNovoSistema = window.location.href.includes("app.icdgrupo.com.br");
+    const isBookingPage = window.location.href.includes("supplier.getyourguide.com/bookings");
+
+    // --- SISTEMA NOVO (app.icdgrupo) ---
+    if (isNovoSistema) {
+        // 1. Tenta encontrar a seção "Dados do Cliente" e extrair Nome completo
+        const sectionRegex = /Dados do Cliente[\s\S]*?(?=Telefone|E-mail|Email|Número|Data|País|Sexo|$)/i;
+        const sectionMatch = bodyText.match(sectionRegex);
+        if (sectionMatch) {
+            const section = sectionMatch[0];
+            const nomeMatch = section.match(/Nome\s*[:]\s*([^\n]+?)(?=\s*(?:Telefone|E-mail|Email|Número|Data|País|Sexo|$))/i);
+            if (nomeMatch) {
+                let nome = nomeMatch[1].trim();
+                nome = limparNome(nome);
+                if (nome.length > 2) {
+                    console.log("👤 Nome completo extraído da seção:", nome);
+                    return nome;
+                }
+            }
+        }
+        // 2. Fallback: procura por "Nome:" em qualquer lugar
+        const nomeMatch2 = bodyText.match(/Nome\s*[:]\s*([^\n]+?)(?=\s*(?:Telefone|E-mail|Email|Número|Data|País|Sexo|$))/i);
+        if (nomeMatch2) {
+            let nome = nomeMatch2[1].trim();
             nome = limparNome(nome);
             if (nome.length > 2) {
-                console.log("👤 Nome completo extraído da seção:", nome);
+                console.log("👤 Nome completo extraído via fallback:", nome);
+                return nome;
+            }
+        }
+        // 3. Último recurso: procura por palavras que pareçam nome (pode pegar várias)
+        const namePattern = /([A-Z][a-zÀ-ÿ]+(?:\s+[A-Z][a-zÀ-ÿ]+)+)/g;
+        const matches = bodyText.match(namePattern);
+        if (matches) {
+            for (const match of matches) {
+                if (!/\d/.test(match) && !match.includes('@')) {
+                    console.log("👤 Nome completo extraído via padrão:", match);
+                    return match;
+                }
+            }
+        }
+        console.log("⚠️ Nenhum nome encontrado no sistema novo");
+        return '';
+    }
+
+    // --- SISTEMA ANTIGO (GetYourGuide) ---
+
+    // EXTRAÇÃO ESPECÍFICA PARA A PÁGINA DE BOOKINGS
+    if (isBookingPage) {
+        // Padrão: O nome aparece logo após o código GYG, antes do telefone
+        // Exemplo: "GYGRFQMXXVNL\nPatricia Cortázar\n+34682557716"
+        const bookingRegex = /GYG[A-Z0-9]+\s*\n\s*([A-Z][a-zÀ-ÿ]+(?:\s+[A-Z][a-zÀ-ÿ]+)+)/i;
+        const match = bodyText.match(bookingRegex);
+        if (match && match[1]) {
+            let nome = limparNome(match[1].trim());
+            if (nome) {
+                console.log("👤 Nome completo extraído (bookings - após GYG):", nome);
+                return nome;
+            }
+        }
+        // Alternativa: nome seguido de telefone (com +)
+        const phoneNameRegex = /([A-Z][a-zÀ-ÿ]+(?:\s+[A-Z][a-zÀ-ÿ]+)+)\s*\n\s*\+\d+/i;
+        const phoneMatch = bodyText.match(phoneNameRegex);
+        if (phoneMatch && phoneMatch[1]) {
+            let nome = limparNome(phoneMatch[1].trim());
+            if (nome) {
+                console.log("👤 Nome completo extraído (bookings - antes do telefone):", nome);
+                return nome;
+            }
+        }
+        // Fallback: qualquer nome com duas palavras perto do código GYG
+        const namePattern = /GYG[A-Z0-9]+\s*\n\s*([A-Z][a-zÀ-ÿ]+(?:\s+[A-Z][a-zÀ-ÿ]+)+)/i;
+        const nameMatch = bodyText.match(namePattern);
+        if (nameMatch && nameMatch[1]) {
+            let nome = limparNome(nameMatch[1].trim());
+            if (nome) {
+                console.log("👤 Nome completo extraído (bookings - fallback):", nome);
                 return nome;
             }
         }
     }
-    
-    // 2. Fallback: procura por "Nome:" em qualquer lugar
+
+    // --- FALLBACKS GERAIS PARA O SISTEMA ANTIGO (outras páginas GYG) ---
+
+    // 1. Tenta "Lead traveler"
+    const leadMatch = bodyText.match(/Lead traveler\s*([^\n]+)/i);
+    if (leadMatch) {
+        let nome = leadMatch[1].trim();
+        nome = limparNome(nome);
+        if (nome.length > 2) {
+            console.log("👤 Nome completo extraído (Lead traveler):", nome);
+            return nome;
+        }
+    }
+
+    // 2. Tenta a seção "Dados do Cliente"
+    const sectionRegex = /Dados do Cliente[\s\S]*?(?=Telefone|E-mail|Email|Número|Data|País|Sexo|$)/i;
+    const sectionMatch = bodyText.match(sectionRegex);
+    if (sectionMatch) {
+        const section = sectionMatch[0];
+        const nomeMatch = section.match(/Nome\s*[:]\s*([^\n]+?)(?=\s*(?:Telefone|E-mail|Email|Número|Data|País|Sexo|$))/i);
+        if (nomeMatch) {
+            let nome = nomeMatch[1].trim();
+            nome = limparNome(nome);
+            if (nome.length > 2) {
+                console.log("👤 Nome completo extraído da seção (antigo):", nome);
+                return nome;
+            }
+        }
+    }
+
+    // 3. Fallback "Nome:"
     const nomeMatch2 = bodyText.match(/Nome\s*[:]\s*([^\n]+?)(?=\s*(?:Telefone|E-mail|Email|Número|Data|País|Sexo|$))/i);
     if (nomeMatch2) {
         let nome = nomeMatch2[1].trim();
         nome = limparNome(nome);
         if (nome.length > 2) {
-            console.log("👤 Nome completo extraído via fallback:", nome);
+            console.log("👤 Nome completo extraído via fallback (antigo):", nome);
             return nome;
         }
     }
-    
-    // 3. Último recurso: procura por palavras que pareçam nome (pode pegar várias)
-    const namePattern = /([A-Z][a-zÀ-ÿ]+(?:\s+[A-Z][a-zÀ-ÿ]+)+)/g; // ao menos duas palavras
+
+    // 4. Último recurso: padrão de duas palavras
+    const namePattern = /([A-Z][a-zÀ-ÿ]+(?:\s+[A-Z][a-zÀ-ÿ]+)+)/g;
     const matches = bodyText.match(namePattern);
     if (matches) {
         for (const match of matches) {
             if (!/\d/.test(match) && !match.includes('@')) {
-                console.log("👤 Nome completo extraído via padrão:", match);
+                console.log("👤 Nome completo extraído via padrão (antigo):", match);
                 return match;
             }
         }
     }
-    
-    console.log("⚠️ Nenhum nome encontrado");
+
+    console.log("⚠️ Nenhum nome encontrado no sistema antigo");
     return '';
 }
 
@@ -372,24 +464,16 @@ function preencherNovoSistemaICD(dados, operador, dataType) {
 
   // Se for GYG, aplica limpeza agressiva no nome
   if (dataType === "GYG") {
-    // Limpa o nome vindo do storage
+    // Apenas limpa o nome vindo do storage (já extraído pelo gyg_extract.js)
     if (dadosCompletos.nome) {
-      dadosCompletos.nome = limparNome(dadosCompletos.nome);
-      console.log("🧹 Nome limpo (storage):", dadosCompletos.nome);
+        dadosCompletos.nome = limparNome(dadosCompletos.nome);
+        console.log("🧹 Nome do storage (limpo):", dadosCompletos.nome);
     }
     if (dadosCompletos.nomeCliente) {
-      dadosCompletos.nomeCliente = limparNome(dadosCompletos.nomeCliente);
+        dadosCompletos.nomeCliente = limparNome(dadosCompletos.nomeCliente);
     }
-    
-    // Se depois de limpar ainda estiver vazio ou muito curto, tenta extrair da página
-    if (!dadosCompletos.nome || dadosCompletos.nome.length < 2) {
-      const extraidos = extrairDadosGYG();
-      if (extraidos && extraidos.nome) {
-        dadosCompletos.nome = extraidos.nome;
-        console.log("🧹 Nome limpo (extração):", dadosCompletos.nome);
-      }
-    }
-  }
+    // Não tenta extrair da página novamente
+}
 
   const idReserva = dadosCompletos.orderNumber || dadosCompletos.gyg || dadosCompletos.bookingId || dadosCompletos.idOriginal || "";
   const refExterna = `${idReserva} - ${operador || "OPERADOR"}`;
@@ -464,22 +548,19 @@ function preencherAposTexto(numero, valor) {
 
 function preencherCamposGYG(dados, nomeOperador) {
   if (!dados) return;
-  
-  const extraidos = extrairDadosGYG();
-  const dadosCompletos = { ...dados, ...extraidos };
-  
-  const valorCV = `${dadosCompletos.gyg} - ${nomeOperador || "OPERADOR"}`;
+  // Não tenta extrair novamente, usa apenas os dados do storage
+  const valorCV = `${dados.gyg} - ${nomeOperador || "OPERADOR"}`;
   const campos = [
-    { nome: "sAge_Nome", valor: dadosCompletos.nome },
-    { nome: "sAge_Email", valor: dadosCompletos.email },
-    { nome: "sAge_CPF", valor: dadosCompletos.gyg },
+    { nome: "sAge_Nome", valor: dados.nome },
+    { nome: "sAge_Email", valor: dados.email },
+    { nome: "sAge_CPF", valor: dados.gyg },
     { nome: "_sVen_Cartao", valor: valorCV },
   ];
   campos.forEach((c) => {
     const el = document.getElementsByName(c.nome)[0];
     if (el) forceReactValue(el, c.valor);
   });
-  prepararDadosEmail(dadosCompletos.gyg, dadosCompletos.nome, dadosCompletos.email);
+  prepararDadosEmail(dados.gyg, dados.nome, dados.email);
   setTimeout(() => {
     chrome.storage.local.remove("dadosPedido");
   }, 2000);
@@ -547,7 +628,7 @@ function extrairNomeVoucher() {
       nome = limparNome(nomeRaw);
     }
 
-    //fallback para outros padrões
+    // Se não encontrou, fallback para outros padrões
     if (!codigo || !nome) {
       const fallbackCod = document.body.innerText.match(/Código da Compra:\s*([A-Z0-9]+)/i);
       if (fallbackCod) codigo = fallbackCod[1].trim();
@@ -621,7 +702,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   return true;
 });
 
-// --- 7. RENOMEADOR HÍBRIDO ---
+// --- 7. RENOMEADOR HÍBRIDO (CORRIGIDO) ---
 
 function renomearAba() {
   let resultado = null;
