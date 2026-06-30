@@ -120,12 +120,6 @@
     font-weight: 600;
 }
 
-#aba-gatilho:hover {
-    background: linear-gradient(135deg, #764ba2, #667eea);
-    box-shadow: 0 6px 25px rgba(139, 92, 246, 0.6);
-    transform: scale(1.05);
-}
-
 /* Título */
 .titulo-hub {
     font-size: 15px;
