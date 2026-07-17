@@ -44,7 +44,7 @@ A extensão conecta plataformas de reservas, WhatsApp Web e Webmail Locaweb em u
 # 📸 Demonstração
 
 <p align="center">
-<img src="./screenshots/banner.png" width="100%">
+<img src="./screenshots/app.gif" width="100%">
 </p>
 
 ---
@@ -118,9 +118,15 @@ Integração entre plataformas internacionais.
 
 * 🌍 TourCMS (Grayline)
 
-* 🎫 Headout
+* 🌍 Headout
 
 * 🌍 GetYourGuide
+
+* 🌍 Civitatis
+
+* 🌍 Ticketgo
+
+* 🚢​ Navios
 
 ### Recursos
 
