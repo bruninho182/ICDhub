@@ -1,93 +1,274 @@
-# 🚀 ICD Hub - Integrador Universal v3.0
+# <div align="center">
 
-O **ICD Hub** é uma extensão de alta performance para Google Chrome, desenvolvida exclusivamente para otimizar o ecossistema de operações da **Ingresso com Desconto**. A ferramenta atua como o "cérebro" da operação, integrando plataformas de turismo, comunicação via WhatsApp e gestão de e-mails em um único fluxo automatizado.
+<img src="./screenshots/banner.png" alt="ICD Hub Banner" width="100%">
 
----
+# 🚀 ICD Hub
 
-## 📸 Demonstração
-<img src="./screenshot/banner.png" alt="Banner do Projeto" width="100%">
+### **Universal Integrator for Google Chrome**
 
-*Central de Automação e Produtividade para Operadores ICD.*
+### Automação Inteligente para Operações da Ingresso com Desconto
 
----
+<br>
 
-## ✨ Funcionalidades de Elite
+![Chrome Extension](https://img.shields.io/badge/Chrome-Extension-4285F4?style=for-the-badge\&logo=googlechrome\&logoColor=white)
+![Manifest V3](https://img.shields.io/badge/Manifest-V3-green?style=for-the-badge)
+![JavaScript](https://img.shields.io/badge/JavaScript-ES6+-F7DF1E?style=for-the-badge\&logo=javascript\&logoColor=black)
+![Version](https://img.shields.io/badge/Version-3.0-blue?style=for-the-badge)
+![Status](https://img.shields.io/badge/Status-Active-success?style=for-the-badge)
 
-### 🧮 1. Calculadora de Cotação (WhatsApp)
-Uma das ferramentas mais poderosas da versão 2.6. Permite que o operador realize orçamentos complexos sem sair da conversa com o cliente.
-* **Cálculo em Tempo Real:** Selecione o passeio e ajuste as quantidades; o total é atualizado instantaneamente.
-* **Formatador de Orçamento:** Gera automaticamente um texto formatado com negritos e marcadores pronto para ser colado no WhatsApp.
-* **Interface Adaptável:** No modo "Topo", a calculadora e a busca se organizam horizontalmente para não obstruir a visão.
-
-### 🟢 2. WhatsApp Sidebar Hub (Smart UI)
-Barra lateral injetada no WhatsApp Web com controle total de layout.
-* **Atalhos Rápidos:** Disparo de textos padronizados (PIX, Cartão, Reagendamento).
-* **Sistema Drag & Drop (Base64):** Arraste imagens de vouchers e informativos diretamente para o chat. Funcionalidade aprimorada para maior estabilidade.
-* **Layout Dinâmico:** Posicionamento em **Esquerda**, **Direita** ou **Topo** com ajuste automático de grade (Grid) para os botões.
-* **Interface Otimizada:** Correções de estilo e posicionamento para melhor adaptação em diferentes resoluções de tela.
-
-### 📧 3. Automação de E-mail (Locaweb)
-Integração profunda com o Webmail Locaweb.
-* **Preenchimento Inteligente:** Dados capturados das plataformas de reserva preenchem destinatário, assunto e corpo.
-* **Preservação de Assinatura:** O script detecta a assinatura oficial do operador e a mantém no final do corpo do e-mail, injetando o texto no topo.
-* **Disparo em Massa (CCO):** Preenchimento automático de múltiplos e-mails em Cópia Oculta a partir do relatório de visitas.
-
-### 🌉 4. Bridge & Automação de Dados
-Ponte de dados entre sistemas internacionais e o sistema ICD.
-* **Auto-fill Multiplataforma:** Extração de dados do **TourCMS (Grayline)** , **Headout** e **GetYourGuide**.
-* **Smart Rename:** Renomeia automaticamente o título da aba do navegador com o `Código da Venda - Nome do Cliente`, facilitando a organização e o salvamento de PDFs.
-* **Sincronização de Operador:** O nome do operador configurado é replicado em todos os registros de venda e logs.
-
-### 🎟️ 5. Gestão e Envio de Vouchers
-Sistema dedicado para agilizar a criação, renomeação e envio de vouchers.
-* **Geração Rápida:** Módulo isolado (`funpass_result.html`) para gerar vouchers de forma eficiente a partir dos dados da reserva.
-* **Renomeação Inteligente de Arquivos:** O nome do voucher gerado é padronizado automaticamente com o padrão `Código da Venda - Nome do Cliente`, facilitando a localização e o arquivamento.
-* **Pronto para Envio:** O voucher é formatado e preparado para ser anexado ou compartilhado diretamente no WhatsApp ou E-mail.
-
-### ⚙️ 6. Painel de Gestão (CRUD)
-Área administrativa completa dentro das opções da extensão.
-* **Gestão de Tarifários:** Adicione, exclua e **edite** passeios e categorias de preços (Adulto, Criança, etc.).
-* **Configurador de Atalhos:** Personalize as mensagens e links de fotos que aparecem na barra do WhatsApp.
+</div>
 
 ---
 
-## 🛠️ Tecnologias Utilizadas
-* **Engine:** JavaScript (ES6+) e Chrome Extension API (v3).
-* **Storage:** `chrome.storage.local` para persistência de tarifários e preferências.
-* **UI/UX:** CSS Grid e Flexbox dinâmico para interfaces responsivas sobre o WhatsApp Web.
-* **Graphics:** HTML5 Canvas para processamento de imagens em tempo real.
+# 📖 Sobre o Projeto
+
+O **ICD Hub** é uma extensão desenvolvida para o **Google Chrome**, criada para centralizar e automatizar diversos processos internos da **Ingresso com Desconto**.
+
+A extensão conecta plataformas de reservas, WhatsApp Web e Webmail Locaweb em um único fluxo inteligente, reduzindo tarefas repetitivas e aumentando significativamente a produtividade da equipe operacional.
 
 ---
 
-## 📁 Estrutura Completa do Projeto
+# ✨ Principais Recursos
+
+| Recurso                   | Descrição                                     |
+| ------------------------- | --------------------------------------------- |
+| 💬 WhatsApp Hub           | Sidebar inteligente integrada ao WhatsApp Web |
+| 🧮 Calculadora de Cotação | Orçamentos automáticos em tempo real          |
+| 📧 Automação de E-mails   | Preenchimento inteligente no Webmail Locaweb  |
+| 🌉 Bridge de Dados        | Integração entre plataformas de turismo       |
+| 🎟️ Gestão de Vouchers    | Criação, renomeação e envio automatizado      |
+| ⚙️ Painel Administrativo  | CRUD completo para configurações              |
+
+---
+
+# 📸 Demonstração
+
+<p align="center">
+<img src="./screenshots/banner.png" width="100%">
+</p>
+
+---
+
+# 🚀 Funcionalidades
+
+## 💬 WhatsApp Smart Sidebar
+
+Uma barra lateral totalmente integrada ao WhatsApp Web.
+
+### Recursos
+
+* ✅ Atalhos rápidos
+* ✅ Mensagens prontas
+* ✅ Links personalizados
+* ✅ Sistema Drag & Drop
+* ✅ Upload inteligente de imagens
+* ✅ Interface reposicionável
+* ✅ Layout responsivo
+* ✅ Organização automática
+
+---
+
+## 🧮 Calculadora de Cotação
+
+Realize orçamentos completos sem sair da conversa.
+
+### Recursos
+
+* Cálculo automático
+
+* Atualização em tempo real
+
+* Múltiplas categorias
+
+* Formatação automática para WhatsApp
+
+* Interface adaptável
+
+* Total instantâneo
+
+---
+
+## 📧 Automação de E-mail
+
+Integração completa com o Webmail Locaweb.
+
+### Recursos
+
+* Preenchimento automático
+
+* Destinatário
+
+* Assunto
+
+* Corpo do e-mail
+
+* Preservação da assinatura oficial
+
+* Disparo em massa (CCO)
+
+* Integração com relatórios
+
+---
+
+## 🌉 Bridge de Dados
+
+Integração entre plataformas internacionais.
+
+### Plataformas suportadas
+
+* 🌍 TourCMS (Grayline)
+
+* 🎫 Headout
+
+* 🌍 GetYourGuide
+
+### Recursos
+
+* Auto Fill
+
+* Sincronização de operador
+
+* Conversão de dados
+
+* Smart Rename
+
+* Organização automática das abas
+
+---
+
+## 🎟️ Gestão de Vouchers
+
+Ferramentas dedicadas para geração e envio.
+
+### Recursos
+
+* Geração rápida
+
+* Padronização automática
+
+* Renomeação inteligente
+
+* Pronto para WhatsApp
+
+* Pronto para E-mail
+
+---
+
+## ⚙️ Painel Administrativo
+
+Sistema completo de gerenciamento.
+
+### Permite
+
+* Cadastro de tarifários
+
+* Edição
+
+* Exclusão
+
+* Configuração de atalhos
+
+* Configuração de mensagens
+
+* Links personalizados
+
+* Preferências da extensão
+
+---
+
+# 🛠 Tecnologias
+
+| Tecnologia           | Utilização                 |
+| -------------------- | -------------------------- |
+| JavaScript ES6+      | Lógica da aplicação        |
+| Chrome Extension API | Integração com o navegador |
+| HTML5                | Interface                  |
+| CSS3                 | Layout Responsivo          |
+| CSS Grid             | Organização da Interface   |
+| Flexbox              | Componentes Responsivos    |
+| Canvas API           | Processamento de imagens   |
+| chrome.storage.local | Persistência de dados      |
+
+---
+
+# 📁 Estrutura do Projeto
 
 ```text
-ICD-Hub/
-├── manifest.json              # Manifesto V3 (Permissões e Rotas)
-├── options.html               # Painel de Controle e Gestão de Tarifários
-├── popup.html                 # Popup da extensão
-├── funpass_result.html        # Página dedicada para resultado e gestão de vouchers
-├── background.js              # Service Worker (Background) para gerenciar eventos da extensão
-├── popup.js                   # Lógica do popup da extensão
-├── icon.png                   # Ícone principal da extensão
-├── iconnn.png                 # Ícone alternativo
-├── screenshots/
-│   └── banner.png             # Banner de demonstração do projeto
+ICD-Hub
+│
+├── manifest.json
+├── background.js
+├── popup.html
+├── popup.js
+├── options.html
+├── funpass_result.html
+│
 ├── scripts/
-│   ├── whatsapp_tool.js       # Sidebar, Calculadora e Lógica de Chat
-│   ├── ingresso_master.js     # Automação de preenchimento e "Bridge"
-│   ├── mail_tool.js           # Integração e Concatenação de Assinatura
-│   ├── relatorio_tool.js      # Lógica de CCO e Relatórios
-│   ├── enviar_voucher.js      # Script isolado para página de Voucher
-│   ├── contador.js            # Script de contador/controle de tempo
-│   ├── dom_utils.js           # Utilitários para manipulação do DOM
-│   ├── format_utils.js        # Utilitários de formatação de dados
-│   ├── storage_utils.js       # Utilitários para gerenciamento de storage
-│   └── whatsapp_api.js        # API de integração com WhatsApp
-└── styles/
-    ├── whatsapp.css           # Design responsivo e estados (aberto/fechado)
-    └── options.css            # Estilização do Painel Administrativo
+│   ├── whatsapp_tool.js
+│   ├── ingresso_master.js
+│   ├── mail_tool.js
+│   ├── relatorio_tool.js
+│   ├── enviar_voucher.js
+│   ├── contador.js
+│   ├── dom_utils.js
+│   ├── format_utils.js
+│   ├── storage_utils.js
+│   └── whatsapp_api.js
+│
+├── styles/
+│   ├── whatsapp.css
+│   └── options.css
+│
+├── screenshots/
+│   └── banner.png
+│
+└── icon.png
+```
 
-Bruno Ferreira - Especialista em Automação de Processos e Desenvolvimento Web.
+---
 
-Este software é de uso exclusivo interno. Todos os direitos reservados ao Dev.
+# 🔒 Uso Interno
+
+> **Este projeto foi desenvolvido exclusivamente para uso interno da Ingresso com Desconto.**
+
+Não é permitida sua redistribuição sem autorização.
+
+---
+
+# 📈 Destaques da Versão 3.0
+
+* 🚀 Melhor desempenho
+
+* 🎨 Interface completamente reformulada
+
+* 📱 Layout responsivo
+
+* ⚡ Processamento mais rápido
+
+* 🧠 Melhor gerenciamento de memória
+
+* 📧 Nova automação de e-mails
+
+* 🎟️ Novo módulo de vouchers
+
+* 🧮 Calculadora de cotação aprimorada
+
+* 🌉 Bridge de dados otimizada
+
+---
+
+# 👨‍💻 Desenvolvedor
+
+**Bruno Ferreira**
+
+Especialista em Automação de Processos • Desenvolvimento Web • JavaScript • Chrome Extensions
+
+---
+
+<div align="center">
+
+### ⭐ Projeto desenvolvido para otimizar a operação da Ingresso com Desconto.
+
+**Versão 3.0**
+
+</div>
