@@ -44,8 +44,8 @@ A extensão conecta plataformas de reservas, WhatsApp Web e Webmail Locaweb em u
 # 📸 Demonstração
 
 <p align="center">
-<img src="./screenshots/app1.gif" width="100%">
-![](screenshots/app2.gif)
+  <img src="./screenshots/app1.gif" width="49%">
+  <img src="./screenshots/app2.gif" width="49%">
 </p>
 
 ---
