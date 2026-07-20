@@ -648,34 +648,6 @@ A extensão estará instalada.
 
 ---
 
-## 🚧 Em desenvolvimento
-
-- [ ] OCR para vouchers
-
-- [ ] IA para respostas automáticas
-
-- [ ] Relatórios PDF
-
-- [ ] Dashboard Mobile
-
-- [ ] Backup automático
-
----
-
-## 💡 Futuro
-
-- [ ] Aplicativo Android
-
-- [ ] Aplicativo Desktop
-
-- [ ] API Pública
-
-- [ ] Painel Web
-
-- [ ] Integração Telegram
-
----
-
 # 🔒 Segurança
 
 ✔ Login protegido
@@ -798,22 +770,6 @@ Primeira versão da extensão.
 
 ---
 
-# 📷 Galeria
-
-<p align="center">
-
-<img src="./screenshots/app1.gif" width="48%">
-
-<img src="./screenshots/app2.gif" width="48%">
-
-<br><br>
-
-<img src="./screenshots/dashboard.png" width="95%">
-
-</p>
-
----
-
 # 🎯 Objetivos do Projeto
 
 O ICD Hub foi desenvolvido para:
@@ -870,6 +826,8 @@ Cada funcionalidade foi criada para resolver problemas reais e tornar o atendime
 
 Obrigado a todos que contribuíram com ideias, testes e sugestões.
 
+Obrigado DEUS!
+
 ---
 
 # ⭐ Gostou do projeto?
@@ -904,7 +862,7 @@ Sua redistribuição ou utilização sem autorização não é permitida.
 
 <br>
 
-**Desenvolvido com ❤️ por Bruno Ferreira**
+**Desenvolvido por Bruno Ferreira**
 
 ### © 2026 • Todos os direitos reservados
 
