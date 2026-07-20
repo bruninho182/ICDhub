@@ -1,6 +1,6 @@
 // dashboard.js
 // ===== CONFIGURAÇÕES =====
-const SENHA_CORRETA = 'icdadmin2024';
+const SENHA_CORRETA = 'icdadmin2024rafachefe';
 const CHAVE_SALVAR_SENHA = 'dashboard_senha_salva';
 const CHAVE_OPERADORES_DESATIVADOS = 'operadores_desativados';
 
