@@ -316,10 +316,6 @@ Ferramentas desenvolvidas para geração, organização e envio automático de v
 
 # ⚙ Painel Administrativo
 
-<p align="center">
-<img src="./screenshots/admin.gif" width="90%">
-</p>
-
 Central completa de gerenciamento da extensão.
 
 ## Permite
