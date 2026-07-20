@@ -51,30 +51,27 @@ const wrapperControles = document.getElementById('wrapper-controles-hub');
 // Evento para abrir a calculadora
 btnCotacao.onclick = () => abrirCalculadoraCotacao();
 
-// --- Lógica de Posicionamento (REVISADA PARA CORREÇÃO DO TOPO) ---
+// --- Lógica de Posicionamento ---
 function aplicarPosicao() {
     chrome.storage.local.get(['posicaoBarra'], (res) => {
         const posicao = res.posicaoBarra || 'direita';
         
-        // Remove estado aberto e posições anteriores ao trocar
         menu.classList.remove('pos-direita', 'pos-esquerda', 'pos-topo', 'aberto');
         menu.classList.add(`pos-${posicao}`);
         
-        // Reset dos ícones iniciais (Sempre começa fechado)
         if (posicao === 'direita') aba.innerText = '◀';
         if (posicao === 'esquerda') aba.innerText = '▶';
         if (posicao === 'topo') aba.innerText = '▼';
 
         if (posicao === 'topo') {
-    aba.innerText = '▼';
-    wrapperControles.style.flexDirection = "row";
-    wrapperControles.style.justifyContent = "center";
-    wrapperControles.style.padding = "10px 20px";
-    btnCotacao.style.margin = "0 15px 0 0";
-    document.getElementById('busca-botoes').style.marginBottom = "0";
-    document.getElementById('busca-botoes').style.width = "250px";
+            aba.innerText = '▼';
+            wrapperControles.style.flexDirection = "row";
+            wrapperControles.style.justifyContent = "center";
+            wrapperControles.style.padding = "10px 20px";
+            btnCotacao.style.margin = "0 15px 0 0";
+            document.getElementById('busca-botoes').style.marginBottom = "0";
+            document.getElementById('busca-botoes').style.width = "250px";
         } else {
-            // Volta ao vertical para as laterais
             wrapperControles.style.flexDirection = "column";
             btnCotacao.style.margin = "0 0 5px 0";
             document.getElementById('busca-botoes').style.marginBottom = "15px";
@@ -83,13 +80,12 @@ function aplicarPosicao() {
     });
 }
 
-// --- Lógica de Abrir/Fechar (REVISADA) ---
+// --- Lógica de Abrir/Fechar ---
 aba.onclick = () => {
     const estaAberto = menu.classList.toggle('aberto');
     chrome.storage.local.get(['posicaoBarra'], (res) => {
         const p = res.posicaoBarra || 'direita';
         
-        // Lógica de setas dinâmica
         if (p === 'direita') aba.innerText = estaAberto ? '▶' : '◀';
         if (p === 'esquerda') aba.innerText = estaAberto ? '◀' : '▶';
         if (p === 'topo') aba.innerText = estaAberto ? '▲' : '▼';
@@ -168,7 +164,7 @@ function carregarBotoes() {
 }
 
 /* =========================================================
-   ICD HUB - CALCULADORA DE COTAÇÃO (LÓGICA)
+   ICD HUB - CALCULADORA DE COTAÇÃO
    ========================================================= */
 function abrirCalculadoraCotacao() {
     chrome.storage.local.get(['listaPasseios'], (res) => {
@@ -255,7 +251,7 @@ function abrirCalculadoraCotacao() {
     });
 }
 
-// Inicializar
+// ===== INICIALIZAÇÃO =====
 aplicarPosicao();
 carregarBotoes();
 
@@ -263,3 +259,66 @@ chrome.storage.onChanged.addListener((changes) => {
     if (changes.configMaster) carregarBotoes();
     if (changes.posicaoBarra) aplicarPosicao();
 });
+
+// ================================================================
+// ===== MONITOR DE MENSAGENS ENVIADAS (CONTAGEM POR TECLA ENTER) =
+// ================================================================
+function iniciarMonitorWhatsApp() {
+    console.log("📊 Monitor de WhatsApp iniciado...");
+    
+    function capturarEnter(event) {
+        // Verifica se é a tecla ENTER e NÃO está com Shift (Shift+ENTER = quebra de linha)
+        if (event.key === 'Enter' && !event.shiftKey) {
+            const target = event.target;
+            // Verifica se é a caixa de texto do WhatsApp
+            if (target && target.getAttribute('contenteditable') === 'true' && 
+                target.getAttribute('data-tab') === '10') {
+                
+                const texto = target.innerText || '';
+                
+                if (window.METRICS) {
+                    let contato = 'desconhecido';
+                    const header = document.querySelector('[data-testid="conversation-info-header"]');
+                    if (header) {
+                        const span = header.querySelector('span');
+                        if (span) contato = span.innerText;
+                    }
+                    
+                    window.METRICS.registrar('whatsapp', {
+                        destinatario: contato,
+                        tamanho: texto.length,
+                        metodo: 'enter'
+                    });
+                    
+                    console.log(`📊 Mensagem registrada: ${texto.substring(0, 30)}... (${texto.length} caracteres)`);
+                }
+            }
+        }
+    }
+    
+    document.removeEventListener('keydown', capturarEnter);
+    document.addEventListener('keydown', capturarEnter, true);
+    console.log("✅ Monitor de ENTER ativado!");
+}
+
+// Inicia o monitor
+if (document.readyState === 'complete') {
+    iniciarMonitorWhatsApp();
+} else {
+    window.addEventListener('load', iniciarMonitorWhatsApp);
+}
+
+// Reinicia após alguns segundos para garantir
+setTimeout(iniciarMonitorWhatsApp, 3000);
+setTimeout(iniciarMonitorWhatsApp, 5000);
+
+// Observa mudanças na DOM
+const observer = new MutationObserver(() => {
+    const textarea = document.querySelector('div[contenteditable="true"][data-tab="10"]');
+    if (textarea && !window._enterMonitorActive) {
+        window._enterMonitorActive = true;
+        iniciarMonitorWhatsApp();
+    }
+});
+
+observer.observe(document.body, { childList: true, subtree: true });

@@ -3,7 +3,7 @@
   "name": "ICD Hub",
   "version": "3.0",
   "description": "Desenvolvido por : Bruno Ferreira",
-  "permissions": ["storage", "downloads", "activeTab", "scripting", "alarms", "notifications", "tabs", "cookies"],
+  "permissions": ["storage", "downloads", "activeTab", "scripting", "alarms", "notifications", "tabs", "cookies","webNavigation","contextMenus"],
   "host_permissions": [
     "https://admin.tourcms.com/*",
     "https://www.ingressocomdesconto.com.br/*",
@@ -11,6 +11,7 @@
     "https://app.icdgrupo.com.br/*",
     "*://hub.headout.com/*",
     "https://*.postimg.cc/*",
+    "https://wa.me/*",
     "https://*.whatsapp.com/*",
     "https://web.whatsapp.com/*",
     "https://supplier.getyourguide.com/*",
@@ -20,7 +21,10 @@
     "https://report.ingressocomdesconto.com.br/adm/paginas/*",
     "https://*.ingressocomdesconto.com.br/adm/paginas/*",
     "*://navio.ingressocomdesconto.com.br/*",
-    "*://*.ingressocomdesconto.com.br/*"
+    "*://*.ingressocomdesconto.com.br/*",
+    "https://*.supabase.co/*",
+    "https://yqlvdvilddobvangvvva.supabase.co/rest/v1/*",
+    "https://yqlvdvilddobvangvvva.supabase.co/*"
   ],
   "action": {
     "default_popup": "popup.html",
@@ -71,7 +75,7 @@
     },
     {
       "matches": ["https://web.whatsapp.com/*"],
-      "js": ["scripts/whatsapp_tool.js"],
+      "js": ["scripts/metrics.js", "scripts/whatsapp_tool.js"],
       "css": ["styles/whatsapp.css"]
     },
     {
@@ -79,7 +83,7 @@
         "*://*.ingressocomdesconto.com.br/*",
         "https://app.icdgrupo.com.br/*"
       ],
-      "js": ["scripts/ingresso_master.js"],
+      "js": ["scripts/ingresso_master.js","scripts/metrics.js", "scripts/voucher_tracker.js"],
       "all_frames": true
     },
     {
@@ -87,7 +91,7 @@
         "https://webmail-seguro.com.br/*",
         "https://webmail.locaweb.com.br/*"
       ],
-      "js": ["scripts/mail_tool.js"]
+      "js": ["scripts/metrics.js", "scripts/mail_tool.js"]
     },
     {
       "matches": [

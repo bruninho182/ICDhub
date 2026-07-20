@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard de Desempenho - ICD Hub</title>
+  <img src="./icon.png" alt="">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #0f172a;
+      color: #f1f5f9;
+      padding: 20px;
+    }
+    .container { max-width: 1400px; margin: 0 auto; }
+    
+    /* ===== TELA DE LOGIN ===== */
+    #telaLogin {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      background: linear-gradient(135deg, #0f172a 0%, #1a1a2e 50%, #1e293b 100%);
+    }
+    .login-box {
+      background: #1e293b;
+      padding: 50px 40px;
+      border-radius: 20px;
+      border: 1px solid #334155;
+      width: 100%;
+      max-width: 400px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+    }
+    .login-box .logo {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    .login-box .logo img {
+      width: 80px;
+      height: 80px;
+      object-fit: contain;
+    }
+    .login-box h1 {
+      text-align: center;
+      font-size: 24px;
+      margin-bottom: 8px;
+      background: linear-gradient(135deg, #a855f7, #ec4899);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .login-box p {
+      text-align: center;
+      color: #94a3b8;
+      font-size: 14px;
+      margin-bottom: 30px;
+    }
+    .login-box label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: #94a3b8;
+      margin-bottom: 6px;
+    }
+    .login-box input[type="password"] {
+      width: 100%;
+      padding: 14px 16px;
+      background: #0f172a;
+      border: 1px solid #334155;
+      border-radius: 10px;
+      color: #f1f5f9;
+      font-size: 16px;
+      outline: none;
+      transition: 0.3s;
+    }
+    .login-box input[type="password"]:focus {
+      border-color: #a855f7;
+      box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.2);
+    }
+    .login-box .btn-login {
+      width: 100%;
+      padding: 14px;
+      background: linear-gradient(135deg, #a855f7, #9333ea);
+      border: none;
+      border-radius: 10px;
+      color: #fff;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: 0.3s;
+      margin-top: 20px;
+    }
+    .login-box .btn-login:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 30px rgba(168, 85, 247, 0.3);
+    }
+    .login-box .erro {
+      color: #ef4444;
+      font-size: 13px;
+      text-align: center;
+      margin-top: 12px;
+      display: none;
+    }
+    .login-box .erro.visible {
+      display: block;
+    }
+
+    /* ===== GRUPO LEMBRAR SENHA ===== */
+    .grupo-lembrar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 14px;
+    }
+    .grupo-lembrar input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      accent-color: #a855f7;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+    .grupo-lembrar label {
+      color: #94a3b8;
+      font-size: 13px;
+      cursor: pointer;
+      margin: 0;
+      font-weight: 400;
+    }
+    .grupo-lembrar label i {
+      color: #a855f7;
+      margin-right: 4px;
+    }
+
+    /* ===== DASHBOARD ===== */
+    #conteudoDashboard {
+      display: none;
+    }
+    #conteudoDashboard.visible {
+      display: block;
+    }
+
+    /* ===== HEADER ===== */
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 30px;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    header .left {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+    header .left h1 {
+      font-size: 28px;
+      font-weight: 700;
+      background: linear-gradient(135deg, #a855f7, #ec4899);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    header .left .badge-admin {
+      background: #a855f7;
+      color: #fff;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+    
+    .btn-chefe {
+      background: transparent;
+      border: 1px solid #64748b;
+      color: #94a3b8;
+      padding: 8px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: 0.3s;
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .btn-chefe:hover {
+      background: rgba(16, 185, 129, 0.1);
+    }
+    .btn-chefe.ativo {
+      border-color: #10b981;
+      color: #10b981;
+      background: rgba(16, 185, 129, 0.1);
+    }
+    
+    .btn-sair {
+      background: transparent;
+      border: 1px solid #ef4444;
+      color: #ef4444;
+      padding: 8px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: 0.3s;
+    }
+    .btn-sair:hover {
+      background: #ef4444;
+      color: #fff;
+    }
+
+    /* ===== FILTROS ===== */
+    .filtros {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
+    .filtros select, .filtros input {
+      background: #1e293b;
+      border: 1px solid #334155;
+      color: #f1f5f9;
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-size: 14px;
+    }
+    .filtros button {
+      background: #a855f7;
+      border: none;
+      padding: 8px 20px;
+      border-radius: 8px;
+      font-weight: 600;
+      color: #fff;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+    .filtros button:hover { background: #9333ea; }
+    .filtros .btn-export {
+      background: transparent;
+      border: 1px solid #10b981;
+      color: #10b981;
+    }
+    .filtros .btn-export:hover {
+      background: #10b981;
+      color: #fff;
+    }
+
+    /* ===== CARDS ===== */
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+      margin-bottom: 30px;
+    }
+    .card {
+      background: #1e293b;
+      padding: 20px;
+      border-radius: 16px;
+      border: 1px solid #334155;
+      text-align: center;
+      transition: 0.3s;
+    }
+    .card:hover {
+      border-color: #a855f7;
+      transform: translateY(-2px);
+    }
+    .card .numero {
+      font-size: 36px;
+      font-weight: 700;
+      color: #a855f7;
+    }
+    .card .rotulo {
+      color: #94a3b8;
+      font-size: 14px;
+      margin-top: 5px;
+    }
+    .card .icone { font-size: 24px; margin-bottom: 8px; color: #a855f7; }
+
+    /* ===== GRÁFICOS ===== */
+    .graficos-container {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-bottom: 30px;
+    }
+    .grafico-box {
+      background: #1e293b;
+      border-radius: 16px;
+      border: 1px solid #334155;
+      padding: 20px;
+    }
+    .grafico-box h3 {
+      color: #94a3b8;
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 15px;
+      text-align: center;
+      letter-spacing: 0.5px;
+    }
+    .grafico-box .sem-dados {
+      text-align: center;
+      color: #64748b;
+      padding: 30px 0;
+      font-size: 13px;
+    }
+
+    .grafico-barras {
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      height: 180px;
+      gap: 12px;
+      padding: 10px 5px 0 5px;
+    }
+    .barra-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      flex: 1;
+      min-width: 30px;
+      max-width: 60px;
+    }
+    .barra {
+      width: 100%;
+      min-height: 4px;
+      border-radius: 4px 4px 0 0;
+      transition: height 0.5s ease;
+    }
+    .barra-whatsapp { background: #25D366; }
+    .barra-email { background: #34B7F1; }
+    .barra-voucher { background: #8b5cf6; }
+    .barra-label {
+      color: #64748b;
+      font-size: 9px;
+      margin-top: 6px;
+      text-align: center;
+      white-space: nowrap;
+    }
+    .barra-valor {
+      color: #94a3b8;
+      font-size: 9px;
+      font-weight: 600;
+      margin-bottom: 3px;
+    }
+
+    .grafico-pizza {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 30px;
+      padding: 10px 0;
+      flex-wrap: wrap;
+    }
+    .pizza-container {
+      width: 140px;
+      height: 140px;
+      border-radius: 50%;
+      position: relative;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+    .pizza-slice {
+      position: absolute;
+      width: 50%;
+      height: 50%;
+      transform-origin: 100% 100%;
+    }
+    .pizza-legenda {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      color: #94a3b8;
+      font-size: 12px;
+    }
+    .pizza-legenda-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .pizza-legenda-cor {
+      width: 14px;
+      height: 14px;
+      border-radius: 4px;
+      flex-shrink: 0;
+    }
+    .pizza-legenda-valor {
+      margin-left: auto;
+      font-weight: 600;
+      color: #f1f5f9;
+    }
+
+    /* ===== TABELA ===== */
+    .tabela-container {
+      background: #1e293b;
+      border-radius: 16px;
+      border: 1px solid #334155;
+      overflow-x: auto;
+      padding: 0 0 10px 0;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+    th {
+      background: #0f172a;
+      color: #94a3b8;
+      font-weight: 600;
+      padding: 14px 12px;
+      text-align: left;
+      border-bottom: 2px solid #334155;
+    }
+    td {
+      padding: 12px;
+      border-bottom: 1px solid #1e293b;
+    }
+    tr:hover td { background: #2d3748; }
+    tr.linha-desativada td {
+      opacity: 0.6;
+      background: rgba(100, 116, 139, 0.1);
+    }
+    tr.linha-desativada:hover td {
+      background: rgba(100, 116, 139, 0.2);
+    }
+
+    /* ===== BADGES ===== */
+    .status-online { color: #10b981; font-weight: 600; }
+    .status-offline { color: #ef4444; font-weight: 600; }
+
+    .badge-inativo {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .badge-inativo.atencao {
+      background: rgba(251, 191, 36, 0.2);
+      color: #fbbf24;
+      border: 1px solid rgba(251, 191, 36, 0.3);
+    }
+    .badge-inativo.critico {
+      background: rgba(239, 68, 68, 0.2);
+      color: #f87171;
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      animation: pulseBadge 2s infinite;
+    }
+    .badge-inativo.online {
+      background: rgba(16, 185, 129, 0.2);
+      color: #34d399;
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+    .badge-desativado {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      background: rgba(100, 116, 139, 0.3);
+      color: #94a3b8;
+      border: 1px solid #475569;
+    }
+
+    /* ===== BOTÃO TOGGLE ATIVAR/DESATIVAR ===== */
+    .btn-toggle {
+      padding: 4px 12px;
+      border-radius: 6px;
+      border: 1px solid;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: 0.3s;
+      white-space: nowrap;
+    }
+    .btn-toggle.ativado {
+      background: rgba(16, 185, 129, 0.15);
+      color: #34d399;
+      border-color: #10b981;
+    }
+    .btn-toggle.ativado:hover {
+      background: rgba(16, 185, 129, 0.3);
+    }
+    .btn-toggle.desativado {
+      background: rgba(251, 191, 36, 0.15);
+      color: #fbbf24;
+      border-color: #f59e0b;
+    }
+    .btn-toggle.desativado:hover {
+      background: rgba(251, 191, 36, 0.3);
+    }
+
+    @keyframes pulseBadge {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.6; }
+    }
+
+    .tempo-inativo {
+      font-weight: 600;
+      font-size: 13px;
+    }
+    .tempo-inativo.atencao { color: #fbbf24; }
+    .tempo-inativo.critico { color: #f87171; }
+    .tempo-inativo.online { color: #34d399; }
+    .tempo-inativo.desativado { color: #64748b; }
+
+    .atualizacao {
+      text-align: right;
+      color: #64748b;
+      font-size: 12px;
+      margin-top: 10px;
+    }
+
+    /* ===== ALERTAS ===== */
+    #alertasContainer {
+      margin-bottom: 20px;
+    }
+    .alerta-critico {
+      background: rgba(239, 68, 68, 0.15);
+      border: 1px solid #ef4444;
+      color: #f87171;
+      padding: 14px 20px;
+      border-radius: 10px;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      animation: pulseAlerta 2s infinite;
+    }
+    .alerta-atencao {
+      background: rgba(251, 191, 36, 0.15);
+      border: 1px solid #f59e0b;
+      color: #fbbf24;
+      padding: 14px 20px;
+      border-radius: 10px;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+    }
+    .alerta-ok {
+      background: rgba(16, 185, 129, 0.15);
+      border: 1px solid #10b981;
+      color: #34d399;
+      padding: 14px 20px;
+      border-radius: 10px;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .alerta-critico i, .alerta-atencao i, .alerta-ok i {
+      font-size: 20px;
+      margin-top: 2px;
+    }
+    .alerta-critico .destaque, .alerta-atencao .destaque {
+      font-weight: 700;
+    }
+    @keyframes pulseAlerta {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.7; }
+    }
+
+    /* ===== MOBILE ===== */
+    @media (max-width: 768px) {
+      header .left h1 { font-size: 20px; }
+      .login-box { padding: 30px 20px; }
+      .cards { grid-template-columns: 1fr 1fr; }
+      .graficos-container { grid-template-columns: 1fr; }
+      .filtros { flex-direction: column; align-items: stretch; }
+      .filtros select, .filtros input, .filtros button { width: 100%; }
+      .alerta-critico, .alerta-atencao, .alerta-ok {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+      }
+      header {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      header .left {
+        justify-content: center;
+        flex-wrap: wrap;
+      }
+      .btn-chefe, .btn-sair {
+        width: 100%;
+        justify-content: center;
+      }
+      .pizza-container { width: 100px; height: 100px; }
+    }
+    @media (max-width: 480px) {
+      .cards { grid-template-columns: 1fr; }
+      header .left { flex-wrap: wrap; }
+      .grafico-barras { height: 130px; gap: 6px; }
+      .barra-item { min-width: 20px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ===== TELA DE LOGIN ===== -->
+<div id="telaLogin">
+  <div class="login-box">
+    <div class="logo">
+      <img src="icons/logo-icd.png" alt="ICD Hub" onerror="this.style.display='none'">
+    </div>
+    <h1>🔐 Dashboard ICD</h1>
+    <p>Painel de desempenho dos operadores</p>
+    
+    <label for="senhaDashboard">Senha de acesso</label>
+    <input type="password" id="senhaDashboard" placeholder="Digite a senha..." autofocus>
+    
+    <div class="grupo-lembrar">
+      <input type="checkbox" id="lembrarSenha">
+      <label for="lembrarSenha"><i class="fas fa-check-circle"></i> Lembrar senha</label>
+    </div>
+    
+    <button class="btn-login" id="btnLogin">
+      <i class="fas fa-unlock-alt"></i> Entrar
+    </button>
+    
+    <div id="erroLogin" class="erro">
+      <i class="fas fa-exclamation-circle"></i> Senha incorreta! Tente novamente.
+    </div>
+  </div>
+</div>
+
+<!-- ===== CONTEÚDO DO DASHBOARD ===== -->
+<div id="conteudoDashboard">
+  <div class="container">
+    <header>
+      <div class="left">
+        <h1><i class="fas fa-chart-line"></i> Dashboard de Desempenho</h1>
+        <span class="badge-admin"><i class="fas fa-crown"></i> ADMIN</span>
+        <button id="btnModoChefe" class="btn-chefe">
+          <i class="fas fa-crown"></i> <span id="statusChefe">Ativar Notificaçãos por Pop-Up</span>
+        </button>
+      </div>
+      <button class="btn-sair" id="btnSair">
+        <i class="fas fa-sign-out-alt"></i> Sair
+      </button>
+    </header>
+
+    <!-- ===== ALERTAS DE INATIVIDADE ===== -->
+    <div id="alertasContainer"></div>
+
+    <div class="filtros">
+      <select id="filtroPeriodo">
+        <option value="hoje">📅 Hoje</option>
+        <option value="semana" selected>📊 Última Semana</option>
+        <option value="mes">📈 Último Mês</option>
+        <option value="personalizado">📆 Personalizado</option>
+      </select>
+      <input type="date" id="dataInicio" style="display:none;">
+      <input type="date" id="dataFim" style="display:none;">
+      <button id="aplicarFiltro"><i class="fas fa-filter"></i> Aplicar</button>
+      <button id="exportarCSV" class="btn-export"><i class="fas fa-file-csv"></i> Exportar CSV</button>
+    </div>
+
+    <div class="cards" id="cardsResumo">
+      <div class="card"><div class="icone"><i class="fas fa-user"></i></div><div class="numero" id="totalOperadores">0</div><div class="rotulo">Operadores Ativos</div></div>
+      <div class="card"><div class="icone"><i class="fas fa-comment-dots"></i></div><div class="numero" id="totalWhatsapp">0</div><div class="rotulo">Mensagens WhatsApp</div></div>
+      <div class="card"><div class="icone"><i class="fas fa-envelope"></i></div><div class="numero" id="totalEmails">0</div><div class="rotulo">E-mails Enviados</div></div>
+      <div class="card"><div class="icone"><i class="fas fa-ticket-alt"></i></div><div class="numero" id="totalVouchers">0</div><div class="rotulo">Vouchers Emitidos</div></div>
+    </div>
+
+    <!-- ===== GRÁFICOS ===== -->
+    <div class="graficos-container">
+      <div class="grafico-box">
+        <h3><i class="fas fa-chart-bar"></i> Atividades por Dia</h3>
+        <div id="graficoBarras" class="grafico-barras">
+          <div class="sem-dados">Carregando dados...</div>
+        </div>
+      </div>
+      <div class="grafico-box">
+        <h3><i class="fas fa-chart-pie"></i> Distribuição por Tipo</h3>
+        <div id="graficoPizza" class="grafico-pizza">
+          <div class="sem-dados">Carregando dados...</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="tabela-container">
+      <table>
+        <thead>
+          <tr>
+            <th>Operador</th>
+            <th>Status</th>
+            <th><i class="fas fa-comment-dots"></i> WhatsApp</th>
+            <th><i class="fas fa-envelope"></i> E-mails</th>
+            <th><i class="fas fa-ticket-alt"></i> Vouchers</th>
+            <th>Última Atividade</th>
+            <th>Tempo Inativo</th>
+            <th>Ação</th>
+          </tr>
+        </thead>
+        <tbody id="tabelaCorpo">
+          <tr><td colspan="8" style="text-align:center; padding:30px; color:#64748b;">Carregando dados...</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="atualizacao" id="ultimaAtualizacao">Última atualização: --</div>
+  </div>
+</div>
+
+<div class="status" id="statusMsg" style="text-align: center;">
+    <i class="fas fa-code"></i> Desenvolvido por 
+    <a href="https://github.com/bruninho182" target="_blank" >
+      <i class="fab fa-github"></i> Bruno Ferreira
+    </a>
+  </div>
+
+<!-- ===== DASHBOARD.JS EXTERNO ===== -->
+<script src="dashboard.js"></script>
+
+</body>
+</html>
