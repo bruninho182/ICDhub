@@ -70,20 +70,6 @@ Ela integra diferentes plataformas utilizadas pela operação em um único ambie
 
 ---
 
-# 🎥 Demonstração
-
-<p align="center">
-
-<img src="./screenshots/app1.gif" width="48%">
-
-<img src="./screenshots/app2.gif" width="48%">
-
-</p>
-
-> 💡 **Dica:** Grave GIFs específicos para cada módulo (WhatsApp, Dashboard, Bridge e Vouchers). Isso deixa o projeto muito mais profissional.
-
----
-
 # ⭐ Principais Recursos
 
 | Módulo | Descrição |
