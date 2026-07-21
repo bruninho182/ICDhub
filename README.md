@@ -634,34 +634,6 @@ A extensão estará instalada.
 
 ---
 
-## 🚧 Em desenvolvimento
-
-- [ ] OCR para vouchers
-
-- [ ] IA para respostas automáticas
-
-- [ ] Relatórios PDF
-
-- [ ] Dashboard Mobile
-
-- [ ] Backup automático
-
----
-
-## 💡 Futuro
-
-- [ ] Aplicativo Android
-
-- [ ] Aplicativo Desktop
-
-- [ ] API Pública
-
-- [ ] Painel Web
-
-- [ ] Integração Telegram
-
----
-
 # 🔒 Segurança
 
 ✔ Login protegido
