@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="./screenshots/banner.png" alt="ICD Hub Banner" width="100%">
+<img src="./screenshot/banner.png" alt="ICD Hub Banner" width="100%">
 
 # 🚀 ICD Hub
 
@@ -904,7 +904,7 @@ Sua redistribuição ou utilização sem autorização não é permitida.
 
 <br>
 
-**Desenvolvido com ❤️ por Bruno Ferreira**
+**Desenvolvido por Bruno Ferreira**
 
 ### © 2026 • Todos os direitos reservados
 
