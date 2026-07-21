@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard de Desempenho - ICD Hub</title>
+  
+  <!-- ===== FAVICON ===== -->
+  <link rel="icon" href="../icon.png" type="image/png">
+  
+  <!-- ===== FONTES E ÍCONES ===== -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <img src="/icon.png" alt="">
+  
+  <!-- ===== CSS EXTERNO ===== -->
+  <link rel="stylesheet" href="dashboard.css">
+</head>
+<body>
+
+<!-- ===== TELA DE LOGIN ===== -->
+<div id="telaLogin">
+  <div class="login-box">
+    <div class="logo">
+      <img src="../icons/logo-icd.png" alt="ICD Hub" onerror="this.style.display='none'">
+    </div>
+    <h1>🔐 Dashboard ICD</h1>
+    <p>Painel de desempenho dos operadores</p>
+    
+    <label for="senhaDashboard">Senha de acesso</label>
+    <input type="password" id="senhaDashboard" placeholder="Digite a senha..." autofocus>
+    
+    <div class="grupo-lembrar">
+      <input type="checkbox" id="lembrarSenha">
+      <label for="lembrarSenha"><i class="fas fa-check-circle"></i> Lembrar senha</label>
+    </div>
+    
+    <button class="btn-login" id="btnLogin">
+      <i class="fas fa-unlock-alt"></i> Entrar
+    </button>
+    
+    <div id="erroLogin" class="erro">
+      <i class="fas fa-exclamation-circle"></i> Senha incorreta! Tente novamente.
+    </div>
+  </div>
+</div>
+
+<!-- ===== CONTEÚDO DO DASHBOARD ===== -->
+<div id="conteudoDashboard">
+  <div class="container">
+    <!-- HEADER -->
+    <header>
+      <div class="left">
+        <h1><i class="fas fa-chart-line"></i> Dashboard de Desempenho</h1>
+        <span class="badge-admin"><i class="fas fa-crown"></i> ADMIN</span>
+        <button id="btnModoChefe" class="btn-chefe">
+          <i class="fas fa-crown"></i> <span id="statusChefe">Ativar Notificações por Pop-Up</span>
+        </button>
+      </div>
+      <button class="btn-sair" id="btnSair">
+        <i class="fas fa-sign-out-alt"></i> Sair
+      </button>
+    </header>
+
+    <!-- ===== ALERTAS DE INATIVIDADE ===== -->
+    <div id="alertasContainer"></div>
+
+    <!-- ===== FILTROS ===== -->
+    <div class="filtros">
+      <select id="filtroPeriodo">
+        <option value="hoje">📅 Hoje</option>
+        <option value="semana" selected>📊 Última Semana</option>
+        <option value="mes">📈 Último Mês</option>
+        <option value="personalizado">📆 Personalizado</option>
+      </select>
+      <input type="date" id="dataInicio" style="display:none;">
+      <input type="date" id="dataFim" style="display:none;">
+      <button id="aplicarFiltro"><i class="fas fa-filter"></i> Aplicar</button>
+      <button id="exportarCSV" class="btn-export"><i class="fas fa-file-csv"></i> Exportar CSV</button>
+    </div>
+
+    <!-- ===== CARDS ===== -->
+    <div class="cards" id="cardsResumo">
+      <div class="card"><div class="icone"><i class="fas fa-user"></i></div><div class="numero" id="totalOperadores">0</div><div class="rotulo">Operadores Ativos</div></div>
+      <div class="card"><div class="icone"><i class="fas fa-comment-dots"></i></div><div class="numero" id="totalWhatsapp">0</div><div class="rotulo">Mensagens WhatsApp</div></div>
+      <div class="card"><div class="icone"><i class="fas fa-envelope"></i></div><div class="numero" id="totalEmails">0</div><div class="rotulo">E-mails Enviados</div></div>
+      <div class="card"><div class="icone"><i class="fas fa-ticket-alt"></i></div><div class="numero" id="totalVouchers">0</div><div class="rotulo">Vouchers Emitidos</div></div>
+    </div>
+
+    <!-- ===== RANKING TOP 3 ===== -->
+    <div class="ranking-container">
+      <h3><i class="fas fa-trophy" style="color: #fbbf24;"></i> Ranking de Produtividade</h3>
+      <div id="top3Container" class="ranking-podium">
+        <div style="text-align:center; color:#64748b; padding:20px; width:100%;">
+          <i class="fas fa-spinner fa-spin" style="font-size:24px; color:#a855f7;"></i>
+          <p style="margin-top:8px;">Carregando ranking...</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== GRÁFICOS ===== -->
+    <div class="graficos-container">
+      <div class="grafico-box">
+        <h3><i class="fas fa-chart-bar"></i> Atividades por Dia</h3>
+        <div id="graficoBarras" class="grafico-barras">
+          <div class="sem-dados">Carregando dados...</div>
+        </div>
+      </div>
+      <div class="grafico-box">
+        <h3><i class="fas fa-chart-pie"></i> Distribuição por Tipo</h3>
+        <div id="graficoPizza" class="grafico-pizza">
+          <div class="sem-dados">Carregando dados...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== TABELA ===== -->
+    <div class="tabela-container">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:50px; text-align:center;">🏆</th>
+            <th>Operador</th>
+            <th>Status</th>
+            <th><i class="fas fa-comment-dots"></i> WhatsApp</th>
+            <th><i class="fas fa-envelope"></i> E-mails</th>
+            <th><i class="fas fa-ticket-alt"></i> Vouchers</th>
+            <th><i class="fas fa-star" style="color:#fbbf24;"></i> Total</th>
+            <th>Última Atividade</th>
+            <th>Tempo Inativo</th>
+            <th>Ação</th>
+          </tr>
+        </thead>
+        <tbody id="tabelaCorpo">
+          <tr><td colspan="10" style="text-align:center; padding:30px; color:#64748b;">Carregando dados...</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="atualizacao" id="ultimaAtualizacao">Última atualização: --</div>
+  </div>
+</div>
+
+<!-- ===== RODAPÉ ===== -->
+<div class="footer">
+  <i class="fas fa-code"></i> Desenvolvido por 
+  <a href="https://github.com/bruninho182" target="_blank">
+    <i class="fab fa-github"></i> Bruno Ferreira
+  </a>
+</div>
+
+<!-- ===== JAVASCRIPT EXTERNO ===== -->
+<script src="dashboard.js"></script>
+
+</body>
+</html>
