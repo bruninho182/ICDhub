@@ -2,7 +2,7 @@
 
 <img src="./screenshot/banner.png" alt="ICD Hub Banner" width="100%">
 
-# 🚀 ICD Hub
+# ICD Hub
 
 ### Universal Integrator for Google Chrome
 
