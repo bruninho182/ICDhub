@@ -51,6 +51,12 @@
         "scripts/civitatis_bridge.js"
       ]
     },
+
+    {
+  "matches": ["https://app.icdgrupo.com.br/apps/sales/bookings/*"],
+  "js": ["scripts/remarcacao_tool.js"],
+  "run_at": "document_idle"
+    },
     {
       "matches": ["https://admin.ticketgotourism.com/*"],
       "js": ["scripts/ticketgo_bridge.js"]
