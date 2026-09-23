@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="./screenshots/banner.png" alt="ICD Hub Banner" width="100%">
+<img src="./screenshot/banner.png" alt="ICD Hub Banner" width="100%">
 
 # 🚀 ICD Hub
 
