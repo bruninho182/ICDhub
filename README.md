@@ -1,8 +1,8 @@
 <div align="center">
 
-<img src="./screenshot/banner.png" alt="ICD Hub Banner" width="100%">
+<img src="./screenshots/banner.png" alt="ICD Hub Banner" width="100%">
 
-# ICD Hub
+# 🚀 ICD Hub
 
 ### Universal Integrator for Google Chrome
 
@@ -67,6 +67,20 @@ Ela integra diferentes plataformas utilizadas pela operação em um único ambie
 - Reduzir tempo operacional
 - Melhorar a experiência dos operadores
 - Centralizar ferramentas em um único ambiente
+
+---
+
+# 🎥 Demonstração
+
+<p align="center">
+
+<img src="./screenshots/app1.gif" width="48%">
+
+<img src="./screenshots/app2.gif" width="48%">
+
+</p>
+
+> 💡 **Dica:** Grave GIFs específicos para cada módulo (WhatsApp, Dashboard, Bridge e Vouchers). Isso deixa o projeto muito mais profissional.
 
 ---
 
@@ -634,6 +648,34 @@ A extensão estará instalada.
 
 ---
 
+## 🚧 Em desenvolvimento
+
+- [ ] OCR para vouchers
+
+- [ ] IA para respostas automáticas
+
+- [ ] Relatórios PDF
+
+- [ ] Dashboard Mobile
+
+- [ ] Backup automático
+
+---
+
+## 💡 Futuro
+
+- [ ] Aplicativo Android
+
+- [ ] Aplicativo Desktop
+
+- [ ] API Pública
+
+- [ ] Painel Web
+
+- [ ] Integração Telegram
+
+---
+
 # 🔒 Segurança
 
 ✔ Login protegido
@@ -862,7 +904,7 @@ Sua redistribuição ou utilização sem autorização não é permitida.
 
 <br>
 
-**Desenvolvido por Bruno Ferreira**
+**Desenvolvido com ❤️ por Bruno Ferreira**
 
 ### © 2026 • Todos os direitos reservados
 
