@@ -47,7 +47,7 @@
         <section id="sec-atalhos" class="aba-conteudo active">
           <div class="grid-duplo">
             <div class="card">
-              <h3><i class="fas fa-plus-circle"></i> Adicionar Novo Atalho</h3>
+              <h3 id="tituloForm"><i class="fas fa-plus-circle"></i> Adicionar Novo Atalho</h3>
               <input type="hidden" id="editIndex" value="-1" />
 
               <label>Nome do Botão</label>
@@ -56,6 +56,17 @@
                 id="novoNomeBotao"
                 placeholder="Ex: PIX CORCOVADO"
               />
+
+              <!-- NOVO CAMPO: SELEÇÃO DE PASTA -->
+              <label>Pasta (Categoria)</label>
+              <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                  <select id="selectPastaBotao" style="flex: 1; padding: 12px; border-radius: 8px; background: #1e293b; border: 1px solid #334155; color: white; font-family: 'Inter', sans-serif;">
+                      <option value="Geral">Geral (Sem Pasta)</option>
+                  </select>
+                  <button id="btnNovaPasta" type="button" class="btn-secundario" style="padding: 0 15px; margin: 0; width: auto; display: flex; align-items: center; justify-content: center;">
+                      <i class="fas fa-folder-plus"></i>
+                  </button>
+              </div>
 
               <label>URL da Imagem (Opcional)</label>
               <input
@@ -161,7 +172,19 @@
             <div class="grid-form" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px">
               <div><label>Método de Pagamento</label><select id="reciboPagamento"><option value="PIX">PIX</option><option value="CARTÃO DE CRÉDITO">CARTÃO DE CRÉDITO</option><option value="TED">TED</option></select></div>
               <div><label>Nome do Cliente</label><input type="text" id="reciboNome" placeholder="Nome Completo" /></div>
-              <div><label>Documento (CPF/CNPJ)</label><input type="text" id="reciboDocumento" placeholder="000.000.000-00" /></div>
+              
+              <!-- CAMPO DE DOCUMENTO ATUALIZADO COM SELETOR CPF/CNPJ -->
+              <div>
+                <label>Documento (CPF/CNPJ)</label>
+                <div style="display: flex; gap: 8px;">
+                    <select id="reciboTipoDocumento" style="width: 100px; padding: 12px; border-radius: 8px; background: #1e293b; border: 1px solid #334155; color: white; font-family: 'Inter', sans-serif;">
+                        <option value="CPF">CPF</option>
+                        <option value="CNPJ">CNPJ</option>
+                    </select>
+                    <input type="text" id="reciboDocumento" placeholder="000.000.000-00" style="flex: 1;" />
+                </div>
+              </div>
+
               <div><label>Passeio</label><input type="text" id="reciboPasseio" placeholder="Nome do Passeio" /></div>
               <div><label>Código Voucher</label><input type="text" id="reciboVoucher" placeholder="Ex: JG7129" /></div>
               <div><label>Valor Total (R$)</label><input type="text" id="reciboTotal" placeholder="0.00" /></div>

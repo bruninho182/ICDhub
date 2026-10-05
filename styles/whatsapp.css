@@ -365,3 +365,52 @@ img[draggable="true"]:hover {
         font-size: 12px;
     }
 }
+
+/* Estilo para os botões de pasta */
+.btn-pasta-hub {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: linear-gradient(135deg, #4c1d95, #2e1065); /* Roxo escuro */
+    color: white;
+    padding: 12px 15px;
+    border-radius: 8px;
+    margin-bottom: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 13px;
+    border: 1px solid #6d28d9;
+    transition: all 0.2s;
+}
+
+.btn-pasta-hub:hover {
+    background: linear-gradient(135deg, #5b21b6, #3b0764);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(109, 40, 217, 0.3);
+}
+
+.btn-pasta-hub span:last-child {
+    font-size: 10px;
+    opacity: 0.7;
+}
+
+/* Botão de voltar */
+.btn-voltar-pasta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255, 255, 255, 0.1);
+    color: #a78bfa;
+    padding: 8px 12px;
+    border-radius: 6px;
+    margin-bottom: 12px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 500;
+    border: 1px solid rgba(167, 139, 250, 0.2);
+}
+
+.btn-voltar-pasta:hover {
+    background: rgba(255, 255, 255, 0.15);
+    color: #c4b5fd;
+}

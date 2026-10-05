@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "ICD Hub",
-  "version": "3.1",
+  "version": "3.2",
   "description": "Desenvolvido por : Bruno Ferreira",
   "permissions": ["storage", "downloads", "activeTab", "scripting", "alarms", "notifications", "tabs", "cookies","webNavigation","contextMenus"],
   "host_permissions": [

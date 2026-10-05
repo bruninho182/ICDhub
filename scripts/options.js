@@ -1,12 +1,14 @@
-// ========== options.js - Versão com Anotações e PDF Funcional ==========
+// ========== options.js - Versão com Pastas, Anotações e CPF/CNPJ ==========
 
 // Inicialização principal
 document.addEventListener("DOMContentLoaded", () => {
   inicializarTabs();
+  carregarPastasNoSelect();
   renderizarListaAtalhos();
-  carregarNotas();          // carrega anotações salvas
+  carregarNotas();
   inicializarEventos();
-  renderizarListaPasseios(); // carrega passeios da calculadora
+  renderizarListaPasseios();
+  configurarMascaraDocumento(); // 🚀 NOVA FUNÇÃO
 });
 
 // ==================== Sistema de Tabs ====================
@@ -24,7 +26,91 @@ function inicializarTabs() {
   });
 }
 
-// ==================== ANOTAÇÕES (múltiplas notas) ====================
+// ==================== 🚀 MÁSCARA DINÂMICA CPF/CNPJ ====================
+function configurarMascaraDocumento() {
+  const selectTipoDoc = document.getElementById("reciboTipoDocumento");
+  const inputDoc = document.getElementById("reciboDocumento");
+
+  if (!selectTipoDoc || !inputDoc) return;
+
+  function aplicarMascara() {
+    let valor = inputDoc.value.replace(/\D/g, ''); // Remove tudo que não é número
+    const tipo = selectTipoDoc.value;
+
+    if (tipo === 'CPF') {
+      // Máscara CPF: 000.000.000-00
+      valor = valor.substring(0, 11); // Limita a 11 dígitos
+      valor = valor.replace(/(\d{3})(\d)/, '$1.$2');
+      valor = valor.replace(/(\d{3})(\d)/, '$1.$2');
+      valor = valor.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+      inputDoc.placeholder = "000.000.000-00";
+      inputDoc.maxLength = 14;
+    } else {
+      // Máscara CNPJ: 00.000.000/0000-00
+      valor = valor.substring(0, 14); // Limita a 14 dígitos
+      valor = valor.replace(/^(\d{2})(\d)/, '$1.$2');
+      valor = valor.replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3');
+      valor = valor.replace(/\.(\d{3})(\d)/, '.$1/$2');
+      valor = valor.replace(/(\d{4})(\d)/, '$1-$2');
+      inputDoc.placeholder = "00.000.000/0000-00";
+      inputDoc.maxLength = 18;
+    }
+    inputDoc.value = valor;
+  }
+
+  // Aplica ao digitar
+  inputDoc.addEventListener('input', aplicarMascara);
+  
+  // Reseta o campo quando troca o tipo (para não misturar máscaras)
+  selectTipoDoc.addEventListener('change', () => {
+    inputDoc.value = '';
+    aplicarMascara();
+  });
+}
+
+// ==================== GERENCIAMENTO DE PASTAS ====================
+function carregarPastasNoSelect() {
+    const select = document.getElementById("selectPastaBotao");
+    if (!select) return;
+
+    const pastasPadrao = [];
+
+    chrome.storage.local.get(["listaPastas"], (res) => {
+        const pastas = res.listaPastas || pastasPadrao;
+        
+        select.innerHTML = '<option value="Geral">Geral (Sem Pasta)</option>';
+        pastas.forEach(pasta => {
+            const option = document.createElement("option");
+            option.value = pasta;
+            option.textContent = pasta;
+            select.appendChild(option);
+        });
+    });
+}
+
+// Ação do botão "Nova Pasta"
+document.getElementById("btnNovaPasta")?.addEventListener("click", () => {
+    const nomePasta = prompt("Digite o nome da nova pasta:");
+    if (nomePasta && nomePasta.trim()) {
+        chrome.storage.local.get(["listaPastas"], (res) => {
+            const pastas = res.listaPastas || [];
+            const nomeLimpo = nomePasta.trim();
+            
+            if (!pastas.includes(nomeLimpo)) {
+                pastas.push(nomeLimpo);
+                chrome.storage.local.set({ listaPastas: pastas }, () => {
+                    carregarPastasNoSelect();
+                    document.getElementById("selectPastaBotao").value = nomeLimpo;
+                    mostrarNotificacao(`📁 Pasta "${nomeLimpo}" criada!`, 'success');
+                });
+            } else {
+                alert("Essa pasta já existe!");
+            }
+        });
+    }
+});
+
+// ==================== ANOTAÇÕES ====================
 let notas = [];
 
 async function salvarNotasStorage() {
@@ -123,7 +209,7 @@ function escapeHtml(str) {
   });
 }
 
-// ==================== ATALHOS (Drag & Drop) ====================
+// ==================== ATALHOS (Drag & Drop com Pastas) ====================
 let configBotoes = [];
 let dragSrcIndex = null;
 
@@ -136,27 +222,49 @@ function renderizarListaAtalhos() {
       container.innerHTML = `<div class="lista-vazia"><i class="fas fa-inbox"></i><p>Nenhum atalho configurado</p><p style="font-size: 11px;">Adicione seu primeiro atalho ao lado ➔</p></div>`;
       return;
     }
+    
     container.innerHTML = "";
-    configBotoes.forEach((botao, idx) => {
-      const item = document.createElement("div");
-      item.className = "item-lista";
-      item.draggable = true;
-      item.dataset.index = idx;
-      item.innerHTML = `
-        <span class="posicao-badge">${idx+1}</span>
-        <span class="drag-handle"></span>
-        <div class="info"><strong>${escapeHtml(botao.nome || "Sem nome")}</strong><p>${escapeHtml((botao.texto || "").substring(0,60))}...</p></div>
-        <div class="acoes">
-          <button class="btn-edit" data-index="${idx}"><i class="fas fa-edit"></i> Editar</button>
-          <button class="btn-del" data-index="${idx}"><i class="fas fa-trash"></i> Excluir</button>
-        </div>
-      `;
-      item.addEventListener("dragstart", handleDragStart);
-      item.addEventListener("dragover", handleDragOver);
-      item.addEventListener("drop", handleDrop);
-      item.addEventListener("dragend", handleDragEnd);
-      container.appendChild(item);
+
+    // Agrupar botões por pasta
+    const grupos = {};
+    configBotoes.forEach((botao, index) => {
+        botao._originalIndex = index; 
+        const pasta = botao.pasta || "Geral";
+        if (!grupos[pasta]) grupos[pasta] = [];
+        grupos[pasta].push(botao);
     });
+
+    // Renderizar cada grupo
+    for (const [nomePasta, botoes] of Object.entries(grupos)) {
+        const headerPasta = document.createElement("div");
+        headerPasta.className = "pasta-header-painel";
+        headerPasta.innerHTML = `<i class="fas fa-folder-open"></i> ${nomePasta}`;
+        headerPasta.style = "margin-top: 15px; margin-bottom: 10px; color: #8b5cf6; font-weight: bold; font-size: 14px; border-bottom: 1px solid #334155; padding-bottom: 5px;";
+        container.appendChild(headerPasta);
+
+        botoes.forEach((botao) => {
+            const idx = botao._originalIndex;
+            const item = document.createElement("div");
+            item.className = "item-lista";
+            item.draggable = true;
+            item.dataset.index = idx;
+            item.innerHTML = `
+                <span class="posicao-badge">${idx+1}</span>
+                <span class="drag-handle"></span>
+                <div class="info"><strong>${escapeHtml(botao.nome || "Sem nome")}</strong><p>${escapeHtml((botao.texto || "").substring(0,40))}...</p></div>
+                <div class="acoes">
+                <button class="btn-edit" data-index="${idx}"><i class="fas fa-edit"></i> Editar</button>
+                <button class="btn-del" data-index="${idx}"><i class="fas fa-trash"></i> Excluir</button>
+                </div>
+            `;
+            item.addEventListener("dragstart", handleDragStart);
+            item.addEventListener("dragover", handleDragOver);
+            item.addEventListener("drop", handleDrop);
+            item.addEventListener("dragend", handleDragEnd);
+            container.appendChild(item);
+        });
+    }
+
     document.querySelectorAll(".btn-edit").forEach(btn => {
       btn.addEventListener("click", (e) => {
         e.stopPropagation();
@@ -205,6 +313,12 @@ function preencherParaEditar(index) {
   document.getElementById("novoNomeBotao").value = btn.nome;
   document.getElementById("novoTextoBotao").value = btn.texto;
   document.getElementById("novaImagemBotao").value = btn.imagem || "";
+  
+  const selectPasta = document.getElementById("selectPastaBotao");
+  if(selectPasta) {
+      selectPasta.value = btn.pasta || "Geral";
+  }
+
   document.getElementById("editIndex").value = index;
   document.getElementById("tituloForm").innerText = "📝 Editando Atalho";
   document.getElementById("btnCancelarEdicao").style.display = "block";
@@ -214,6 +328,7 @@ function limparFormularioAtalho() {
   document.getElementById("novoNomeBotao").value = "";
   document.getElementById("novoTextoBotao").value = "";
   document.getElementById("novaImagemBotao").value = "";
+  document.getElementById("selectPastaBotao").value = "Geral"; 
   document.getElementById("editIndex").value = "-1";
   document.getElementById("tituloForm").innerText = "➕ Adicionar Novo Atalho";
   document.getElementById("btnCancelarEdicao").style.display = "none";
@@ -224,48 +339,34 @@ function salvarShortcuts() {
   });
 }
 
-// ==================== RECIBO PDF (CORRIGIDO - LOGO À DIREITA) ====================
+// ==================== RECIBO PDF (ATUALIZADO COM SELETOR CPF/CNPJ) ====================
 function gerarReciboPDF() {
-  // Verifica se a biblioteca existe
   if (typeof window.jspdf === 'undefined') {
     console.error('jsPDF não encontrado!');
-    alert('❌ Erro: Biblioteca jsPDF não carregada. Verifique se o arquivo jspdf.umd.min.js existe na pasta scripts.');
+    alert('❌ Erro: Biblioteca jsPDF não carregada.');
     return;
   }
 
   try {
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF();
-    
-    // Cores
     const roxoICD = [97, 45, 135];
     const cinzaClaro = [150, 150, 150];
     
-    // ==================== LOGO (AGORA À DIREITA) ====================
-    // Logo posicionada no canto superior DIREITO (x=165, y=15)
     const logoUrl = 'icons/logo-icd-recibo.png';
+    try { doc.addImage(logoUrl, 'PNG', 165, 15, 25, 25); } catch(e) {}
     
-    try {
-      doc.addImage(logoUrl, 'PNG', 165, 15, 25, 25);
-    } catch(e) {
-      console.log('Logo não encontrada, continuando sem logo');
-    }
-    
-    // ==================== TÍTULO ====================
     doc.setTextColor(roxoICD[0], roxoICD[1], roxoICD[2]);
     doc.setFont("helvetica", "bold");
     doc.setFontSize(24);
     doc.text("Recibo", 105, 35, { align: "center" });
     
-    // ==================== DADOS DO FORMS ====================
     doc.setTextColor(0, 0, 0);
     doc.setFontSize(10);
     doc.setFont("helvetica", "normal");
     
-    // Buscar valores dos inputs
     const pagamento = document.getElementById("reciboPagamento")?.value || "PIX";
     const nomeCliente = document.getElementById("reciboNome")?.value || "NÃO INFORMADO";
-    const documento = document.getElementById("reciboDocumento")?.value || "NÃO INFORMADO";
     const passeio = document.getElementById("reciboPasseio")?.value || "NÃO INFORMADO";
     const descricao = document.getElementById("reciboDescricaoIngressos")?.value || "";
     const voucher = document.getElementById("reciboVoucher")?.value || "NÃO INFORMADO";
@@ -273,42 +374,35 @@ function gerarReciboPDF() {
     const dataCompra = document.getElementById("reciboDataCompra")?.value;
     const dataVisita = document.getElementById("reciboDataVisita")?.value;
     
-    // Formatar datas
+    // 🚀 NOVO: Pega o tipo de documento (CPF ou CNPJ) e o número
+    const tipoDocumento = document.getElementById("reciboTipoDocumento")?.value || "CPF";
+    const numeroDocumento = document.getElementById("reciboDocumento")?.value || "NÃO INFORMADO";
+    
     const dataCompraFormatada = dataCompra ? dataCompra.split('-').reverse().join('/') : "___/___/____";
     const dataVisitaFormatada = dataVisita ? dataVisita.split('-').reverse().join('/') : "___/___/____";
     
-    // ==================== TEXTO DA DECLARAÇÃO ====================
-    const textoDeclaracao = `O GRUPO ICD, inscrito no CNPJ 10.335.415/0001-70, declara ter recebido os valores descritos abaixo,\nreferente ao pagamento via ${pagamento} pago por ${nomeCliente.toUpperCase()}, inscrito no ${documento.includes('CNPJ') ? 'CNPJ' : 'CPF'}: ${documento}.`;
+    // 🚀 ALTERAÇÃO: Usa o tipoDocumento dinamicamente na frase
+    const textoDeclaracao = `O GRUPO ICD, inscrito no CNPJ 10.335.415/0001-70, declara ter recebido os valores descritos abaixo,\nreferente ao pagamento via ${pagamento} pago por ${nomeCliente.toUpperCase()}, inscrito no ${tipoDocumento}: ${numeroDocumento}.`;
     const splitTexto = doc.splitTextToSize(textoDeclaracao, 170);
     doc.text(splitTexto, 20, 55);
     
-    // ==================== DADOS DA COMPRA (título) ====================
     doc.setFont("helvetica", "bold");
     doc.setFontSize(11);
     doc.text("Dados da Compra:", 20, 85);
     doc.setFont("helvetica", "normal");
     doc.setFontSize(10);
-    
-    // Nome do passeio
     doc.setFont("helvetica", "bold");
     doc.text(passeio, 25, 98);
     doc.setFont("helvetica", "normal");
     
-    // Descrição dos ingressos (quebrar linhas se necessário)
     let yDescricao = 108;
     if (descricao) {
       const linhasDescricao = doc.splitTextToSize(descricao, 160);
       doc.text(linhasDescricao, 25, yDescricao);
       yDescricao += (linhasDescricao.length * 5);
-    } else {
-      yDescricao = 108;
-    }
+    } else { yDescricao = 108; }
     
-    // Espaço antes da tabela
     const yTabela = Math.max(yDescricao + 10, 125);
-    
-    // ==================== TABELA ====================
-    // Cabeçalho da tabela
     doc.setDrawColor(0, 0, 0);
     doc.setLineWidth(0.5);
     doc.line(20, yTabela, 190, yTabela);
@@ -319,33 +413,25 @@ function gerarReciboPDF() {
     doc.text("Voucher", 85, yTabela + 7);
     doc.text("Data da Visita", 125, yTabela + 7);
     doc.text("Valor", 170, yTabela + 7, { align: "right" });
-    
     doc.line(20, yTabela + 10, 190, yTabela + 10);
     
-    // Linha da tabela
     doc.setFont("helvetica", "normal");
     doc.text(dataCompraFormatada, 25, yTabela + 20);
     doc.text(voucher, 85, yTabela + 20);
     doc.text(dataVisitaFormatada, 125, yTabela + 20);
     doc.text(`R$ ${valorTotal}`, 170, yTabela + 20, { align: "right" });
-    
     doc.line(20, yTabela + 23, 190, yTabela + 23);
     
-    // ==================== TOTAL (CORRIGIDO - SEM SOBREPOSIÇÃO) ====================
     doc.setFont("helvetica", "bold");
-    // Posiciona o texto "Total" mais à esquerda para dar espaço
     doc.text("Total", 140, yTabela + 38);
-    // Coloca o valor mais à direita com espaço suficiente
     doc.text(`R$ ${valorTotal}`, 185, yTabela + 38, { align: "right" });
     doc.setFont("helvetica", "normal");
     
-    // ==================== DATA POR EXTENSO ====================
     const dataAtual = new Date();
     const meses = ["janeiro", "fevereiro", "março", "abril", "maio", "junho", "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"];
     const dataExtenso = `Itatiba, ${dataAtual.getDate()} de ${meses[dataAtual.getMonth()]} de ${dataAtual.getFullYear()}.`;
     doc.text(dataExtenso, 190, yTabela + 58, { align: "right" });
     
-    // ==================== ASSINATURA ====================
     doc.setFont("helvetica", "bold");
     doc.setFontSize(11);
     doc.text("Grupo ICD", 105, yTabela + 75, { align: "center" });
@@ -353,21 +439,16 @@ function gerarReciboPDF() {
     doc.setFontSize(8);
     doc.setTextColor(cinzaClaro[0], cinzaClaro[1], cinzaClaro[2]);
     
-    // ==================== RODAPÉ (ENDEREÇO) ====================
     const endereco = "Av. Pref. José Maurício de Camargo, 320, Jardim Nossa Sra. Da Graças – Office Mall Sala J52\nItatiba – SP CEP 13257-900\nTel. (11) 4412-5454";
     const linhasEndereco = doc.splitTextToSize(endereco, 170);
     doc.text(linhasEndereco, 105, 270, { align: "center" });
     
-    // ==================== SALVAR PDF ====================
-    const nomeArquivo = `RECIBO - ${voucher}.pdf`;
-    doc.save(nomeArquivo);
-    
-    console.log('PDF gerado com sucesso!');
+    doc.save(`RECIBO - ${voucher}.pdf`);
     mostrarNotificacao('✅ Recibo gerado com sucesso!', 'success');
     
   } catch (error) {
     console.error('Erro ao gerar PDF:', error);
-    alert('❌ Erro ao gerar o recibo. Verifique o console para mais detalhes.');
+    alert('❌ Erro ao gerar o recibo.');
   }
 }
 
@@ -447,26 +528,30 @@ function renderizarListaPasseios() {
 
 // ==================== INICIALIZAÇÃO DE EVENTOS ====================
 function inicializarEventos() {
-  // Botão Salvar Atalho
+  // Botão Salvar Atalho (AGORA COM PASTA)
   const btnSalvarAtalho = document.getElementById("btnAdicionarBotao");
   if (btnSalvarAtalho) {
     btnSalvarAtalho.addEventListener("click", () => {
       const nome = document.getElementById("novoNomeBotao").value.trim();
       const texto = document.getElementById("novoTextoBotao").value.trim();
       const imagem = document.getElementById("novaImagemBotao").value.trim();
+      const pasta = document.getElementById("selectPastaBotao").value; // Pega a pasta
       const idx = parseInt(document.getElementById("editIndex").value);
+      
       if (nome && texto) {
         const dadosBotao = {
           id: idx === -1 ? "custom_" + Date.now() : configBotoes[idx].id,
           nome,
           texto,
           imagem: imagem || null,
+          pasta: pasta, // Salva a pasta no objeto
           isExtra: true,
         };
         if (idx === -1) configBotoes.push(dadosBotao);
         else configBotoes[idx] = dadosBotao;
         salvarShortcuts();
         limparFormularioAtalho();
+        mostrarNotificacao('✅ Atalho salvo!', 'success');
       } else {
         alert("Por favor, preencha nome e mensagem.");
       }

@@ -15,6 +15,9 @@ const textosPadrao = {
 const menu = document.createElement('div');
 menu.id = 'menu-automacao-hub';
 
+// Variável para controlar a pasta ativa no WhatsApp
+let pastaAtiva = null;
+
 // Função para injetar o texto na caixa do WhatsApp
 function enviarTexto(txt) {
     const textarea = document.querySelector('div[contenteditable="true"][data-tab="10"]');
@@ -41,6 +44,30 @@ menu.innerHTML = `
     </div>
 
     <div id="container-botoes-hub"></div>
+    
+    <!-- ESTILOS INJETADOS -->
+    <style>
+        .btn-pasta-hub {
+            display: flex; align-items: center; justify-content: space-between;
+            background: linear-gradient(135deg, #4c1d95, #2e1065);
+            color: white; padding: 12px 15px; border-radius: 8px;
+            margin-bottom: 8px; cursor: pointer; font-weight: 600;
+            font-size: 13px; border: 1px solid #6d28d9; transition: all 0.2s;
+        }
+        .btn-pasta-hub:hover {
+            background: linear-gradient(135deg, #5b21b6, #3b0764);
+            transform: translateY(-2px); box-shadow: 0 4px 12px rgba(109, 40, 217, 0.3);
+        }
+        .btn-pasta-hub span:last-child { font-size: 10px; opacity: 0.7; }
+        .btn-voltar-pasta {
+            display: flex; align-items: center; gap: 8px;
+            background: rgba(255, 255, 255, 0.1); color: #a78bfa;
+            padding: 8px 12px; border-radius: 6px; margin-bottom: 12px;
+            cursor: pointer; font-size: 12px; font-weight: 500;
+            border: 1px solid rgba(167, 139, 250, 0.2);
+        }
+        .btn-voltar-pasta:hover { background: rgba(255, 255, 255, 0.15); color: #c4b5fd; }
+    </style>
 `;
 
 document.body.appendChild(menu);
@@ -109,23 +136,84 @@ function handleImageDragBase64(e, imgElement, urlImagem) {
     }
 }
 
-// --- Renderizar Botões ---
+// --- Renderizar Botões (COM PASTAS) ---
 function carregarBotoes() {
-    chrome.storage.local.get(['configMaster'], (res) => {
+    chrome.storage.local.get(['configMaster', 'listaPastas'], (res) => {
         const container = document.getElementById('container-botoes-hub');
         const inputBusca = document.getElementById('busca-botoes');
         const botoes = res.configMaster || [];
+        
+        // 🚀 ALTERAÇÃO: Começa com array VAZIO em vez de pastas pré-prontas
+        const pastas = res.listaPastas || [];
 
         function renderizar(filtro = "") {
             container.innerHTML = "";
-            const filtrados = botoes.filter(b => b.nome.toLowerCase().includes(filtro.toLowerCase()));
+            
+            // Se não houver filtro E não houver pasta ativa, mostra as pastas
+            if (!filtro && !pastaAtiva) {
+                
+                // Renderiza cada pasta criada pelo usuário
+                pastas.forEach(nomePasta => {
+                    const btnPasta = document.createElement('div');
+                    btnPasta.className = 'btn-pasta-hub';
+                    btnPasta.innerHTML = `<span>📁</span> <span>${nomePasta}</span> <span>▶</span>`;
+                    btnPasta.onclick = () => {
+                        pastaAtiva = nomePasta;
+                        renderizar(); 
+                    };
+                    container.appendChild(btnPasta);
+                });
 
-            if (filtrados.length === 0) {
-                container.innerHTML = '<p style="font-size:11px; color:#666; text-align:center; padding: 10px;">Nenhum atalho encontrado.</p>';
+                // Renderiza botões sem pasta (Geral)
+                const botoesGeral = botoes.filter(b => !b.pasta || b.pasta === "Geral");
+                if (botoesGeral.length > 0) {
+                    const btnPastaGeral = document.createElement('div');
+                    btnPastaGeral.className = 'btn-pasta-hub';
+                    btnPastaGeral.innerHTML = `<span>📁</span> <span>Geral (Sem Pasta)</span> <span>▶</span>`;
+                    btnPastaGeral.onclick = () => {
+                        pastaAtiva = "Geral";
+                        renderizar();
+                    };
+                    container.appendChild(btnPastaGeral);
+                }
                 return;
             }
 
-            filtrados.forEach(b => {
+            // Se uma pasta estiver ativa, mostra os botões dela
+            let botoesParaMostrar = [];
+            if (pastaAtiva) {
+                // Botão de Voltar
+                const btnVoltar = document.createElement('div');
+                btnVoltar.className = 'btn-voltar-pasta';
+                btnVoltar.innerHTML = `<span>◀</span> <span>Voltar para Pastas</span>`;
+                btnVoltar.onclick = () => {
+                    pastaAtiva = null;
+                    renderizar(inputBusca.value); 
+                };
+                container.appendChild(btnVoltar);
+                
+                // Filtra botões da pasta ativa
+                botoesParaMostrar = botoes.filter(b => (b.pasta || "Geral") === pastaAtiva);
+            } else {
+                // Se estiver buscando, ignora pastas e busca em todos
+                botoesParaMostrar = botoes;
+            }
+
+            // Aplica filtro de busca
+            if (filtro) {
+                botoesParaMostrar = botoesParaMostrar.filter(b => b.nome.toLowerCase().includes(filtro.toLowerCase()));
+            }
+
+            if (botoesParaMostrar.length === 0) {
+                const msgVazio = document.createElement('p');
+                msgVazio.style = 'font-size:11px; color:#666; text-align:center; padding: 10px;';
+                msgVazio.innerText = "Nenhum atalho encontrado.";
+                container.appendChild(msgVazio);
+                return;
+            }
+
+            // Renderiza os botões
+            botoesParaMostrar.forEach(b => {
                 const btnWrapper = document.createElement('div');
                 btnWrapper.style = "display: flex; align-items: center; gap: 5px; margin-bottom: 8px; padding: 0 10px;";
 
@@ -158,7 +246,14 @@ function carregarBotoes() {
                 container.appendChild(btnWrapper);
             });
         }
-        inputBusca.oninput = (e) => renderizar(e.target.value);
+        
+        inputBusca.oninput = (e) => {
+            if (e.target.value.length > 0) {
+                pastaAtiva = null;
+            }
+            renderizar(e.target.value);
+        };
+        
         renderizar();
     });
 }
@@ -256,7 +351,7 @@ aplicarPosicao();
 carregarBotoes();
 
 chrome.storage.onChanged.addListener((changes) => {
-    if (changes.configMaster) carregarBotoes();
+    if (changes.configMaster || changes.listaPastas) carregarBotoes();
     if (changes.posicaoBarra) aplicarPosicao();
 });
 
@@ -267,10 +362,8 @@ function iniciarMonitorWhatsApp() {
     console.log("📊 Monitor de WhatsApp iniciado...");
     
     function capturarEnter(event) {
-        // Verifica se é a tecla ENTER e NÃO está com Shift (Shift+ENTER = quebra de linha)
         if (event.key === 'Enter' && !event.shiftKey) {
             const target = event.target;
-            // Verifica se é a caixa de texto do WhatsApp
             if (target && target.getAttribute('contenteditable') === 'true' && 
                 target.getAttribute('data-tab') === '10') {
                 
@@ -301,18 +394,15 @@ function iniciarMonitorWhatsApp() {
     console.log("✅ Monitor de ENTER ativado!");
 }
 
-// Inicia o monitor
 if (document.readyState === 'complete') {
     iniciarMonitorWhatsApp();
 } else {
     window.addEventListener('load', iniciarMonitorWhatsApp);
 }
 
-// Reinicia após alguns segundos para garantir
 setTimeout(iniciarMonitorWhatsApp, 3000);
 setTimeout(iniciarMonitorWhatsApp, 5000);
 
-// Observa mudanças na DOM
 const observer = new MutationObserver(() => {
     const textarea = document.querySelector('div[contenteditable="true"][data-tab="10"]');
     if (textarea && !window._enterMonitorActive) {
