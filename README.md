@@ -487,6 +487,10 @@ Pronto!
 
 A extensão estará instalada.
 
+## 6️⃣ Configure a planilha de estornos
+
+Abra as opções da extensão, acesse **Configurações → Planilha de Estornos** e informe a URL do Apps Script e o token fornecido pelo administrador. O token é salvo somente no navegador e não é incluído no repositório nem no backup de configurações.
+
 ---
 
 # 📂 Estrutura do Projeto

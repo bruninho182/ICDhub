@@ -1,9 +1,20 @@
 {
   "manifest_version": 3,
   "name": "ICD Hub",
-  "version": "3.3",
+  "version": "3.5",
   "description": "Desenvolvido por : Bruno Ferreira",
-  "permissions": ["storage", "downloads", "activeTab", "scripting", "alarms", "notifications", "tabs", "cookies","webNavigation","contextMenus"],
+  "permissions": [
+    "storage",
+    "downloads",
+    "activeTab",
+    "scripting",
+    "alarms",
+    "notifications",
+    "tabs",
+    "cookies",
+    "webNavigation",
+    "contextMenus"
+  ],
   "host_permissions": [
     "https://admin.tourcms.com/*",
     "https://www.ingressocomdesconto.com.br/*",
@@ -24,7 +35,11 @@
     "*://*.ingressocomdesconto.com.br/*",
     "https://*.supabase.co/*",
     "https://yqlvdvilddobvangvvva.supabase.co/rest/v1/*",
-    "https://yqlvdvilddobvangvvva.supabase.co/*"
+    "https://yqlvdvilddobvangvvva.supabase.co/*",
+    "https://dash.pagar.me/*",
+    "https://api.pagar.me/*",
+    "https://script.google.com/*",
+    "https://script.googleusercontent.com/*"
   ],
   "action": {
     "default_popup": "popup.html",
@@ -44,52 +59,87 @@
   },
   "content_scripts": [
     {
-      "matches": ["*://*.civitatis.com/*"],
+      "matches": [
+        "*://*.civitatis.com/*"
+      ],
       "js": [
         "scripts/pdf.min.js",
         "scripts/pdf.worker.min.js",
         "scripts/civitatis_bridge.js"
       ]
     },
-
     {
-  "matches": ["https://app.icdgrupo.com.br/apps/sales/bookings/*"],
-  "js": ["scripts/remarcacao_tool.js"],
-  "run_at": "document_idle"
+      "matches": [
+        "https://app.icdgrupo.com.br/apps/sales/bookings/*"
+      ],
+      "js": [
+        "scripts/remarcacao_tool.js",
+        "scripts/icd_sheet_icdgrupo.js"
+      ],
+      "run_at": "document_idle"
     },
     {
-      "matches": ["https://admin.ticketgotourism.com/*"],
-      "js": ["scripts/ticketgo_bridge.js"]
+      "matches": [
+        "https://admin.ticketgotourism.com/*"
+      ],
+      "js": [
+        "scripts/ticketgo_bridge.js"
+      ]
     },
     {
-      "matches": ["*://navio.ingressocomdesconto.com.br/*"],
-      "js": ["scripts/navio_bridge.js"]
+      "matches": [
+        "*://navio.ingressocomdesconto.com.br/*"
+      ],
+      "js": [
+        "scripts/navio_bridge.js"
+      ]
     },
     {
       "matches": [
         "https://admin.tourcms.com/admin/bookings/bookings_edit.php?bid=*"
       ],
-      "js": ["scripts/grayline_extract.js"]
+      "js": [
+        "scripts/grayline_extract.js"
+      ]
     },
     {
-      "matches": ["*://hub.headout.com/*"],
-      "js": ["scripts/headout_extract.js"]
+      "matches": [
+        "*://hub.headout.com/*"
+      ],
+      "js": [
+        "scripts/headout_extract.js"
+      ]
     },
     {
-      "matches": ["https://supplier.getyourguide.com/bookings/*"],
-      "js": ["scripts/gyg_extract.js"]
+      "matches": [
+        "https://supplier.getyourguide.com/bookings/*"
+      ],
+      "js": [
+        "scripts/gyg_extract.js"
+      ]
     },
     {
-      "matches": ["https://web.whatsapp.com/*"],
-      "js": ["scripts/metrics.js", "scripts/whatsapp_tool.js"],
-      "css": ["styles/whatsapp.css"]
+      "matches": [
+        "https://web.whatsapp.com/*"
+      ],
+      "js": [
+        "scripts/metrics.js",
+        "scripts/whatsapp_tool.js"
+      ],
+      "css": [
+        "styles/whatsapp.css"
+      ]
     },
     {
       "matches": [
         "*://*.ingressocomdesconto.com.br/*",
         "https://app.icdgrupo.com.br/*"
       ],
-      "js": ["scripts/ingresso_master.js","scripts/metrics.js", "scripts/voucher_tracker.js"],
+      "js": [
+        "scripts/ingresso_master.js",
+        "scripts/metrics.js",
+        "scripts/voucher_tracker.js"
+      ],
       "all_frames": true
     },
     {
@@ -97,7 +147,10 @@
         "https://webmail-seguro.com.br/*",
         "https://webmail.locaweb.com.br/*"
       ],
-      "js": ["scripts/metrics.js", "scripts/mail_tool.js"]
+      "js": [
+        "scripts/metrics.js",
+        "scripts/mail_tool.js"
+      ]
     },
     {
       "matches": [
@@ -105,23 +158,56 @@
         "https://report.ingressocomdesconto.com.br/adm/paginas/relatorio_passaportesE.asp?emp=*",
         "https://ingressocomdesconto.com.br/adm/paginas/relatorio_passaportesE.asp?emp=*"
       ],
-      "js": ["scripts/relatorio_tool.js"]
+      "js": [
+        "scripts/relatorio_tool.js"
+      ]
     },
     {
       "matches": [
         "https://www.ingressocomdesconto.com.br/adm/paginas/voucher.asp*"
       ],
-      "js": ["scripts/enviar_voucher.js"]
+      "js": [
+        "scripts/enviar_voucher.js"
+      ]
+    },
+    {
+      "matches": [
+        "https://dash.pagar.me/*"
+      ],
+      "js": [
+        "scripts/icd_pagarme_hook.js"
+      ],
+      "run_at": "document_start",
+      "world": "MAIN"
+    },
+    {
+      "matches": [
+        "https://dash.pagar.me/*"
+      ],
+      "js": [
+        "scripts/icd_sheet_pagarme.js"
+      ],
+      "run_at": "document_start",
+      "world": "ISOLATED"
     }
   ],
   "web_accessible_resources": [
     {
-      "resources": ["scripts/pdf.min.js", "scripts/pdf.worker.min.js"],
-      "matches": ["*://*.civitatis.com/*"]
+      "resources": [
+        "scripts/pdf.min.js",
+        "scripts/pdf.worker.min.js"
+      ],
+      "matches": [
+        "*://*.civitatis.com/*"
+      ]
     },
     {
-      "resources": ["icon.png"],
-      "matches": ["<all_urls>"]
+      "resources": [
+        "icon.png"
+      ],
+      "matches": [
+        "<all_urls>"
+      ]
     }
   ]
 }

@@ -950,7 +950,7 @@ function inicializarEventos() {
     if (btnModoChefe) {
         btnModoChefe.addEventListener('click', toggleModoChefe);
     }
-    
+
     const senhaInput = document.getElementById('senhaDashboard');
     if (senhaInput) {
         senhaInput.addEventListener('keydown', (e) => {
