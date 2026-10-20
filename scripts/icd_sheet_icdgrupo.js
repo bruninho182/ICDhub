@@ -184,31 +184,54 @@
 
   // ---------- Botão flutuante ----------
 
+  function localizarBotaoCancelar() {
+    return Array.from(document.querySelectorAll('button'))
+      .find((el) => normalizarTexto(el.textContent).includes('CANCELAR RESERVA'));
+  }
+
+  function posicionarBotao(btn) {
+    const cancelar = localizarBotaoCancelar();
+    if (!cancelar) {
+      btn.style.display = 'none';
+      return;
+    }
+
+    // Mantém o botão no mesmo grupo de ações do cabeçalho da reserva.
+    if (btn.previousElementSibling !== cancelar) {
+      cancelar.insertAdjacentElement('afterend', btn);
+    }
+    btn.style.display = '';
+  }
+
   function criarBotao() {
     // Evita duplicar o botão se o script rodar 2x
     if (document.getElementById('icdhub-btn-coletar-icd')) return;
     const btn = document.createElement('button');
     btn.id = 'icdhub-btn-coletar-icd';
-    btn.textContent = '📋 Copiar dados ICD';
+    btn.textContent = 'Dados Estorno';
+    btn.type = 'button';
     btn.style.cssText = `
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      z-index: 999999;
-      padding: 12px 18px;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: #fff;
-      border: none;
-      border-radius: 10px;
-      font-family: 'Inter', sans-serif;
-      font-size: 13px;
-      font-weight: 600;
+      position: static;
+      margin-left: 8px;
+      padding: 6px 16px;
+      background: transparent;
+      color: #4caf50;
+      border: 1px solid #4caf50;
+      border-radius: 4px;
+      font-family: inherit;
+      font-size: 14px;
+      font-weight: 500;
       cursor: pointer;
-      box-shadow: 0 6px 20px rgba(139, 92, 246, 0.4);
+      line-height: 1.75;
+      min-height: 36px;
+      letter-spacing: 0.02857em;
+      text-transform: uppercase;
+      box-shadow: none;
+      white-space: nowrap;
     `;
 
     btn.addEventListener('click', () => {
-      const textoOriginal = '📋 Copiar dados ICD';
+      const textoOriginal = 'Dados Estorno';
       definirProcessando(btn, true, textoOriginal);
       const metodoPagamento = pegarValorPorLabel('Método de pagamento:');
       const dados = {
@@ -242,6 +265,7 @@
     });
 
     document.body.appendChild(btn);
+    posicionarBotao(btn);
   }
 
   function removerBotao() {
@@ -254,9 +278,20 @@
       return;
     }
 
-    if (document.body) criarBotao();
+    if (document.body) {
+      criarBotao();
+      const botao = document.getElementById('icdhub-btn-coletar-icd');
+      if (botao) posicionarBotao(botao);
+    }
     else document.addEventListener('DOMContentLoaded', criarBotao, { once: true });
   }
+
+  // A tela de reservas é uma SPA: o cabeçalho pode ser montado depois ou recriado.
+  const observador = new MutationObserver(() => {
+    const botao = document.getElementById('icdhub-btn-coletar-icd');
+    if (botao) posicionarBotao(botao);
+  });
+  observador.observe(document.documentElement, { childList: true, subtree: true });
 
   chrome.storage.local.get([CHAVE_BOTOES_ESTORNO], (res) => {
     atualizarVisibilidade(res[CHAVE_BOTOES_ESTORNO] === true);

@@ -78,32 +78,68 @@
     btn.textContent = processando ? '⏳ Processando...' : textoOriginal;
   }
 
-  // ---------- 4. Botão flutuante ----------
+  // ---------- 4. Botão de estorno ----------
+  function localizarCardMetadata() {
+    // O Pagar.me renderiza esse título como um elemento comum, sem tag de heading.
+    const titulo = Array.from(document.querySelectorAll('body *'))
+      .find((el) => el.children.length === 0 && el.textContent.trim().toLowerCase() === 'metadata');
+    if (!titulo) return null;
+
+    // Encontra o card visual que contém o título e os dados do Metadata.
+    let elemento = titulo.parentElement;
+    let candidato = null;
+    while (elemento && elemento !== document.body) {
+      const estilo = window.getComputedStyle(elemento);
+      const retangulo = elemento.getBoundingClientRect();
+      if (retangulo.width >= 180 && retangulo.width <= 500 && retangulo.height >= 60 && retangulo.height <= 300) {
+        candidato = elemento;
+        if (parseFloat(estilo.borderTopLeftRadius) > 0) return elemento;
+      }
+      elemento = elemento.parentElement;
+    }
+    return candidato || titulo.parentElement?.parentElement || null;
+  }
+
+  function posicionarBotao(btn) {
+    const card = localizarCardMetadata();
+    if (!card) {
+      btn.style.display = 'none';
+      return;
+    }
+
+    if (btn.previousElementSibling !== card) {
+      card.insertAdjacentElement('afterend', btn);
+    }
+    btn.style.display = 'block';
+  }
+
   function criarBotao() {
     if (document.getElementById('icdhub-btn-coletar-pagarme')) return;
 
     const btn = document.createElement('button');
     btn.id = 'icdhub-btn-coletar-pagarme';
-    btn.textContent = '📋 Copiar dados Pagar.me';
+    btn.textContent = 'Dados Estorno';
+    btn.type = 'button';
     btn.style.cssText = `
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      z-index: 999999;
-      padding: 12px 18px;
-      background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+      position: static;
+      display: block;
+      width: 100%;
+      margin-top: 10px;
+      padding: 10px 16px;
+      background: #2fa574;
       color: #fff;
       border: none;
-      border-radius: 10px;
-      font-family: 'Inter', sans-serif;
-      font-size: 13px;
+      border-radius: 8px;
+      font-family: inherit;
+      font-size: 14px;
       font-weight: 600;
       cursor: pointer;
-      box-shadow: 0 6px 20px rgba(245, 87, 108, 0.4);
+      line-height: 1.5;
+      box-shadow: 0 2px 6px rgba(20, 100, 65, 0.2);
     `;
 
     btn.addEventListener('click', () => {
-      const textoOriginal = '📋 Copiar dados Pagar.me';
+      const textoOriginal = 'Dados Estorno';
       definirProcessando(btn, true, textoOriginal);
       chrome.storage.local.get(['icdDadosPendentes', STORAGE_KEY], (res) => {
         const icd = res.icdDadosPendentes;
@@ -214,6 +250,7 @@
     });
 
     document.body.appendChild(btn);
+    posicionarBotao(btn);
   }
 
   function removerBotao() {
@@ -229,9 +266,20 @@
 
     // Evita reaproveitar dados de uma cobrança anterior quando o recurso é ativado.
     chrome.storage.local.remove(STORAGE_KEY);
-    if (document.body) criarBotao();
+    if (document.body) {
+      criarBotao();
+      const botao = document.getElementById('icdhub-btn-coletar-pagarme');
+      if (botao) posicionarBotao(botao);
+    }
     else document.addEventListener('DOMContentLoaded', criarBotao, { once: true });
   }
+
+  // O Pagar.me usa navegação SPA e pode recriar o card de Metadata.
+  const observador = new MutationObserver(() => {
+    const botao = document.getElementById('icdhub-btn-coletar-pagarme');
+    if (botao) posicionarBotao(botao);
+  });
+  observador.observe(document.documentElement, { childList: true, subtree: true });
 
   chrome.storage.local.get([CHAVE_BOTOES_ESTORNO], (res) => {
     atualizarVisibilidade(res[CHAVE_BOTOES_ESTORNO] === true);

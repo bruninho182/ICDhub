@@ -289,22 +289,36 @@ async function processarRemarcacao() {
 // ================================================================
 // BOTÃO FLUTUANTE — PÁGINA VOUCHER
 // ================================================================
+function estilizarBotaoFlutuante(btn, cor, corHover) {
+    btn.style.cssText = `
+        position: fixed; bottom: 30px; right: 30px; z-index: 999999;
+        padding: 6px 16px; min-height: 36px;
+        background: ${cor}; color: #fff;
+        border: 1px solid ${cor}; border-radius: 4px;
+        cursor: pointer; font-weight: 500; font-size: 14px;
+        font-family: inherit; line-height: 1.75; letter-spacing: 0.02857em;
+        text-transform: uppercase; white-space: nowrap;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+        transition: background-color 0.2s ease, box-shadow 0.2s ease;
+    `;
+    btn.addEventListener('mouseenter', () => {
+        btn.style.backgroundColor = corHover;
+        btn.style.boxShadow = '0 4px 10px rgba(0, 0, 0, 0.28)';
+    });
+    btn.addEventListener('mouseleave', () => {
+        btn.style.backgroundColor = cor;
+        btn.style.boxShadow = '0 2px 6px rgba(0, 0, 0, 0.2)';
+    });
+}
+
 function criarBotaoRemarcacao() {
     if (document.getElementById('btn-remarcacao-icd')) return;
     if (!isVoucherPage()) return;
 
     const btn = document.createElement('button');
     btn.id = 'btn-remarcacao-icd';
-    btn.innerText = '🔄 Remarcação';
-    btn.style.cssText = `
-        position: fixed; bottom: 30px; right: 30px; z-index: 999999;
-        padding: 14px 24px; background: linear-gradient(135deg, #612d87, #8b5cf6);
-        color: white; border: none; border-radius: 50px; cursor: pointer;
-        font-weight: bold; font-size: 14px; font-family: 'Inter', sans-serif;
-        box-shadow: 0 6px 20px rgba(97, 45, 135, 0.4); transition: all 0.25s ease;
-    `;
-    btn.onmouseover = () => btn.style.transform = 'scale(1.06)';
-    btn.onmouseout = () => btn.style.transform = 'scale(1)';
+    btn.innerText = 'Remarcação';
+    estilizarBotaoFlutuante(btn, '#6f4ba8', '#5e3d91');
     btn.onclick = processarRemarcacao;
 
     document.body.appendChild(btn);
@@ -603,16 +617,8 @@ function criarBotaoColar() {
 
     const btn = document.createElement('button');
     btn.id = 'btn-colar-rema-icd';
-    btn.innerText = '📋 Colar dados da Rema';
-    btn.style.cssText = `
-        position: fixed; bottom: 30px; right: 30px; z-index: 999999;
-        padding: 14px 24px; background: linear-gradient(135deg, #25D366, #128C7E);
-        color: white; border: none; border-radius: 50px; cursor: pointer;
-        font-weight: bold; font-size: 14px; font-family: 'Inter', sans-serif;
-        box-shadow: 0 6px 20px rgba(37, 211, 102, 0.4); transition: all 0.25s ease;
-    `;
-    btn.onmouseover = () => btn.style.transform = 'scale(1.06)';
-    btn.onmouseout = () => btn.style.transform = 'scale(1)';
+    btn.innerText = 'Colar dados da Rema';
+    estilizarBotaoFlutuante(btn, '#2fa574', '#278b62');
     btn.onclick = colarDadosRemarcacao;
 
     document.body.appendChild(btn);

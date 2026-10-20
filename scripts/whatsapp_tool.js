@@ -38,11 +38,23 @@ function enviarTexto(txt) {
 
 // 2. Estrutura da Barra Lateral
 menu.innerHTML = `
-    <div id="aba-gatilho">◀</div> 
+    <button type="button" id="aba-gatilho" aria-label="Abrir painel ICD Hub">◀</button> 
     
-    <div id="wrapper-controles-hub" style="display: flex; flex-direction: column; align-items: center; gap: 5px;">
-        <div id="btn-cotacao-hub" style="cursor: pointer; font-size: 24px; text-align: center; background: #612d87; padding: 10px; border-radius: 8px; color: white; margin-bottom: 5px; transition: transform 0.2s;">💲</div>
-        <input type="text" id="busca-botoes" placeholder="🔍 Buscar atalho..." style="width: 90%; margin-bottom: 15px; padding: 8px; border-radius: 5px; border: 1px solid #ddd; display: block; font-size: 12px;">
+    <div id="wrapper-controles-hub" style="display: flex; flex-direction: column; align-items: center; gap: 8px;">
+        <div id="hub-brand-row">
+            <div id="hub-brand">
+                <img src="${chrome.runtime.getURL('icon.png')}" alt="" />
+            </div>
+        </div>
+        <div id="hub-search-row">
+            <input type="text" id="busca-botoes" placeholder="🔍 Buscar atalho..." style="width: 90%; margin-bottom: 15px; padding: 8px; border-radius: 5px; border: 1px solid #ddd; display: block; font-size: 12px;">
+            <button type="button" id="btn-cotacao-hub" aria-label="Abrir calculadora de cotação" title="Calculadora de cotação">
+                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <rect x="5" y="3" width="14" height="18" rx="3"></rect>
+                    <path d="M8 7h8M8 11h.01M12 11h.01M16 11h.01M8 15h.01M12 15h.01M16 15h.01"></path>
+                </svg>
+            </button>
+        </div>
     </div>
 
     <div id="container-botoes-hub"></div>
@@ -51,21 +63,26 @@ menu.innerHTML = `
     <style>
         .btn-pasta-hub {
             display: flex; align-items: center; justify-content: space-between;
-            background: linear-gradient(135deg, #4c1d95, #2e1065);
-            color: white; padding: 12px 15px; border-radius: 8px;
+            width: 100%; box-sizing: border-box; appearance: none;
+            background: rgba(109, 40, 217, 0.14);
+            color: #f1f5f9; padding: 12px 14px; border-radius: 12px;
             margin-bottom: 8px; cursor: grab; font-weight: 600;
-            font-size: 13px; border: 1px solid #6d28d9; transition: all 0.2s;
+            font-size: 13px; font-family: inherit;
+            border: 1px solid rgba(167, 139, 250, 0.24);
+            transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
         }
         .btn-pasta-hub:active { cursor: grabbing; }
         .btn-pasta-hub:hover {
-            background: linear-gradient(135deg, #5b21b6, #3b0764);
-            transform: translateY(-2px); box-shadow: 0 4px 12px rgba(109, 40, 217, 0.3);
+            background: rgba(109, 40, 217, 0.24);
+            border-color: rgba(167, 139, 250, 0.5);
+            transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
         }
         .btn-pasta-hub.dragging { opacity: 0.4; border: 1px dashed #c4b5fd; }
         .btn-pasta-hub.drag-over {
             border-top: 3px solid #c4b5fd;
-            background: linear-gradient(135deg, #6d28d9, #4c1d95);
+            background: rgba(109, 40, 217, 0.3);
         }
+        .btn-pasta-hub span:nth-child(2) { flex: 1; text-align: left; margin-left: 10px; }
         .btn-pasta-hub span:last-child { font-size: 10px; opacity: 0.7; }
         
         /* CABEÇALHO DA PASTA ATIVA (ALINHADO) */
@@ -122,16 +139,19 @@ menu.innerHTML = `
             top: 80px;
             left: calc(100% - 400px);
             width: 350px;
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+            background: #111c30;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 16px;
+            box-shadow: 0 18px 50px rgba(0,0,0,0.5);
             z-index: 20000;
             font-family: 'Inter', sans-serif;
-            color: #333;
+            color: #e2e8f0;
             overflow: hidden;
             display: flex;
             flex-direction: column;
             max-height: 80vh;
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
         }
         #modal-cotacao-icd.minimizado {
             height: auto !important;
@@ -141,14 +161,15 @@ menu.innerHTML = `
             display: none;
         }
         .cabecalho-modal {
-            background: linear-gradient(135deg, #612d87, #4c1d95);
+            background: linear-gradient(135deg, #5b21b6, #4c1d95);
             color: white;
-            padding: 12px 15px;
+            padding: 14px 16px;
             display: flex;
             justify-content: space-between;
             align-items: center;
             cursor: move;
             user-select: none;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.12);
         }
         .cabecalho-modal h3 {
             margin: 0;
@@ -157,37 +178,144 @@ menu.innerHTML = `
             display: flex;
             align-items: center;
             gap: 8px;
+            letter-spacing: 0.01em;
         }
         .controles-modal {
             display: flex;
             gap: 6px;
         }
         .controles-modal button {
-            width: 24px; height: 24px;
-            border: none;
-            border-radius: 5px;
+            width: 28px; height: 28px;
+            border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 8px;
             background: rgba(255,255,255,0.15);
             color: white;
             cursor: pointer;
-            font-size: 12px;
+            font-size: 13px;
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: all 0.2s;
+            transition: background 0.2s, transform 0.2s;
             padding: 0;
         }
         .controles-modal button:hover {
-            background: rgba(255,255,255,0.3);
+            background: rgba(255,255,255,0.25);
+            transform: translateY(-1px);
         }
         .controles-modal button.fechar:hover {
             background: #ef4444;
         }
         .corpo-modal {
-            padding: 15px;
+            padding: 16px;
             overflow-y: auto;
             display: flex;
             flex-direction: column;
             gap: 12px;
+            background: linear-gradient(180deg, #111c30, #172338);
+        }
+        #select-passeio-cotacao {
+            width: 100%;
+            padding: 11px 12px;
+            margin: 0 0 2px;
+            border: 1px solid rgba(148, 163, 184, 0.24);
+            border-radius: 10px;
+            background: #0f172a;
+            color: #f1f5f9;
+            font: 500 13px 'Inter', sans-serif;
+            outline: none;
+        }
+        #select-passeio-cotacao:focus {
+            border-color: #8b5cf6;
+            box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.18);
+        }
+        #detalhes-cotacao {
+            max-height: 250px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            padding-right: 3px;
+        }
+        .linha-ingresso-cotacao {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            background: rgba(255, 255, 255, 0.045);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            padding: 10px 11px;
+            border-radius: 10px;
+        }
+        .info-ingresso-cotacao {
+            min-width: 0;
+            color: #e2e8f0;
+            font-size: 12px;
+            line-height: 1.35;
+        }
+        .info-ingresso-cotacao strong {
+            display: block;
+            color: #f8fafc;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .info-ingresso-cotacao span {
+            display: block;
+            margin-top: 3px;
+            color: #94a3b8;
+        }
+        .qtd-cotacao {
+            width: 62px;
+            padding: 7px 8px;
+            border: 1px solid rgba(148, 163, 184, 0.28);
+            border-radius: 8px;
+            background: rgba(15, 23, 42, 0.9);
+            color: #f8fafc;
+            font: 600 13px 'Inter', sans-serif;
+            text-align: center;
+            outline: none;
+        }
+        .qtd-cotacao:focus {
+            border-color: #34d399;
+            box-shadow: 0 0 0 3px rgba(52, 211, 153, 0.14);
+        }
+        #total-cotacao {
+            margin-top: 0;
+            padding: 12px 13px;
+            border: 1px solid rgba(52, 211, 153, 0.2);
+            border-radius: 10px;
+            background: rgba(16, 185, 129, 0.08);
+            color: #6ee7b7;
+            font-size: 17px;
+            font-weight: 700;
+            text-align: right;
+        }
+        #btn-copiar-cotacao {
+            width: 100%;
+            margin-top: 0;
+            padding: 11px 14px;
+            border: 1px solid rgba(196, 181, 253, 0.2);
+            border-radius: 10px;
+            background: linear-gradient(135deg, #6d28d9, #5b21b6);
+            color: #fff;
+            cursor: pointer;
+            font: 600 13px 'Inter', sans-serif;
+            box-shadow: 0 5px 14px rgba(91, 33, 182, 0.26);
+            transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+        }
+        #btn-copiar-cotacao:hover {
+            background: linear-gradient(135deg, #7c3aed, #6d28d9);
+            transform: translateY(-1px);
+            box-shadow: 0 8px 18px rgba(91, 33, 182, 0.34);
+        }
+        #btn-copiar-cotacao:active {
+            transform: translateY(0);
+        }
+        @media (max-width: 480px) {
+            #modal-cotacao-icd {
+                left: 12px;
+                top: 12px;
+                width: calc(100vw - 24px);
+            }
         }
     </style>
 `;
@@ -196,6 +324,7 @@ document.body.appendChild(menu);
 const aba = document.getElementById('aba-gatilho');
 const btnCotacao = document.getElementById('btn-cotacao-hub');
 const wrapperControles = document.getElementById('wrapper-controles-hub');
+const linhaMarca = document.getElementById('hub-brand-row');
 
 // Evento para abrir a calculadora
 btnCotacao.onclick = () => abrirCalculadoraCotacao();
@@ -214,17 +343,23 @@ function aplicarPosicao() {
 
         if (posicao === 'topo') {
             aba.innerText = '▼';
-            wrapperControles.style.flexDirection = "row";
+            wrapperControles.style.flexDirection = "column";
             wrapperControles.style.justifyContent = "center";
             wrapperControles.style.padding = "10px 20px";
-            btnCotacao.style.margin = "0 15px 0 0";
+            linhaMarca.style.width = "100%";
+            document.getElementById('hub-search-row').style.width = "300px";
+            document.getElementById('hub-search-row').style.marginTop = "8px";
+            btnCotacao.style.margin = "0";
             document.getElementById('busca-botoes').style.marginBottom = "0";
-            document.getElementById('busca-botoes').style.width = "250px";
+            document.getElementById('busca-botoes').style.width = "0";
         } else {
             wrapperControles.style.flexDirection = "column";
-            btnCotacao.style.margin = "0 0 5px 0";
-            document.getElementById('busca-botoes').style.marginBottom = "15px";
-            document.getElementById('busca-botoes').style.width = "90%";
+            linhaMarca.style.width = "100%";
+            document.getElementById('hub-search-row').style.width = "92%";
+            document.getElementById('hub-search-row').style.marginTop = "8px";
+            btnCotacao.style.margin = "0";
+            document.getElementById('busca-botoes').style.marginBottom = "0";
+            document.getElementById('busca-botoes').style.width = "100%";
         }
     });
 }
@@ -271,7 +406,8 @@ function carregarBotoes() {
             
             if (!filtro && !pastaAtiva) {
                 pastas.forEach((nomePasta, index) => {
-                    const btnPasta = document.createElement('div');
+                    const btnPasta = document.createElement('button');
+                    btnPasta.type = 'button';
                     btnPasta.className = 'btn-pasta-hub';
                     btnPasta.draggable = true;
                     btnPasta.dataset.index = index;
@@ -327,7 +463,8 @@ function carregarBotoes() {
 
                 const botoesGeral = botoes.filter(b => !b.pasta || b.pasta === "Geral");
                 if (botoesGeral.length > 0) {
-                    const btnPastaGeral = document.createElement('div');
+                    const btnPastaGeral = document.createElement('button');
+                    btnPastaGeral.type = 'button';
                     btnPastaGeral.className = 'btn-pasta-hub';
                     btnPastaGeral.innerHTML = `<span>📁</span> <span>Geral (Sem Pasta)</span> <span>▶</span>`;
                     btnPastaGeral.onclick = () => {
@@ -442,7 +579,7 @@ function abrirCalculadoraCotacao() {
         
         modal.innerHTML = `
             <div class="cabecalho-modal" id="cabecalho-modal-cotacao">
-                <h3>🧮 Calculadora de Cotação</h3>
+                <h3>Calculadora de Cotação</h3>
                 <div class="controles-modal">
                     <button id="btn-minimizar-cotacao">—</button>
                     <button id="btn-fechar-cotacao" class="fechar">✕</button>
@@ -450,13 +587,13 @@ function abrirCalculadoraCotacao() {
             </div>
             
             <div class="corpo-modal">
-                <select id="select-passeio-cotacao" style="width:100%; padding:10px; border-radius:8px; margin-bottom:15px; border: 1px solid #ddd; font-family: 'Inter', sans-serif;">
+                <select id="select-passeio-cotacao">
                     <option value="">Selecione um Passeio...</option>
                     ${passeios.map((p, i) => `<option value="${i}">${p.nome}</option>`).join('')}
                 </select>
-                <div id="detalhes-cotacao" style="max-height: 250px; overflow-y: auto;"></div>
-                <div id="total-cotacao" style="margin-top:15px; font-weight:bold; font-size:18px; color:#25D366; text-align:right; border-top: 1px solid #eee; padding-top: 10px;">Total: R$ 0,00</div>
-                <button id="btn-copiar-cotacao" style="width:100%; margin-top:15px; padding:12px; background:#612d87; color:white; border:none; border-radius:8px; cursor:pointer; font-weight:bold; font-family: 'Inter', sans-serif;">📋 Copiar para o WhatsApp</button>
+                <div id="detalhes-cotacao"></div>
+                <div id="total-cotacao">Total: R$ 0,00</div>
+                <button id="btn-copiar-cotacao">Copiar Cotação</button>
             </div>
         `;
         
@@ -535,12 +672,12 @@ function abrirCalculadoraCotacao() {
             if (!p) { detalhes.innerHTML = ""; return; }
             
             detalhes.innerHTML = p.ingressos.map((ing) => `
-                <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; background: #f9f9f9; padding: 8px; border-radius: 8px;">
-                    <div style="font-size: 13px;">
-                        <span style="display:block; font-weight:bold;">${ing.tipo}</span>
-                        <span style="color: #666;">R$ ${ing.valor}</span>
+                <div class="linha-ingresso-cotacao">
+                    <div class="info-ingresso-cotacao">
+                        <strong>${ing.tipo}</strong>
+                        <span>R$ ${ing.valor}</span>
                     </div>
-                    <input type="number" class="qtd-cotacao" data-valor="${ing.valor}" data-tipo="${ing.tipo}" value="0" min="0" style="width:55px; padding:5px; border:1px solid #ccc; border-radius: 4px;">
+                    <input type="number" class="qtd-cotacao" data-valor="${ing.valor}" data-tipo="${ing.tipo}" value="0" min="0" aria-label="Quantidade: ${ing.tipo}">
                 </div>
             `).join('');
 
@@ -582,10 +719,10 @@ function abrirCalculadoraCotacao() {
             const btn = modal.querySelector('#btn-copiar-cotacao');
             const textoOriginal = btn.innerText;
             btn.innerText = '✅ Copiado!';
-            btn.style.background = '#25D366';
+            btn.style.background = 'linear-gradient(135deg, #10b981, #059669)';
             setTimeout(() => {
                 btn.innerText = textoOriginal;
-                btn.style.background = '#612d87';
+                btn.style.background = '';
             }, 1500);
         };
     });

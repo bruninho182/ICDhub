@@ -106,7 +106,7 @@
     position: absolute;
     width: 45px;
     height: 90px;
-    background: linear-gradient(135deg, #667eea, #764ba2);
+    background: linear-gradient(145deg, #7c3aed, #5b21b6);
     color: white;
     cursor: pointer;
     display: flex;
@@ -114,10 +114,27 @@
     justify-content: center;
     font-size: 22px;
     z-index: 10000;
-    box-shadow: 0 4px 15px rgba(139, 92, 246, 0.4);
-    transition: all 0.3s ease;
+    box-shadow: 0 6px 20px rgba(91, 33, 182, 0.32);
+    transition: background 0.2s ease, box-shadow 0.2s ease;
     font-family: 'Inter', sans-serif;
     font-weight: 600;
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    padding: 0;
+    appearance: none;
+}
+
+#aba-gatilho:hover {
+    background: linear-gradient(145deg, #8b5cf6, #6d28d9);
+    box-shadow: 0 8px 24px rgba(91, 33, 182, 0.42);
+}
+
+#aba-gatilho:focus-visible,
+#btn-cotacao-hub:focus-visible,
+.btn-pasta-hub:focus-visible,
+.btn-atalho-hub:focus-visible,
+.btn-voltar-pasta:focus-visible {
+    outline: 2px solid #a7f3d0;
+    outline-offset: 3px;
 }
 
 /* Título */
@@ -159,53 +176,33 @@
 
 /* Botões de Atalho - Estilo Moderno */
 .btn-atalho-hub {
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    padding: 12px 16px;
-    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.045);
+    border: 1px solid rgba(255, 255, 255, 0.09);
+    padding: 12px 15px;
+    border-radius: 10px;
     cursor: pointer;
     font-size: 13px;
     font-weight: 600;
     color: #e2e8f0;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
+    transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
     letter-spacing: 0.3px;
     position: relative;
     overflow: hidden;
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
-/* Efeito de brilho no hover */
-.btn-atalho-hub::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, 
-        transparent, 
-        rgba(255, 255, 255, 0.1), 
-        transparent);
-    transition: left 0.5s ease;
-}
-
 .btn-atalho-hub:hover {
-    background: linear-gradient(135deg, #667eea, #764ba2);
+    background: rgba(109, 40, 217, 0.2);
     color: white;
-    transform: translateY(-3px);
-    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
-    border-color: rgba(139, 92, 246, 0.5);
-}
-
-.btn-atalho-hub:hover::before {
-    left: 100%;
+    transform: translateY(-1px);
+    box-shadow: 0 5px 14px rgba(0, 0, 0, 0.22);
+    border-color: rgba(167, 139, 250, 0.42);
 }
 
 .btn-atalho-hub:active {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+    transform: translateY(0);
+    background: rgba(109, 40, 217, 0.28);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
 /* 4. COMPONENTES ESPECÍFICOS */
@@ -221,6 +218,8 @@
     transition: all 0.3s ease !important;
     font-family: 'Inter', sans-serif !important;
     outline: none !important;
+    box-sizing: border-box !important;
+    max-width: 100% !important;
 }
 
 #busca-botoes:focus {
@@ -235,18 +234,85 @@
 
 /* Calculadora - Estilo Moderno */
 #btn-cotacao-hub {
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    background: linear-gradient(135deg, #10b981, #059669) !important;
-    box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3) !important;
-    border: 1px solid rgba(16, 185, 129, 0.3) !important;
-    border-radius: 12px !important;
+    width: 44px !important;
+    min-width: 44px !important;
+    height: 44px !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: #ecfdf5;
+    background: linear-gradient(145deg, #34d399, #059669) !important;
+    box-shadow: 0 5px 16px rgba(16, 185, 129, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.25) !important;
+    border: 1px solid rgba(110, 231, 183, 0.42) !important;
+    border-radius: 15px !important;
     font-size: 20px !important;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease !important;
+}
+
+#btn-cotacao-hub svg {
+    width: 21px;
+    height: 21px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.18));
 }
 
 #btn-cotacao-hub:hover {
-    background: linear-gradient(135deg, #059669, #047857) !important;
-    transform: scale(1.1) rotate(5deg);
-    box-shadow: 0 8px 25px rgba(16, 185, 129, 0.5) !important;
+    background: linear-gradient(145deg, #6ee7b7, #10b981) !important;
+    transform: translateY(-2px) scale(1.03);
+    box-shadow: 0 8px 22px rgba(16, 185, 129, 0.34), inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
+}
+
+#btn-cotacao-hub:active {
+    transform: translateY(0) scale(0.97);
+}
+
+#hub-brand-row {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#hub-brand {
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#hub-brand img {
+    display: block;
+    width: 30px;
+    height: 30px;
+    object-fit: contain;
+    border-radius: 7px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.24);
+}
+
+#hub-search-row {
+    width: 92%;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 8px;
+}
+
+#hub-search-row #busca-botoes {
+    flex: 1;
+    min-width: 0;
+    width: 0 !important;
+    margin: 0 !important;
+}
+
+#hub-search-row #btn-cotacao-hub {
+    flex: 0 0 44px;
 }
 
 /* Imagens Arrastáveis - Visual Moderno */
@@ -371,22 +437,34 @@ img[draggable="true"]:hover {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    background: linear-gradient(135deg, #4c1d95, #2e1065); /* Roxo escuro */
-    color: white;
-    padding: 12px 15px;
-    border-radius: 8px;
+    width: 100%;
+    box-sizing: border-box;
+    appearance: none;
+    background: rgba(109, 40, 217, 0.14);
+    color: #f1f5f9;
+    padding: 12px 14px;
+    border-radius: 12px;
     margin-bottom: 8px;
     cursor: pointer;
     font-weight: 600;
     font-size: 13px;
-    border: 1px solid #6d28d9;
-    transition: all 0.2s;
+    font-family: inherit;
+    text-align: left;
+    border: 1px solid rgba(167, 139, 250, 0.24);
+    transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
 }
 
 .btn-pasta-hub:hover {
-    background: linear-gradient(135deg, #5b21b6, #3b0764);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(109, 40, 217, 0.3);
+    background: rgba(109, 40, 217, 0.24);
+    border-color: rgba(167, 139, 250, 0.5);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.btn-pasta-hub span:nth-child(2) {
+    flex: 1;
+    text-align: left;
+    margin-left: 10px;
 }
 
 .btn-pasta-hub span:last-child {
@@ -399,15 +477,16 @@ img[draggable="true"]:hover {
     display: flex;
     align-items: center;
     gap: 8px;
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.08);
     color: #a78bfa;
     padding: 8px 12px;
-    border-radius: 6px;
+    border-radius: 8px;
     margin-bottom: 12px;
     cursor: pointer;
     font-size: 12px;
     font-weight: 500;
-    border: 1px solid rgba(167, 139, 250, 0.2);
+    border: 1px solid rgba(167, 139, 250, 0.22);
+    transition: background 0.2s ease, color 0.2s ease;
 }
 
 .btn-voltar-pasta:hover {
