@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "ICD Hub",
-  "version": "3.5.1",
+  "version": "3.6",
   "description": "Desenvolvido por : Bruno Ferreira",
   "permissions": [
     "storage",
@@ -10,10 +10,7 @@
     "scripting",
     "alarms",
     "notifications",
-    "tabs",
-    "cookies",
-    "webNavigation",
-    "contextMenus"
+    "tabs"
   ],
   "host_permissions": [
     "https://admin.tourcms.com/*",
