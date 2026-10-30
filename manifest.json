@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "ICD Hub",
   "version": "3.7",
-  "description": "Desenvolvido por : Bruno Ferreira",
+  "description": "Ferramentas de atendimento da Ingresso com Desconto: atalhos WhatsApp, reservas, cotações, vouchers e e-mails.",
   "permissions": [
     "storage",
     "downloads",
@@ -29,8 +29,6 @@
     "https://*.ingressocomdesconto.com.br/adm/paginas/*",
     "*://navio.ingressocomdesconto.com.br/*",
     "*://*.ingressocomdesconto.com.br/*",
-    "https://*.supabase.co/*",
-    "https://yqlvdvilddobvangvvva.supabase.co/rest/v1/*",
     "https://yqlvdvilddobvangvvva.supabase.co/*",
     "https://dash.pagar.me/*",
     "https://api.pagar.me/*",

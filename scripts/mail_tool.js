@@ -51,15 +51,13 @@ function iniciarMonitorEmail() {
                 // Registra a métrica
                 if (window.METRICS) {
                     window.METRICS.registrar('email', {
-                        assunto: assunto,
-                        destinatario: destinatario,
                         metodo: 'click'
                     });
                     
                     // Atualiza o timestamp do último envio
                     ultimoEnvioEmail.set(chave, agora);
                     
-                    console.log(`📊 E-mail registrado: "${assunto}" para ${destinatario}`);
+                    console.log('📊 Ação de e-mail registrada sem destinatário ou assunto.');
                 } else {
                     console.warn('⚠️ METRICS não disponível!');
                 }

@@ -17,11 +17,11 @@ async function ambiente(preferencias = {}, falhar = false) {
   await tick();
   return { w, dados, gravacoes: () => gravacoes, input: id => w.document.querySelector(`[data-icd-recurso="${id}"]`), mudar(prefs, area='local') { for (const fn of listeners) fn({icdFuncionalidades:{newValue:prefs}},area); } };
 }
-test('todas as funcionalidades iniciam ativadas sem modificar dados e as chaves têm rótulos', async () => {
+test('ferramentas iniciam ativadas, métricas exigem adesão e as chaves têm rótulos', async () => {
   const a = await ambiente(); try {
     assert.equal(a.gravacoes(), 0);
-    assert.equal(a.w.document.querySelectorAll('[role=switch]').length, 10);
-    for (const input of a.w.document.querySelectorAll('[role=switch]')) { assert.equal(input.checked,true); assert.ok(input.getAttribute('aria-label')); }
+    assert.equal(a.w.document.querySelectorAll('[role=switch]').length, 11);
+    for (const input of a.w.document.querySelectorAll('[role=switch]')) { assert.equal(input.checked, input.dataset.icdRecurso !== 'metricas'); assert.ok(input.getAttribute('aria-label')); }
   } finally { a.w.close(); }
 });
 test('desativa ferramentas independentemente, preserva cadastros e oculta botões inseridos depois', async () => {

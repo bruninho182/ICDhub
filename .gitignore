@@ -2,3 +2,5 @@ node_modules/
 .npm-cache/
 .video-tools/
 .video-review/
+dist/
+.release-policy/

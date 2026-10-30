@@ -172,7 +172,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   // Não reenviamos seu snapshot: a fila persistida é a fonte de verdade.
   const tarefa = request.acao === "REGISTRAR_METRICA"
     ? filaMetricas.registrar(request.evento).then((evento) => {
-        registrarOperador(evento.operador, evento.operador_id);
+        if (evento) registrarOperador(evento.operador, evento.operador_id);
         return { status: "ok" };
       })
     : filaMetricas.enviarTodos().then(() => ({ status: "ok" }));

@@ -1,5 +1,6 @@
 namespace ICDFuncionalidades {
   export const catalogo = [
+    { id: 'metricas', nome: 'Métricas de produtividade', grupo: 'Privacidade', descricao: 'Ao ativar, você autoriza o envio ao Supabase de nome do operador, tipo de ação, horário e tamanho da mensagem para o dashboard. Não envia conteúdo nem identificação de clientes. Desativar pausa novos registros e envios; o histórico já enviado permanece.', seletores: '' },
     { id: 'whatsapp', nome: 'Atalhos do WhatsApp', grupo: 'WhatsApp', descricao: 'Pastas, busca e botões de mensagens.', seletores: '#container-botoes-hub,#busca-botoes' },
     { id: 'calculadora', nome: 'Calculadora de cotações', grupo: 'WhatsApp', descricao: 'Botão da calculadora e janela de cotação no WhatsApp.', seletores: '#btn-cotacao-hub,#modal-cotacao-icd' },
     { id: 'plataformas', nome: 'Importação de reservas das plataformas', grupo: 'Reservas', descricao: 'Botões GetYourGuide, Grayline, Civitatis e Ticket Go e preparação OTA no ICD.', seletores: '#btn-copy-gyg,#btn-copy-tour,#civitatis-drop-zone,#btn-copy-ticketgo,#icd-preparar-ota' },
@@ -20,7 +21,7 @@ namespace ICDFuncionalidades {
   let preferencias: Preferencias = {};
   let pronto = false;
   const entradas: { recurso: Recurso; iniciar: () => void; iniciou: boolean }[] = [];
-  export function ativa(recurso: Recurso): boolean { return preferencias[recurso] !== false; }
+  export function ativa(recurso: Recurso): boolean { return recurso === 'metricas' ? preferencias.metricas === true : preferencias[recurso] !== false; }
   export function quandoAtiva(recurso: Recurso, iniciar: () => void): void {
     entradas.push({ recurso, iniciar, iniciou: false });
     if (pronto) aplicar();
@@ -28,7 +29,7 @@ namespace ICDFuncionalidades {
   function aplicar(): void {
     let estilo = document.getElementById('icd-funcionalidades-estilo');
     if (!estilo) { estilo = document.createElement('style'); estilo.id = 'icd-funcionalidades-estilo'; (document.head || document.documentElement).append(estilo); }
-    estilo.textContent = catalogo.filter(item => !ativa(item.id)).map(item => `${item.seletores}{display:none!important}`).join('\n');
+    estilo.textContent = catalogo.filter(item => item.seletores && !ativa(item.id)).map(item => `${item.seletores}{display:none!important}`).join('\n');
     for (const entrada of entradas) {
       if (ativa(entrada.recurso) && !entrada.iniciou) { entrada.iniciou = true; entrada.iniciar(); }
     }

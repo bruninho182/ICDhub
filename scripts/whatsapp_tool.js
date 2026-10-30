@@ -688,12 +688,11 @@ function iniciarMonitorWhatsApp() {
                     }
                     
                     window.METRICS.registrar('whatsapp', {
-                        destinatario: contato,
                         tamanho: texto.length,
                         metodo: 'enter'
                     });
                     
-                    console.log(`📊 Mensagem registrada: ${texto.substring(0, 30)}... (${texto.length} caracteres)`);
+                    console.log('📊 Ação de WhatsApp registrada sem conteúdo da conversa.');
                 }
             }
         }

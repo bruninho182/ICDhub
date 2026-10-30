@@ -167,14 +167,14 @@ async function lerPDFCivitatis(arquivo) {
     }
 
     if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.getURL) {
-        pdfjs.GlobalWorkerOptions.workerSrc = chrome.runtime.getURL('pdf.worker.min.js');
+        pdfjs.GlobalWorkerOptions.workerSrc = chrome.runtime.getURL('scripts/pdf.worker.min.js');
     } else {
-        pdfjs.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+        throw new Error('Recarregue a extensão para carregar o leitor local de PDF.');
     }
 
     try {
         const arrayBuffer = await arquivo.arrayBuffer();
-        const pdf = await pdfjs.getDocument({ data: arrayBuffer }).promise;
+        const pdf = await pdfjs.getDocument({ data: arrayBuffer, isEvalSupported: false }).promise;
         
         const linhas = [];
         for (let i = 1; i <= pdf.numPages; i++) {

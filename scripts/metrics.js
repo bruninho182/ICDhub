@@ -2,7 +2,8 @@
 const METRICS = (() => {
   async function registrar(tipo, detalhes = {}) {
     try {
-      const { nomeOperador } = await chrome.storage.local.get(['nomeOperador']);
+      const { nomeOperador, icdFuncionalidades } = await chrome.storage.local.get(['nomeOperador', 'icdFuncionalidades']);
+      if (icdFuncionalidades?.metricas !== true) return true;
       const resposta = await chrome.runtime.sendMessage({
         acao: 'REGISTRAR_METRICA',
         evento: {

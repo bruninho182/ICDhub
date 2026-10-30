@@ -85,15 +85,13 @@ function iniciarMonitorVoucher() {
                 // Registra a métrica
                 if (window.METRICS) {
                     window.METRICS.registrar('voucher', {
-                        codigo: codigoVoucher || 'sem_codigo',
-                        cliente: cliente || 'sem_cliente',
                         metodo: 'click'
                     });
                     
                     // Atualiza o timestamp do último clique
                     ultimoCliqueVoucher.set(chave, agora);
                     
-                    console.log(`📊 Voucher registrado: ${codigoVoucher || 'sem código'} para ${cliente || 'cliente'}`);
+                    console.log('📊 Ação de voucher registrada sem identificação do cliente ou reserva.');
                 } else {
                     console.warn('⚠️ METRICS não disponível!');
                 }

@@ -28,10 +28,13 @@ Em `chrome://extensions`, ative o **Modo do desenvolvedor**, clique em **Carrega
 ```bash
 npm run typecheck
 npm test
+npm run package
 ```
 
 **Tecnologias:** Chrome Manifest V3, TypeScript, JavaScript, HTML e CSS. Os arquivos TypeScript estão em `src/`; o build gera os scripts utilizados pela extensão em `scripts/generated/`.
 
 Consulte o [histórico de modernização](docs/MODERNIZACAO.md) para detalhes técnicos e limitações das integrações. Tokens e credenciais devem ser configurados localmente, sem inclusão no repositório.
+
+A [política de privacidade](https://bruninho182.github.io/pp-ICDHUB/) e as [instruções de publicação](docs/PUBLICACAO_CHROME_STORE.md) descrevem o tratamento de dados e a preparação do pacote.
 
 Desenvolvido por [Bruno Ferreira](https://github.com/bruninho182).

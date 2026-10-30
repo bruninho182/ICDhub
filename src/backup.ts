@@ -26,7 +26,11 @@ namespace ICDBackup {
         else if(chave==='posicaoBarra') valido=['topo','direita','esquerda'].includes(String(v));
         else valido=texto(v);
         if(!valido)throw new Error('Formato inválido em '+chave+'. Nenhuma alteração foi aplicada.');
-        saida[chave]=v;
+        if (chave === 'icdFuncionalidades') {
+          const preferencias = { ...v as Dados };
+          delete preferencias.metricas; // Adesão às métricas deve ser feita no próprio navegador.
+          saida[chave] = preferencias;
+        } else saida[chave]=v;
       }
     }
     if(!Object.keys(saida).length)throw new Error('O arquivo não contém dados das categorias selecionadas.');

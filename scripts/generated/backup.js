@@ -44,7 +44,13 @@ var ICDBackup;
                     valido = texto(v);
                 if (!valido)
                     throw new Error('Formato inválido em ' + chave + '. Nenhuma alteração foi aplicada.');
-                saida[chave] = v;
+                if (chave === 'icdFuncionalidades') {
+                    const preferencias = { ...v };
+                    delete preferencias.metricas; // Adesão às métricas deve ser feita no próprio navegador.
+                    saida[chave] = preferencias;
+                }
+                else
+                    saida[chave] = v;
             }
         }
         if (!Object.keys(saida).length)
