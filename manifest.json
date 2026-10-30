@@ -17,7 +17,6 @@
     "https://www.ingressocomdesconto.com.br/*",
     "https://*.ingressocomdesconto.com.br/*",
     "https://app.icdgrupo.com.br/*",
-    "*://hub.headout.com/*",
     "https://*.postimg.cc/*",
     "https://wa.me/*",
     "https://*.whatsapp.com/*",
@@ -57,6 +56,32 @@
   "content_scripts": [
     {
       "matches": [
+        "*://*.civitatis.com/*",
+        "https://app.icdgrupo.com.br/apps/sales/bookings/*",
+        "https://admin.ticketgotourism.com/*",
+        "*://navio.ingressocomdesconto.com.br/*",
+        "https://admin.tourcms.com/admin/bookings/bookings_edit.php?bid=*",
+        "https://supplier.getyourguide.com/bookings/*",
+        "https://web.whatsapp.com/*",
+        "*://*.ingressocomdesconto.com.br/*",
+        "https://app.icdgrupo.com.br/*",
+        "https://webmail-seguro.com.br/*",
+        "https://webmail.locaweb.com.br/*",
+        "https://www.ingressocomdesconto.com.br/adm/paginas/relatorio_previsaovisitas.asp*",
+        "https://report.ingressocomdesconto.com.br/adm/paginas/relatorio_passaportesE.asp?emp=*",
+        "https://ingressocomdesconto.com.br/adm/paginas/relatorio_passaportesE.asp?emp=*",
+        "https://www.ingressocomdesconto.com.br/adm/paginas/voucher.asp*",
+        "https://dash.pagar.me/*"
+      ],
+      "js": [
+        "scripts/generated/diagnostico.js",
+        "scripts/generated/funcionalidades.js"
+      ],
+      "all_frames": true,
+      "run_at": "document_start"
+    },
+    {
+      "matches": [
         "*://*.civitatis.com/*"
       ],
       "js": [
@@ -70,8 +95,17 @@
         "https://app.icdgrupo.com.br/apps/sales/bookings/*"
       ],
       "js": [
+        "scripts/generated/operacao_review.js",
+        "scripts/generated/reserva_date.js",
+        "scripts/generated/fornecedor_map.js",
+        "scripts/generated/ota_prepare.js",
+        "scripts/generated/cotacao.js",
+        "scripts/generated/tarifario_import.js",
+        "scripts/generated/disponibilidade_import.js",
         "scripts/remarcacao_tool.js",
-        "scripts/icd_sheet_icdgrupo.js"
+        "scripts/icd_sheet_icdgrupo.js",
+        "scripts/generated/voucher_review.js",
+        "scripts/enviar_voucher.js"
       ],
       "run_at": "document_idle"
     },
@@ -101,18 +135,13 @@
     },
     {
       "matches": [
-        "*://hub.headout.com/*"
-      ],
-      "js": [
-        "scripts/headout_extract.js"
-      ]
-    },
-    {
-      "matches": [
         "https://supplier.getyourguide.com/bookings/*"
       ],
       "js": [
-        "scripts/gyg_extract.js"
+        "scripts/generated/reserva_date.js",
+        "scripts/generated/fornecedor_map.js",
+        "scripts/generated/reserva_review.js",
+        "scripts/generated/gyg.js"
       ]
     },
     {
@@ -121,6 +150,8 @@
       ],
       "js": [
         "scripts/metrics.js",
+        "scripts/generated/cotacao.js",
+        "scripts/generated/cotacao_ui.js",
         "scripts/whatsapp_tool.js"
       ],
       "css": [
@@ -145,7 +176,9 @@
         "https://webmail.locaweb.com.br/*"
       ],
       "js": [
+        "scripts/generated/operacao_review.js",
         "scripts/metrics.js",
+        "scripts/generated/email_compose.js",
         "scripts/mail_tool.js"
       ]
     },
@@ -156,7 +189,9 @@
         "https://ingressocomdesconto.com.br/adm/paginas/relatorio_passaportesE.asp?emp=*"
       ],
       "js": [
-        "scripts/relatorio_tool.js"
+        "scripts/generated/email_template.js",
+        "scripts/generated/operacao_review.js",
+        "scripts/generated/relatorio_email.js"
       ]
     },
     {
@@ -164,6 +199,8 @@
         "https://www.ingressocomdesconto.com.br/adm/paginas/voucher.asp*"
       ],
       "js": [
+        "scripts/generated/operacao_review.js",
+        "scripts/generated/voucher_review.js",
         "scripts/enviar_voucher.js"
       ]
     },
@@ -182,6 +219,7 @@
         "https://dash.pagar.me/*"
       ],
       "js": [
+        "scripts/generated/operacao_review.js",
         "scripts/icd_sheet_pagarme.js"
       ],
       "run_at": "document_start",

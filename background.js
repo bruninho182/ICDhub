@@ -1,3 +1,8 @@
+importScripts("scripts/metrics_queue.js");
+importScripts("scripts/options_bridge.js");
+importScripts("scripts/voucher_filename.js");
+importScripts("scripts/email_batches.js");
+
 // ================================================================
 // ===== 1. COMUNICAÇÃO DE DADOS (HUB -> SISTEMAS) =====
 // ================================================================
@@ -31,18 +36,13 @@ chrome.downloads.onDeterminingFilename.addListener((downloadItem, suggest) => {
   const isPDF =
     downloadItem.filename.endsWith(".pdf") ||
     downloadItem.mime?.includes("pdf");
-  if (!isPDF) {
+  if (!isPDF || ![downloadItem.url, downloadItem.finalUrl, downloadItem.referrer].some(ICDVoucherFilename.origemICD)) {
     suggest();
     return true;
   }
 
   function limparNomeArquivo(nome) {
-    if (!nome) return null;
-    let limpo = nome.replace(/^voucher-/, "");
-    if (!limpo.toLowerCase().endsWith(".pdf")) {
-      limpo += ".pdf";
-    }
-    return limpo;
+    return ICDVoucherFilename.limpar(nome);
   }
 
   chrome.storage.local.get("nomeVoucherAtual", (res) => {
@@ -148,86 +148,55 @@ function gerarIdUnico(nome) {
     .replace(/^_|_$/g, ""); // Remove underscores no início/fim
 }
 
-// Escuta mensagens dos content scripts para enviar métricas
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  if (request.acao === "ENVIAR_METRICAS") {
-    // ===== NOVO: GARANTE QUE CADA MÉTRICA TENHA OPERADOR_ID =====
-    const metricasComId = request.queue.map((metrica) => {
-      if (!metrica.operador_id && metrica.operador) {
-        metrica.operador_id = gerarIdUnico(metrica.operador);
-      }
-      return metrica;
-    });
-
-    fetch(SUPABASE_URL, {
+// A fila persistente tem um único proprietário: este service worker.
+const filaMetricas = criarFilaMetricas({
+  storage: chrome.storage.local,
+  enviar: async (eventos) => {
+    const response = await fetch(SUPABASE_URL, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         apikey: SUPABASE_KEY,
         Authorization: `Bearer ${SUPABASE_KEY}`,
       },
-      body: JSON.stringify(metricasComId),
-    })
-      .then(async (response) => {
-        if (response.ok) {
-          sendResponse({ status: "ok" });
-          console.log(
-            `✅ ${metricasComId.length} métricas enviadas com operador_id`,
-          );
-        } else {
-          const erro = await response.text();
-          console.error("❌ Erro Supabase:", erro);
-          sendResponse({ status: "erro", detalhe: erro });
-        }
-      })
-      .catch((error) => {
-        console.error("❌ Erro fetch:", error);
-        sendResponse({ status: "erro", detalhe: error.message });
-      });
-
-    return true;
-  }
+      body: JSON.stringify(eventos),
+      signal: AbortSignal.timeout(15000),
+    });
+    if (!response.ok) throw new Error(`Falha no envio de métricas: HTTP ${response.status}`);
+  },
 });
 
-// Envio periódico (fallback) - a cada 1 minuto
-chrome.alarms.create("sendMetricsBackground", { periodInMinutes: 1 });
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  if (request.acao !== "REGISTRAR_METRICA" && request.acao !== "ENVIAR_METRICAS") return;
+  // Abas abertas antes da atualização ainda podem escrever na fila antiga.
+  // Não reenviamos seu snapshot: a fila persistida é a fonte de verdade.
+  const tarefa = request.acao === "REGISTRAR_METRICA"
+    ? filaMetricas.registrar(request.evento).then((evento) => {
+        registrarOperador(evento.operador, evento.operador_id);
+        return { status: "ok" };
+      })
+    : filaMetricas.enviarTodos().then(() => ({ status: "ok" }));
+  tarefa.then(sendResponse).catch((erro) => sendResponse({ status: "erro", detalhe: erro.message }));
+  return true;
+});
 
-chrome.alarms.onAlarm.addListener((alarm) => {
-  if (alarm.name === "sendMetricsBackground") {
-    chrome.storage.local.get(["metricsQueue"], async (res) => {
-      const queue = res.metricsQueue || [];
-      if (queue.length === 0) return;
-
-      // ===== NOVO: GARANTE OPERADOR_ID NA FILA =====
-      const queueComId = queue.map((metrica) => {
-        if (!metrica.operador_id && metrica.operador) {
-          metrica.operador_id = gerarIdUnico(metrica.operador);
-        }
-        return metrica;
-      });
-
-      try {
-        const response = await fetch(SUPABASE_URL, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            apikey: SUPABASE_KEY,
-            Authorization: `Bearer ${SUPABASE_KEY}`,
-          },
-          body: JSON.stringify(queueComId),
-        });
-
-        if (response.ok) {
-          await chrome.storage.local.set({ metricsQueue: [] });
-          console.log(
-            `✅ ${queueComId.length} eventos enviados (background alarm).`,
-          );
-        }
-      } catch (error) {
-        console.error("❌ Erro no envio automático:", error);
-      }
-    });
+async function garantirAlarmes() {
+  const alarmes = [
+    ["wellnessAlarm", 150],
+    ["sendMetricsBackground", 1],
+    ["monitorActivityBackground", 5],
+  ];
+  for (const [nome, minutos] of alarmes) {
+    if (!await chrome.alarms.get(nome)) {
+      await chrome.alarms.create(nome, { periodInMinutes: minutos });
+    }
   }
+}
+garantirAlarmes().catch(console.error);
+chrome.runtime.onStartup.addListener(() => garantirAlarmes().catch(console.error));
+chrome.alarms.onAlarm.addListener((alarm) => {
+  if (alarm.name === "sendMetricsBackground") filaMetricas.enviarTodos().catch(console.warn);
+  if (alarm.name === "monitorActivityBackground") executarMonitoramentoInatividade().catch(console.warn);
 });
 
 // ================================================================
@@ -320,7 +289,7 @@ async function buscarUltimasAtividades() {
     return { ultimaAtividade, ultimoNome };
   } catch (error) {
     console.error("❌ Erro ao buscar últimas atividades:", error);
-    return { ultimaAtividade: {}, ultimoNome: {} };
+    return null;
   }
 }
 
@@ -459,16 +428,13 @@ async function verificarInatividade(ultimaAtividade, ultimoNome) {
 // Executa o monitoramento de inatividade
 async function executarMonitoramentoInatividade() {
   console.log(`🔍 Verificando inatividade (${new Date().toLocaleString()})...`);
-  const { ultimaAtividade, ultimoNome } = await buscarUltimasAtividades();
+  const resultado = await buscarUltimasAtividades();
+  if (!resultado) return; // Falha de rede não significa ausência de atividade.
+  const { ultimaAtividade, ultimoNome } = resultado;
   await verificarInatividade(ultimaAtividade, ultimoNome);
 }
 
-// Inicia o monitor de inatividade
-executarMonitoramentoInatividade();
-
-// Configura verificação periódica
-const intervalMs = CONFIG_INATIVIDADE.INTERVALO * 60 * 1000;
-setInterval(executarMonitoramentoInatividade, intervalMs);
+// O monitor é acionado por chrome.alarms, inclusive após suspensão do worker.
 
 console.log(
   `✅ Monitor de inatividade iniciado! Verificando a cada ${CONFIG_INATIVIDADE.INTERVALO} minutos.`,

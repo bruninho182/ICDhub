@@ -459,11 +459,16 @@ async function selecionarBarraMui(labelBusca, valorAlvo) {
 function preencherNovoSistemaICD(dados, operador, dataType) {
   if (!dados) return false;
 
+  // Reservas do piloto só são consumidas na etapa que contém os dados do cliente.
+  if (dataType === "GYG" && dados.versao === 1) {
+    return preencherClienteGYG(dados, operador);
+  }
+
   // Cria uma cópia para não modificar o original
   let dadosCompletos = { ...dados };
 
   // Se for GYG, aplica limpeza agressiva no nome
-  if (dataType === "GYG") {
+  if (dataType === "GYG" && dadosCompletos.versao !== 1) {
     // Apenas limpa o nome vindo do storage (já extraído pelo gyg_extract.js)
     if (dadosCompletos.nome) {
         dadosCompletos.nome = limparNome(dadosCompletos.nome);
@@ -493,7 +498,8 @@ function preencherNovoSistemaICD(dados, operador, dataType) {
     if (f && f.input) {
       let valorFinal = item.valor;
       // Se for o campo "Nome", aplica limpeza novamente para garantir
-      if (item.busca === "Nome" && dataType !== "Navio") {
+      if (item.busca === "Nome" && dataType !== "Navio" &&
+          !(["HEADOUT", "GETYOURGUIDE"].includes(dadosCompletos.origem) && dadosCompletos.versao === 1)) {
         valorFinal = limparNome(valorFinal);
       }
       forceReactValue(f.input, valorFinal);
@@ -522,6 +528,70 @@ function preencherNovoSistemaICD(dados, operador, dataType) {
   }
   return false;
 }
+
+function localizarCampoClienteGYG(rotulo) {
+  const normalizar = (texto) => String(texto || "").normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "").replace(/\*/g, "").trim().toLowerCase();
+  const alvo = normalizar(rotulo);
+  for (const label of document.querySelectorAll("label")) {
+    if (normalizar(label.textContent) !== alvo) continue;
+    const id = label.getAttribute("for");
+    const input = id ? document.getElementById(id) : label.closest(".MuiFormControl-root")?.querySelector("input");
+    if (input instanceof HTMLInputElement && input.type !== "hidden" && !input.disabled && !input.readOnly) return input;
+  }
+  return Array.from(document.querySelectorAll("input[placeholder]"))
+    .find(input => normalizar(input.placeholder) === alvo && input.type !== "hidden" && !input.disabled && !input.readOnly) || null;
+}
+
+let clienteGYGConcluido = "";
+function preencherClienteGYG(dados, operador) {
+  if (location.hostname !== "app.icdgrupo.com.br" ||
+      location.pathname.replace(/\/$/, "") !== "/apps/sales/bookings/new" || window.top !== window.self) return false;
+  const assinatura = JSON.stringify(dados);
+  if (clienteGYGConcluido === assinatura) return true;
+  const nome = localizarCampoClienteGYG("Nome");
+  const email = localizarCampoClienteGYG("E-mail");
+  if (!nome || !email) return false;
+  const valores = [
+    [nome, dados.nome],
+    [email, dados.email],
+    [localizarCampoClienteGYG("Telefone"), dados.telefone],
+    [localizarCampoClienteGYG("Número do documento"), dados.gyg],
+  ];
+  if (valores.some(([input, valor]) => input && valor && input.value.trim() &&
+      input.value.trim() !== String(valor).trim())) return false;
+  // Preservar alterações manuais. Não inventar nascimento, país ou outros dados.
+  for (const [input, valor] of valores) {
+    if (input && valor && !input.value.trim()) forceReactValue(input, valor);
+  }
+  const ref = localizarCampoClienteGYG("Referência Externa");
+  if (ref && !ref.value.trim()) forceReactValue(ref, `${dados.gyg} - ${operador || "OPERADOR"}`);
+  const preenchido = valores.filter(([, valor]) => Boolean(valor))
+    .every(([input, valor]) => input && input.value.trim() === String(valor).trim());
+  if (!preenchido) return false;
+  clienteGYGConcluido = assinatura;
+  prepararDadosEmail(dados.gyg, dados.nome, dados.email);
+  // Só consumir após verificar os campos do cliente, nunca por um temporizador da primeira etapa.
+  chrome.storage.local.get(["dadosPedido"], (res) => {
+    if (JSON.stringify(res.dadosPedido) === assinatura) chrome.storage.local.remove("dadosPedido");
+  });
+  return true;
+}
+
+// A tela de cliente pode surgir muito depois das tentativas iniciais, sem recarregar a página.
+let clienteGYGAgendado = false;
+new MutationObserver(() => {
+  if (!location.hostname.includes("app.icdgrupo.com.br") || clienteGYGAgendado) return;
+  if (!localizarCampoClienteGYG("Nome") || !localizarCampoClienteGYG("E-mail")) return;
+  clienteGYGAgendado = true;
+  setTimeout(() => {
+    clienteGYGAgendado = false;
+    chrome.storage.local.get(["dadosPedido", "nomeOperador"], (res) => {
+      if (res.dadosPedido?.versao === 1 && res.dadosPedido.origem === "GETYOURGUIDE")
+        preencherClienteGYG(res.dadosPedido, res.nomeOperador);
+    });
+  }, 200);
+}).observe(document.body, { childList: true, subtree: true });
 
 // --- 5. FUNÇÕES DE SUPORTE E SISTEMA ANTIGO ---
 

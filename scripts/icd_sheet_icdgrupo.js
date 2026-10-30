@@ -136,7 +136,7 @@
     btn.textContent = processando ? '⏳ Processando...' : textoOriginal;
   }
 
-  function enviarLinhaPix(dados, btn, textoOriginal) {
+  async function enviarLinhaPix(dados, btn, textoOriginal) {
     const linha = {
       E: dados.voucher,
       F: dados.atracao,
@@ -149,21 +149,17 @@
       Q: dados.email
     };
 
-    const faltantes = [
-      ['voucher', linha.E],
-      ['atração', linha.F],
-      ['código da transação', linha.I],
-      ['e-mail', linha.Q]
-    ]
-      .filter(([, valor]) => !String(valor || '').trim())
-      .map(([nome]) => nome);
-
-    if (faltantes.length) {
-      alert('⚠️ Dados obrigatórios ausentes para PIX: ' + faltantes.join(', '));
-      definirProcessando(btn, false, textoOriginal);
-      return;
+    if (!await ICDOperacao.pendencias('Dados pendentes do estorno PIX', [['Voucher', linha.E], ['Atração', linha.F], ['Transação PIX', linha.I], ['E-mail', linha.Q]])) {
+      definirProcessando(btn, false, textoOriginal); return;
     }
 
+    if (!await ICDOperacao.confirmar({
+      titulo: 'Conferir registro de estorno PIX',
+      descricao: 'Revise os dados antes de registrar a solicitação na planilha.',
+      campos: [['Voucher', linha.E], ['Atração', linha.F], ['Pagamento', linha.G], ['Transação PIX', linha.I],
+        ['Compra', linha.J], ['Visita', linha.K], ['Valor', linha.L], ['E-mail', linha.Q]],
+      acao: 'Enviar registro à planilha'
+    })) { definirProcessando(btn, false, textoOriginal); return; }
     chrome.runtime.sendMessage({ acao: 'ENVIAR_LINHA_PLANILHA', linha }, (resp) => {
       if (chrome.runtime.lastError) {
         alert('❌ Erro ao comunicar com o background:\n' + chrome.runtime.lastError.message);
@@ -230,7 +226,7 @@
       white-space: nowrap;
     `;
 
-    btn.addEventListener('click', () => {
+    btn.addEventListener('click', async () => {
       const textoOriginal = 'Dados Estorno';
       definirProcessando(btn, true, textoOriginal);
       const metodoPagamento = pegarValorPorLabel('Método de pagamento:');
@@ -245,11 +241,8 @@
         email: pegarValorPorLabel('E-mail:') // Q (ICD)
       };
 
-      // Validação mínima
-      if (!dados.voucher || !dados.email) {
-        alert('⚠️ Não foi possível extrair voucher e/ou e-mail do ICD Grupo.\nVerifique se a página terminou de carregar.');
-        definirProcessando(btn, false, textoOriginal);
-        return;
+      if (!await ICDOperacao.pendencias('Dados pendentes do estorno', [['Voucher', dados.voucher], ['E-mail', dados.email]])) {
+        definirProcessando(btn, false, textoOriginal); return;
       }
 
       if (ehPix(dados.metodoPagamento)) {

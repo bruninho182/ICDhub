@@ -20,6 +20,8 @@
 }
 
 /* 2. CONFIGURAÇÕES POR POSIÇÃO */
+#menu-automacao-hub #btn-config-hub { color: #c4b5fd; background: transparent; border: 1px solid #596984; padding: 6px 12px; border-radius: 8px; cursor: pointer; font: 12px system-ui; margin-bottom: 10px; }
+#menu-automacao-hub button:focus-visible, #menu-automacao-hub input:focus-visible { outline: 3px solid #c4b5fd; outline-offset: 2px; }
 
 /* --- DIREITA (Padrão) --- */
 .pos-direita {
@@ -493,3 +495,16 @@ img[draggable="true"]:hover {
     background: rgba(255, 255, 255, 0.15);
     color: #c4b5fd;
 }
+
+/* Idiomas ficam em uma linha própria para preservar o espaço do botão. */
+#menu-automacao-hub .icd-atalho-card { display:flex; flex-direction:column; gap:6px; min-width:0; width:100%; box-sizing:border-box; }
+#menu-automacao-hub .icd-atalho-linha { display:flex; align-items:center; gap:6px; min-width:0; }
+#menu-automacao-hub .icd-atalho-linha > .btn-atalho-hub { flex:1 1 0; min-width:0; white-space:normal; overflow-wrap:anywhere; line-height:1.4; text-align:center; }
+#menu-automacao-hub .icd-atalho-linha > img { flex:0 0 35px; }
+
+#menu-automacao-hub .icd-idiomas-opcoes[hidden] { display:none !important; }
+#menu-automacao-hub .icd-idiomas-opcoes { display:flex; flex-wrap:wrap; gap:6px; justify-content:center; }
+#menu-automacao-hub .icd-idioma-opcao { display:flex; align-items:center; justify-content:center; gap:5px; min-width:52px; min-height:36px; padding:5px 8px; border:1px solid #64748b; border-radius:7px; color:#f1f5f9; background:#1e293b; cursor:pointer; font:600 12px/1.4 system-ui; }
+#menu-automacao-hub .icd-idioma-opcao > span:first-child { font-size:20px; }
+#menu-automacao-hub .icd-idioma-opcao:hover { background:#4c1d95; border-color:#c4b5fd; }
+#menu-automacao-hub .icd-idiomas-sinal { margin-left:5px; font-size:12px; }

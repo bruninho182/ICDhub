@@ -47,7 +47,7 @@ menu.innerHTML = `
             </div>
         </div>
         <div id="hub-search-row">
-            <input type="text" id="busca-botoes" placeholder="🔍 Buscar atalho..." style="width: 90%; margin-bottom: 15px; padding: 8px; border-radius: 5px; border: 1px solid #ddd; display: block; font-size: 12px;">
+            <input type="text" id="busca-botoes" placeholder="🔍 Buscar em todas as pastas..." style="width: 90%; margin-bottom: 15px; padding: 8px; border-radius: 5px; border: 1px solid #ddd; display: block; font-size: 12px;">
             <button type="button" id="btn-cotacao-hub" aria-label="Abrir calculadora de cotação" title="Calculadora de cotação">
                 <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
                     <rect x="5" y="3" width="14" height="18" rx="3"></rect>
@@ -329,6 +329,27 @@ const linhaMarca = document.getElementById('hub-brand-row');
 // Evento para abrir a calculadora
 btnCotacao.onclick = () => abrirCalculadoraCotacao();
 
+const btnConfigHub = document.createElement('button');
+btnConfigHub.type = 'button';
+btnConfigHub.id = 'btn-config-hub';
+btnConfigHub.textContent = 'Configurações';
+btnConfigHub.onclick = async () => {
+    btnConfigHub.disabled = true;
+    try {
+        await ICDCotacaoUI.abrirConfiguracoes();
+    } catch {
+        btnConfigHub.textContent = 'Recarregue a extensão e tente novamente';
+    } finally {
+        btnConfigHub.disabled = false;
+    }
+};
+wrapperControles.appendChild(btnConfigHub);
+menu.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') { menu.classList.remove('aberto'); aba.setAttribute('aria-expanded', 'false'); aba.focus(); }
+});
+aba.setAttribute('aria-expanded', 'false');
+aba.addEventListener('click', () => queueMicrotask(() => aba.setAttribute('aria-expanded', String(menu.classList.contains('aberto')))));
+
 // --- Lógica de Posicionamento ---
 function aplicarPosicao() {
     chrome.storage.local.get(['posicaoBarra'], (res) => {
@@ -393,6 +414,14 @@ function handleImageDragBase64(e, imgElement, urlImagem) {
     }
 }
 
+function fecharOpcoesIdiomas() {
+    menu.querySelectorAll('.icd-idiomas-opcoes').forEach(el => { el.hidden = true; });
+    menu.querySelectorAll('.btn-atalho-hub[aria-expanded]').forEach(el => el.setAttribute('aria-expanded', 'false'));
+}
+document.addEventListener('click', e => {
+    if (!(e.target instanceof Element) || !e.target.closest('#menu-automacao-hub .icd-atalho-card')) fecharOpcoesIdiomas();
+});
+
 // --- Renderizar Botões (COM PASTAS E DRAG & DROP DE PASTAS) ---
 function carregarBotoes() {
     chrome.storage.local.get(['configMaster', 'listaPastas'], (res) => {
@@ -402,6 +431,7 @@ function carregarBotoes() {
         const pastas = res.listaPastas || [];
 
         function renderizar(filtro = "") {
+            filtro = filtro.trim();
             container.innerHTML = "";
             
             if (!filtro && !pastaAtiva) {
@@ -412,7 +442,8 @@ function carregarBotoes() {
                     btnPasta.draggable = true;
                     btnPasta.dataset.index = index;
                     btnPasta.dataset.nome = nomePasta;
-                    btnPasta.innerHTML = `<span>📁</span> <span>${nomePasta}</span> <span>▶</span>`;
+                    btnPasta.textContent = nomePasta;
+                    btnPasta.setAttribute('aria-label', `Abrir pasta ${nomePasta}`);
                     
                     btnPasta.onclick = (e) => {
                         if (e.target.closest('.dragging')) return; 
@@ -477,7 +508,7 @@ function carregarBotoes() {
             }
 
             let botoesParaMostrar = [];
-            if (pastaAtiva) {
+            if (pastaAtiva && !filtro) {
                 const headerPasta = document.createElement('div');
                 headerPasta.className = 'header-pasta-ativa';
                 
@@ -492,7 +523,7 @@ function carregarBotoes() {
                 
                 const tituloPasta = document.createElement('span');
                 tituloPasta.className = 'titulo-pasta-ativa';
-                tituloPasta.innerHTML = `<span class="icone-pasta-ativa">📁</span> ${pastaAtiva}`;
+                tituloPasta.textContent = pastaAtiva;
                 
                 headerPasta.appendChild(btnVoltar);
                 headerPasta.appendChild(tituloPasta);
@@ -504,7 +535,12 @@ function carregarBotoes() {
             }
 
             if (filtro) {
-                botoesParaMostrar = botoesParaMostrar.filter(b => b.nome.toLowerCase().includes(filtro.toLowerCase()));
+                botoesParaMostrar = botoesParaMostrar.filter(b => ICDCotacao.busca([b.nome, b.texto, b.pasta || 'Geral', b.traducoes?.es, b.traducoes?.en].filter(Boolean).join(' ')).includes(ICDCotacao.busca(filtro)));
+                const resumo = document.createElement('p');
+                resumo.setAttribute('role', 'status');
+                resumo.textContent = `${botoesParaMostrar.length} atalho(s) em todas as pastas`;
+                resumo.style = 'font-size:12px;color:#c4b5fd;padding:0 10px';
+                container.appendChild(resumo);
             }
 
             if (botoesParaMostrar.length === 0) {
@@ -517,17 +553,24 @@ function carregarBotoes() {
 
             botoesParaMostrar.forEach((b) => {
                 const btnWrapper = document.createElement('div');
-                btnWrapper.style = "display: flex; align-items: center; gap: 5px; margin-bottom: 8px; padding: 0 10px;";
+                btnWrapper.className = 'icd-atalho-card';
+                const linhaBotao = document.createElement('div');
+                linhaBotao.className = 'icd-atalho-linha';
+                if (filtro) {
+                    const origem = document.createElement('small');
+                    origem.textContent = `Pasta: ${b.pasta || 'Geral'}`;
+                    origem.style = 'width:100%;color:#c4b5fd';
+                    btnWrapper.appendChild(origem);
+                }
 
                 const btn = document.createElement('button');
                 btn.className = 'btn-atalho-hub';
-                btn.style = "flex: 1; display: flex; align-items: center; justify-content: center;";
-                btn.innerText = b.nome;
+                btn.textContent = b.nome;
                 
                 const urlImagem = b.imagem || b.linkFoto;
 
                 if (urlImagem) {
-                    btn.innerHTML = `<span>🖼️</span> <span style="margin-left:5px">${b.nome}</span>`;
+                    btn.textContent = `Imagem: ${b.nome}`;
                     const imgPreview = document.createElement('img');
                     imgPreview.src = urlImagem;
                     imgPreview.crossOrigin = "anonymous";
@@ -540,23 +583,69 @@ function carregarBotoes() {
                         handleImageDragBase64(e, imgPreview, urlImagem);
                     });
                     imgPreview.addEventListener('dragend', () => { imgPreview.style.opacity = "1"; });
-                    btnWrapper.appendChild(imgPreview);
+                    linhaBotao.appendChild(imgPreview);
                 }
 
-                btn.onclick = () => enviarTexto(b.texto || textosPadrao[b.id] || "");
-                btnWrapper.appendChild(btn);
+                btn.type = 'button';
+                const versoes = { pt: b.texto || textosPadrao[b.id] || '' };
+                for (const idioma of ['es', 'en']) {
+                    if (typeof b.traducoes?.[idioma] === 'string' && b.traducoes[idioma].trim()) versoes[idioma] = b.traducoes[idioma];
+                }
+                let opcoesIdiomas = null;
+                if (Object.keys(versoes).length > 1) {
+                    opcoesIdiomas = document.createElement('div');
+                    opcoesIdiomas.className = 'icd-idiomas-opcoes';
+                    opcoesIdiomas.hidden = true;
+                    opcoesIdiomas.setAttribute('role', 'group');
+                    opcoesIdiomas.setAttribute('aria-label', 'Escolha o idioma de ' + b.nome);
+                    btn.setAttribute('aria-expanded', 'false');
+                    btn.setAttribute('aria-label', b.nome + ' — escolher idioma');
+                    const sinal = document.createElement('span');
+                    sinal.className = 'icd-idiomas-sinal'; sinal.textContent = ' 🌐';
+                    sinal.setAttribute('aria-hidden', 'true'); btn.appendChild(sinal);
+                    const bandeiras = {
+                        pt: '<rect width="30" height="20" fill="#16883e"/><path d="M15 2 28 10 15 18 2 10Z" fill="#ffdf00"/><circle cx="15" cy="10" r="5" fill="#123b91"/><path d="M10 8q5-1 10 4" fill="none" stroke="white" stroke-width="1"/>',
+                        es: '<rect width="30" height="20" fill="#ad1519"/><path d="M0 5h30v10H0Z" fill="#fabd00"/><path d="M8 8v5h4V8Z" fill="#ad1519"/>',
+                        en: '<rect width="30" height="20" fill="#012169"/><path d="m0 0 30 20m0-20L0 20" stroke="white" stroke-width="5"/><path d="m0 0 30 20m0-20L0 20" stroke="#c8102e" stroke-width="2"/><path d="M15 0v20M0 10h30" stroke="white" stroke-width="7"/><path d="M15 0v20M0 10h30" stroke="#c8102e" stroke-width="4"/>'
+                    };
+                    for (const [codigo, nome] of [['pt', 'Português'], ['es', 'Español'], ['en', 'English']]) {
+                        if (!Object.hasOwn(versoes, codigo)) continue;
+                        const opcao = document.createElement('button');
+                        opcao.type = 'button'; opcao.className = 'icd-idioma-opcao'; opcao.dataset.idioma = codigo;
+                        opcao.setAttribute('aria-label', 'Inserir mensagem em ' + nome);
+                        const icone = document.createElement('span'); icone.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 20" width="27" height="18" aria-hidden="true">' + bandeiras[codigo] + '</svg>'; icone.setAttribute('aria-hidden', 'true');
+                        const sigla = document.createElement('span'); sigla.textContent = codigo.toUpperCase();
+                        opcao.append(icone, sigla);
+                        opcao.onclick = () => { fecharOpcoesIdiomas(); enviarTexto(versoes[codigo]); };
+                        opcoesIdiomas.appendChild(opcao);
+                    }
+                    btnWrapper.addEventListener('keydown', e => {
+                        if (e.key === 'Escape' && !opcoesIdiomas.hidden) {
+                            e.preventDefault(); e.stopPropagation(); fecharOpcoesIdiomas(); btn.focus();
+                        }
+                    });
+                }
+                btn.onclick = () => {
+                    const abrir = opcoesIdiomas?.hidden;
+                    fecharOpcoesIdiomas();
+                    if (!opcoesIdiomas) { enviarTexto(versoes.pt); return; }
+                    if (abrir) {
+                        opcoesIdiomas.hidden = false; btn.setAttribute('aria-expanded', 'true');
+                        opcoesIdiomas.querySelector('button').focus();
+                    }
+                };
+                linhaBotao.appendChild(btn);
+                btnWrapper.appendChild(linhaBotao);
+                if (opcoesIdiomas) btnWrapper.appendChild(opcoesIdiomas);
                 container.appendChild(btnWrapper);
             });
         }
         
         inputBusca.oninput = (e) => {
-            if (e.target.value.length > 0) {
-                pastaAtiva = null;
-            }
             renderizar(e.target.value);
         };
         
-        renderizar();
+        renderizar(inputBusca.value);
     });
 }
 
@@ -564,168 +653,7 @@ function carregarBotoes() {
    ICD HUB - CALCULADORA DE COTAÇÃO (ARRASTÁVEL E MINIMIZÁVEL)
    ========================================================= */
 function abrirCalculadoraCotacao() {
-    chrome.storage.local.get(['listaPasseios'], (res) => {
-        const passeios = res.listaPasseios || [];
-        
-        // Se já existir, apenas traz para frente
-        const modalExistente = document.getElementById('modal-cotacao-icd');
-        if (modalExistente) {
-            modalExistente.style.zIndex = 20000 + Date.now() % 1000;
-            return;
-        }
-
-        const modal = document.createElement('div');
-        modal.id = 'modal-cotacao-icd';
-        
-        modal.innerHTML = `
-            <div class="cabecalho-modal" id="cabecalho-modal-cotacao">
-                <h3>Calculadora de Cotação</h3>
-                <div class="controles-modal">
-                    <button id="btn-minimizar-cotacao">—</button>
-                    <button id="btn-fechar-cotacao" class="fechar">✕</button>
-                </div>
-            </div>
-            
-            <div class="corpo-modal">
-                <select id="select-passeio-cotacao">
-                    <option value="">Selecione um Passeio...</option>
-                    ${passeios.map((p, i) => `<option value="${i}">${p.nome}</option>`).join('')}
-                </select>
-                <div id="detalhes-cotacao"></div>
-                <div id="total-cotacao">Total: R$ 0,00</div>
-                <button id="btn-copiar-cotacao">Copiar Cotação</button>
-            </div>
-        `;
-        
-        document.body.appendChild(modal);
-
-        // ============================================================
-        // LÓGICA DE ARRASTAR (DRAG)
-        // ============================================================
-        const cabecalho = modal.querySelector('#cabecalho-modal-cotacao');
-        let isDragging = false;
-        let offsetX = 0;
-        let offsetY = 0;
-
-        cabecalho.addEventListener('mousedown', (e) => {
-            if (e.target.closest('button')) return;
-            
-            isDragging = true;
-            const rect = modal.getBoundingClientRect();
-            offsetX = e.clientX - rect.left;
-            offsetY = e.clientY - rect.top;
-            
-            modal.style.transition = 'none';
-            document.body.style.userSelect = 'none';
-        });
-
-        document.addEventListener('mousemove', (e) => {
-            if (!isDragging) return;
-            
-            let newLeft = e.clientX - offsetX;
-            let newTop = e.clientY - offsetY;
-            
-            const maxLeft = window.innerWidth - modal.offsetWidth;
-            const maxTop = window.innerHeight - modal.offsetHeight;
-            
-            newLeft = Math.max(0, Math.min(newLeft, maxLeft));
-            newTop = Math.max(0, Math.min(newTop, maxTop));
-            
-            modal.style.left = newLeft + 'px';
-            modal.style.top = newTop + 'px';
-            modal.style.right = 'auto';
-        });
-
-        document.addEventListener('mouseup', () => {
-            isDragging = false;
-            document.body.style.userSelect = '';
-        });
-
-        // ============================================================
-        // LÓGICA DE MINIMIZAR (SEM TITLE)
-        // ============================================================
-        const btnMinimizar = modal.querySelector('#btn-minimizar-cotacao');
-        btnMinimizar.addEventListener('click', (e) => {
-            e.stopPropagation();
-            modal.classList.toggle('minimizado');
-            btnMinimizar.innerText = modal.classList.contains('minimizado') ? '▢' : '—';
-        });
-
-        // ============================================================
-        // LÓGICA DE FECHAR (SEM TITLE)
-        // ============================================================
-        const btnFechar = modal.querySelector('#btn-fechar-cotacao');
-        btnFechar.addEventListener('click', (e) => {
-            e.stopPropagation();
-            modal.remove();
-        });
-
-        // ============================================================
-        // LÓGICA DE COTAÇÃO
-        // ============================================================
-        const select = modal.querySelector('#select-passeio-cotacao');
-        const detalhes = modal.querySelector('#detalhes-cotacao');
-        const totalTxt = modal.querySelector('#total-cotacao');
-
-        select.onchange = () => {
-            const p = passeios[select.value];
-            if (!p) { detalhes.innerHTML = ""; return; }
-            
-            detalhes.innerHTML = p.ingressos.map((ing) => `
-                <div class="linha-ingresso-cotacao">
-                    <div class="info-ingresso-cotacao">
-                        <strong>${ing.tipo}</strong>
-                        <span>R$ ${ing.valor}</span>
-                    </div>
-                    <input type="number" class="qtd-cotacao" data-valor="${ing.valor}" data-tipo="${ing.tipo}" value="0" min="0" aria-label="Quantidade: ${ing.tipo}">
-                </div>
-            `).join('');
-
-            modal.querySelectorAll('.qtd-cotacao').forEach(input => {
-                input.oninput = () => {
-                    let total = 0;
-                    modal.querySelectorAll('.qtd-cotacao').forEach(i => {
-                        total += (Number(i.value) * Number(i.dataset.valor));
-                    });
-                    totalTxt.innerText = `Total: R$ ${total.toLocaleString('pt-br', {minimumFractionDigits: 2})}`;
-                };
-            });
-        };
-
-        modal.querySelector('#btn-copiar-cotacao').onclick = () => {
-            const p = passeios[select.value];
-            if(!p) return alert("Selecione um passeio primeiro!");
-
-            let texto = `*✅ COTAÇÃO: ${p.nome.toUpperCase()}*\n\n`;
-            let total = 0;
-            let temItens = false;
-
-            modal.querySelectorAll('.qtd-cotacao').forEach(input => {
-                const qtd = Number(input.value);
-                if (qtd > 0) {
-                    temItens = true;
-                    const subtotal = qtd * Number(input.dataset.valor);
-                    texto += `▪️ ${qtd}x ${input.dataset.tipo}: R$ ${subtotal.toFixed(2)}\n`;
-                    total += subtotal;
-                }
-            });
-
-            if(!temItens) return alert("Adicione pelo menos 1 ingresso!");
-
-            texto += `\n*💰 TOTAL: R$ ${total.toLocaleString('pt-br', {minimumFractionDigits: 2})}*`;
-            
-            navigator.clipboard.writeText(texto);
-            
-            const btn = modal.querySelector('#btn-copiar-cotacao');
-            const textoOriginal = btn.innerText;
-            btn.innerText = '✅ Copiado!';
-            btn.style.background = 'linear-gradient(135deg, #10b981, #059669)';
-            setTimeout(() => {
-                btn.innerText = textoOriginal;
-                btn.style.background = '';
-            }, 1500);
-        };
-    });
+    ICDCotacaoUI.abrir();
 }
 
 // ===== INICIALIZAÇÃO =====

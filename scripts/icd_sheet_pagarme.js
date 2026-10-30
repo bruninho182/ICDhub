@@ -141,7 +141,7 @@
     btn.addEventListener('click', () => {
       const textoOriginal = 'Dados Estorno';
       definirProcessando(btn, true, textoOriginal);
-      chrome.storage.local.get(['icdDadosPendentes', STORAGE_KEY], (res) => {
+      chrome.storage.local.get(['icdDadosPendentes', STORAGE_KEY], async (res) => {
         const icd = res.icdDadosPendentes;
         const pg = res[STORAGE_KEY] || {};
 
@@ -213,23 +213,18 @@
           Q: emailFinal
         };
 
-        const camposObrigatorios = [
-          ['voucher', linha.E],
-          ['atração', linha.F],
-          ['método de pagamento', linha.G],
-          ['NSU', linha.I],
-          ['e-mail', linha.Q]
-        ];
-        const faltantes = camposObrigatorios
-          .filter(([, valor]) => !String(valor || '').trim())
-          .map(([nome]) => nome);
-
-        if (faltantes.length) {
-          alert('⚠️ Dados obrigatórios ausentes: ' + faltantes.join(', '));
-          definirProcessando(btn, false, textoOriginal);
-          return;
+        if (!await ICDOperacao.pendencias('Dados pendentes do estorno', [['Voucher', linha.E], ['Atração', linha.F], ['Pagamento', linha.G], ['NSU', linha.I], ['E-mail', linha.Q]])) {
+          definirProcessando(btn, false, textoOriginal); return;
         }
 
+        const confirmado = await ICDOperacao.confirmar({
+          titulo: 'Conferir registro de estorno',
+          descricao: 'Este envio registra os dados na planilha. Confira se a reserva e a transação pertencem ao mesmo cliente.',
+          campos: [['Voucher', linha.E], ['Atração', linha.F], ['Pagamento', linha.G], ['Adquirente', linha.H],
+            ['NSU / transação', linha.I], ['Compra', linha.J], ['Visita', linha.K], ['Valor', linha.L], ['E-mail', linha.Q]],
+          acao: 'Enviar registro à planilha'
+        });
+        if (!confirmado) { definirProcessando(btn, false, textoOriginal); return; }
         chrome.runtime.sendMessage({ acao: 'ENVIAR_LINHA_PLANILHA', linha }, (resp) => {
           if (chrome.runtime.lastError) {
             alert('❌ Erro ao comunicar com o background:\n' + chrome.runtime.lastError.message);

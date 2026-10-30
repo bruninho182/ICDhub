@@ -19,12 +19,13 @@
         </div>
         <div class="header-texto">
           <h1>Painel de Controle - ICD Hub</h1>
-          <p>Centralize suas ferramentas de automação e vendas com estilo</p>
+          <p>Mensagens, atalhos e tarifários para o seu atendimento</p>
         </div>
       </header>
 
       <!-- Menu de Navegação -->
-      <nav class="menu-tabs">
+      <div id="resumo-config" class="resumo-config" aria-label="Resumo das configurações"></div>
+      <nav class="menu-tabs" aria-label="Áreas do painel">
         <button class="tab-btn active" data-target="sec-atalhos">
           <i class="fas fa-rocket"></i> Atalhos WhatsApp
         </button>
@@ -41,12 +42,16 @@
         <button class="tab-btn" data-target="sec-email">
           <i class="fas fa-envelope"></i> E-mail
         </button>
+        <button class="tab-btn" data-target="sec-funcionalidades">⚙ Funcionalidades</button>
+        <button class="tab-btn" data-target="sec-diagnostico">Diagnóstico</button>
         <button class="tab-btn" data-target="sec-config">
           <i class="fas fa-cog"></i> Configurações
         </button>
       </nav>
 
       <main class="conteudo-principal">
+        <section id="sec-diagnostico" class="aba-conteudo"><div class="card"><h2>Diagnóstico da extensão</h2><p>Verifique as configurações e os controles reconhecidos nas páginas abertas. Um campo ausente pode indicar que a tela ainda está carregando ou que a função está desativada.</p><p class="ajuda-campo">A verificação é feita ao clicar. O relatório contém apenas a versão, nomes dos sites e estados dos controles, sem mensagens, nomes de clientes, reservas ou tokens.</p><button id="diagnostico-atualizar" class="btn-principal" type="button">Verificar agora</button><pre id="diagnostico-resultado" style="white-space:pre-wrap;overflow-wrap:anywhere;margin:20px 0" aria-live="polite">Nenhuma verificação realizada.</pre><button id="diagnostico-copiar" class="btn-secundario" type="button">Copiar diagnóstico</button><p id="diagnostico-status" role="status"></p></div></section>
+        <section id="sec-funcionalidades" class="aba-conteudo"><div class="card"><h2>Funcionalidades</h2><p>Escolha as ferramentas que deseja ver no seu dia a dia. As preferências valem para este navegador e os dados cadastrados são preservados.</p><p class="ajuda-campo">Desativar oculta os botões e painéis nas páginas abertas. Se uma ferramenta já estiver em uso, recarregue a página após desativá-la. Os cadastros e as configurações continuam disponíveis neste painel.</p><div id="lista-funcionalidades"></div><p id="status-funcionalidades" role="status" aria-live="polite"></p></div></section>
         <!-- SEÇÃO 1: ATALHOS -->
         <section id="sec-atalhos" class="aba-conteudo active">
           <div class="grid-duplo">
@@ -79,12 +84,17 @@
                 placeholder="https://link-da-imagem.jpg"
               />
 
-              <label>Texto da Mensagem</label>
+              <label for="idioma-previa-atalho">Idioma da mensagem</label><select id="idioma-previa-atalho"><option value="pt">Português</option><option value="es">Español</option><option value="en">English</option></select>
+              <p class="ajuda-campo">Escolha o idioma para escrever sua versão. Salvar guarda os três idiomas do mesmo atalho. Não há tradução automática.</p>
+              <label id="rotulo-texto-pt" for="novoTextoBotao">Mensagem em português</label>
               <textarea
                 id="novoTextoBotao"
                 placeholder="Digite a mensagem que será enviada..."
               ></textarea>
 
+              <label id="rotulo-texto-es" for="novoTextoEspanhol" hidden>Mensagem em espanhol</label><textarea id="novoTextoEspanhol" placeholder="Escreva a versão em espanhol..." hidden></textarea>
+              <label id="rotulo-texto-en" for="novoTextoIngles" hidden>Mensagem em inglês</label><textarea id="novoTextoIngles" placeholder="Escreva a versão em inglês..." hidden></textarea>
+              <div class="previa-mensagem"><span>Prévia da mensagem</span><p id="previa-atalho">Sua mensagem aparecerá aqui enquanto você digita.</p></div>
               <button id="btnAdicionarBotao" class="btn-principal">
                 <i class="fas fa-save"></i> Salvar Atalho
               </button>
@@ -109,6 +119,9 @@
             </div>
             <div class="card">
               <h3><i class="fas fa-list"></i> Seus Atalhos (Arraste para Reordenar)</h3>
+              <label for="buscar-atalhos-config" class="sr-only">Buscar atalhos</label>
+              <input type="search" id="buscar-atalhos-config" placeholder="Buscar por nome, mensagem ou pasta…">
+              <p id="contagem-atalhos" class="ajuda-campo" role="status"></p>
               <div id="listaBotoes">
                 <div class="lista-vazia">
                   <i class="fas fa-inbox"></i>
@@ -162,7 +175,7 @@
                   <input
                     type="number"
                     placeholder="Valor"
-                    class="valor-ingresso"
+                    class="valor-ingresso" min="0" step="0.01"
                     style="flex: 1;"
                   />
                 </div>
@@ -181,9 +194,14 @@
               >
                 <i class="fas fa-check-circle"></i> Salvar Passeio
               </button>
+              <button id="btn-cancelar-passeio" class="btn-secundario" hidden>Cancelar edição</button>
+              <p class="ajuda-campo">Os preços salvos aqui ficam disponíveis na calculadora do WhatsApp.</p>
             </div>
             <div class="card">
               <h3><i class="fas fa-map-marked-alt"></i> Passeios Cadastrados</h3>
+              <label for="buscar-passeios-config" class="sr-only">Buscar passeios</label>
+              <input type="search" id="buscar-passeios-config" placeholder="Buscar passeio ou categoria…">
+              <p id="contagem-passeios" class="ajuda-campo" role="status"></p>
               <div id="lista-passeios-config"></div>
             </div>
           </div>
@@ -260,8 +278,16 @@
             <input type="text" id="emailAssuntoPadrao" />
             <label>Corpo da Mensagem</label>
             <textarea id="emailCorpoPadrao"></textarea>
+              <p class="ajuda-campo">Insira campos no assunto ou na mensagem. Preencha os dados do aviso no relatório antes de preparar o envio.</p>
+              <div id="email-campos-modelo" aria-label="Inserir campos no modelo">
+                <button type="button" class="btn-secundario" data-email-campo="operador">Operador</button>
+                <button type="button" class="btn-secundario" data-email-campo="passeio">Passeio</button>
+                <button type="button" class="btn-secundario" data-email-campo="data_visita">Data da visita</button>
+                <button type="button" class="btn-secundario" data-email-campo="horario">Horário</button>
+              </div>
+              <div class="previa-mensagem"><span>Prévia com dados de exemplo</span><p id="email-previa-modelo"></p></div>
             <button id="btnSalvarEmailConfig" class="btn-principal">
-              <i class="fas fa-paper-plane"></i> Salvar E-mail
+                <i class="fas fa-save"></i> Salvar modelo de e-mail
             </button>
           </div>
         </section>
@@ -298,6 +324,10 @@
 
             <hr style="border-color: rgba(255,255,255,0.1); margin: 20px 0;" />
             <h3><i class="fas fa-database"></i> Backup & Restauração</h3>
+            <p>Escolha o que deseja exportar ou importar. Reservas em andamento, rascunhos de e-mail e tokens não fazem parte do backup.</p>
+            <div class="backup-categorias"><label><input type="checkbox" data-backup-grupo="atalhos" checked> Atalhos e pastas</label><label><input type="checkbox" data-backup-grupo="tarifas" checked> Tarifários</label><label><input type="checkbox" data-backup-grupo="notas" checked> Anotações</label><label><input type="checkbox" data-backup-grupo="email" checked> Modelos de e-mail</label><label><input type="checkbox" data-backup-grupo="preferencias" checked> Preferências e funcionalidades</label></div>
+            <label for="backup-modo">Ao importar</label><select id="backup-modo"><option value="acrescentar">Acrescentar itens novos e manter os existentes</option><option value="substituir">Substituir categorias selecionadas</option></select>
+            <p id="backup-status" role="status"></p><button id="backup-recarregar" type="button" class="btn-secundario" hidden>Recarregar painel</button>
             <button id="btnExportar" class="btn-principal">
               <i class="fas fa-download"></i> Exportar Configurações
             </button>
@@ -321,6 +351,13 @@
     </div>
     
     <script src="scripts/jspdf.umd.min.js"></script>
+    <script src="scripts/generated/cotacao.js"></script>
+    <script src="scripts/generated/email_template.js"></script>
+    <script src="scripts/generated/diagnostico.js"></script>
+    <script src="scripts/generated/funcionalidades.js"></script>
+    <script src="scripts/generated/operacao_review.js"></script>
+    <script src="scripts/generated/backup.js"></script>
     <script src="scripts/options.js"></script>
+    <script src="scripts/generated/options_modern.js"></script>
   </body>
 </html>

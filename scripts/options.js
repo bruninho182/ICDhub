@@ -316,7 +316,9 @@ function renderizarListaNotas() {
 
 function escapeHtml(str) {
   if (!str) return '';
-  return str.replace(/[&<>]/g, function(m) {
+  return String(str).replace(/[&<>"']/g, function(m) {
+    if (m === '"') return '&quot;';
+    if (m === "'") return '&#39;';
     if (m === '&') return '&amp;';
     if (m === '<') return '&lt;';
     if (m === '>') return '&gt;';
@@ -342,7 +344,7 @@ function renderizarListaAtalhos() {
 
     const grupos = {};
     configBotoes.forEach((botao, index) => {
-        botao._originalIndex = index; 
+        botao = { ...botao, _originalIndex: index }; 
         const pasta = botao.pasta || "Geral";
         if (!grupos[pasta]) grupos[pasta] = [];
         grupos[pasta].push(botao);
@@ -351,7 +353,7 @@ function renderizarListaAtalhos() {
     for (const [nomePasta, botoes] of Object.entries(grupos)) {
         const headerPasta = document.createElement("div");
         headerPasta.className = "pasta-header-painel";
-        headerPasta.innerHTML = `<i class="fas fa-folder-open"></i> ${nomePasta}`;
+        headerPasta.textContent = nomePasta;
         headerPasta.style = "margin-top: 15px; margin-bottom: 10px; color: #8b5cf6; font-weight: bold; font-size: 14px; border-bottom: 1px solid #334155; padding-bottom: 5px;";
         container.appendChild(headerPasta);
 
@@ -361,10 +363,11 @@ function renderizarListaAtalhos() {
             item.className = "item-lista";
             item.draggable = true;
             item.dataset.index = idx;
+            item.dataset.filtro = [botao.nome, botao.texto, botao.pasta, botao.traducoes?.es, botao.traducoes?.en].filter(Boolean).join(" ");
             item.innerHTML = `
                 <span class="posicao-badge">${idx+1}</span>
                 <span class="drag-handle"></span>
-                <div class="info"><strong>${escapeHtml(botao.nome || "Sem nome")}</strong><p>${escapeHtml((botao.texto || "").substring(0,40))}...</p></div>
+                <div class="info"><strong>${escapeHtml(botao.nome || "Sem nome")}</strong><p>${escapeHtml((botao.texto || "").substring(0,40))}...</p><small>${['PT', botao.traducoes?.es?.trim() ? 'ES' : '', botao.traducoes?.en?.trim() ? 'EN' : ''].filter(Boolean).join(' · ')}</small></div>
                 <div class="acoes">
                 <button class="btn-edit" data-index="${idx}"><i class="fas fa-edit"></i> Editar</button>
                 <button class="btn-del" data-index="${idx}"><i class="fas fa-trash"></i> Excluir</button>
@@ -424,7 +427,11 @@ function handleDragEnd(e) {
 function preencherParaEditar(index) {
   const btn = configBotoes[index];
   document.getElementById("novoNomeBotao").value = btn.nome;
-  document.getElementById("novoTextoBotao").value = btn.texto;
+  document.getElementById("novoTextoBotao").value = btn.texto || "";
+  document.getElementById("novoTextoEspanhol").value = btn.traducoes?.es || "";
+  document.getElementById("novoTextoIngles").value = btn.traducoes?.en || "";
+  document.getElementById("idioma-previa-atalho").value = "pt";
+  document.getElementById("idioma-previa-atalho").dispatchEvent(new Event('change'));
   document.getElementById("novaImagemBotao").value = btn.imagem || "";
   
   const selectPasta = document.getElementById("selectPastaBotao");
@@ -440,6 +447,10 @@ function preencherParaEditar(index) {
 function limparFormularioAtalho() {
   document.getElementById("novoNomeBotao").value = "";
   document.getElementById("novoTextoBotao").value = "";
+  document.getElementById("novoTextoEspanhol").value = "";
+  document.getElementById("novoTextoIngles").value = "";
+  document.getElementById("idioma-previa-atalho").value = "pt";
+  document.getElementById("idioma-previa-atalho").dispatchEvent(new Event('change'));
   document.getElementById("novaImagemBotao").value = "";
   document.getElementById("selectPastaBotao").value = "Geral"; 
   document.getElementById("editIndex").value = "-1";
@@ -447,7 +458,7 @@ function limparFormularioAtalho() {
   document.getElementById("btnCancelarEdicao").style.display = "none";
 }
 function salvarShortcuts() {
-  chrome.storage.local.set({ configMaster: configBotoes }, () => {
+  chrome.storage.local.set({ configMaster: configBotoes.map(({ _originalIndex, ...botao }) => botao) }, () => {
     renderizarListaAtalhos();
   });
 }
@@ -573,7 +584,7 @@ function adicionarLinhaPreco(tipo = "", valor = "") {
   novaLinha.style = "display: flex; gap: 5px; margin-bottom: 5px;";
   novaLinha.innerHTML = `
     <input type="text" placeholder="Tipo (Ex: Infantil)" class="tipo-ingresso" value="${escapeHtml(tipo)}" style="flex: 2; padding: 5px;">
-    <input type="number" placeholder="Valor" class="valor-ingresso" value="${valor}" style="flex: 1; padding: 5px;">
+    <input type="number" placeholder="Valor" class="valor-ingresso" min="0" step="0.01" value="${escapeHtml(String(valor))}" style="flex: 1; padding: 5px;">
     <button class="btn-remover-preco" style="background:none; border:none; cursor:pointer;">❌</button>
   `;
   container.appendChild(novaLinha);
@@ -581,11 +592,15 @@ function adicionarLinhaPreco(tipo = "", valor = "") {
 }
 
 function limparFormularioPasseio() {
+  editPasseioIndex = -1;
+  document.getElementById("btn-salvar-passeio").textContent = "Salvar Passeio";
+  document.getElementById("btn-salvar-passeio").style.background = "";
+  document.getElementById("btn-cancelar-passeio").hidden = true;
   document.getElementById("nomePasseio").value = "";
   document.getElementById("container-precos").innerHTML = `
     <div class="linha-preco" style="display: flex; gap: 5px; margin-bottom: 5px;">
       <input type="text" placeholder="Tipo (Ex: Adulto)" class="tipo-ingresso" style="flex: 2; padding: 5px;">
-      <input type="number" placeholder="Valor" class="valor-ingresso" style="flex: 1; padding: 5px;">
+      <input type="number" placeholder="Valor" class="valor-ingresso" min="0" step="0.01" style="flex: 1; padding: 5px;">
     </div>
   `;
 }
@@ -597,10 +612,11 @@ function renderizarListaPasseios() {
     container.innerHTML = "";
     lista.forEach((p, index) => {
       const item = document.createElement("div");
+      item.dataset.filtro = [p.nome, ...(p.ingressos || []).map(ing => ing.tipo)].join(" ");
       item.style = "background: rgba(15, 23, 42, 0.6); padding: 16px; margin-bottom: 10px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; border: 1px solid rgba(255, 255, 255, 0.08); border-left: 4px solid #8b5cf6; transition: all 0.3s ease;";
       item.innerHTML = `
         <div style="font-size: 13px; flex: 1; min-width: 0;">
-          <strong style="color: #f1f5f9; display: block; margin-bottom: 4px;">${escapeHtml(p.nome)}</strong>
+          <strong style="color: #f1f5f9; display: block; margin-bottom: 4px;">${escapeHtml(ICDCotacao.nomeExibicao(p))}</strong>
           <small style="color: #94a3b8;"><i class="fas fa-ticket-alt" style="color: #8b5cf6; font-size: 10px; margin-right: 5px;"></i>${p.ingressos.length} categorias cadastradas</small>
         </div>
         <div style="display: flex; gap: 8px; flex-shrink: 0; margin-left: 15px;">
@@ -627,7 +643,8 @@ function renderizarListaPasseios() {
         const containerPrecos = document.getElementById("container-precos");
         containerPrecos.innerHTML = "";
         p.ingressos.forEach(ing => adicionarLinhaPreco(ing.tipo, ing.valor));
-        editPasseioIndex = idx;
+        editPasseioIndex = Number(idx);
+        document.getElementById("btn-cancelar-passeio").hidden = false;
         const btnSalvar = document.getElementById("btn-salvar-passeio");
         btnSalvar.innerText = "Confirmar Alteração";
         btnSalvar.style.background = "#ffa500";
@@ -650,9 +667,15 @@ function inicializarEventos() {
       
       if (nome && texto) {
         const dadosBotao = {
+          ...(idx === -1 ? {} : configBotoes[idx]),
           id: idx === -1 ? "custom_" + Date.now() : configBotoes[idx].id,
           nome,
           texto,
+          traducoes: {
+            ...(idx === -1 ? {} : configBotoes[idx].traducoes),
+            es: document.getElementById("novoTextoEspanhol").value.trim(),
+            en: document.getElementById("novoTextoIngles").value.trim(),
+          },
           imagem: imagem || null,
           pasta: pasta,
           isExtra: true,
@@ -660,7 +683,11 @@ function inicializarEventos() {
         if (idx === -1) configBotoes.push(dadosBotao);
         else configBotoes[idx] = dadosBotao;
         salvarShortcuts();
-        limparFormularioAtalho();
+        // Continua no mesmo registro para salvar uma versão após a outra.
+        document.getElementById("editIndex").value = idx === -1 ? configBotoes.length - 1 : idx;
+        document.getElementById("tituloForm").innerText = "📝 Editando Atalho";
+        document.getElementById("btnCancelarEdicao").style.display = "block";
+        document.getElementById("btnCancelarEdicao").textContent = "Novo atalho / sair da edição";
         mostrarNotificacao('✅ Atalho salvo!', 'success');
       } else {
         alert("Por favor, preencha nome e mensagem.");
@@ -673,46 +700,6 @@ function inicializarEventos() {
   
   const btnAddNota = document.getElementById("btnAdicionarNota");
   if (btnAddNota) btnAddNota.addEventListener("click", adicionarNota);
-  
-  const btnExportar = document.getElementById("btnExportar");
-  const inputArquivo = document.getElementById("inputArquivo");
-  if (btnExportar) {
-    btnExportar.addEventListener("click", () => {
-      chrome.storage.local.get(null, (todosOsDados) => {
-        if (Object.keys(todosOsDados).length === 0) return alert("Não há dados para exportar.");
-        const dadosParaExportar = { ...todosOsDados };
-        delete dadosParaExportar.icdAppsScriptToken;
-        const blob = new Blob([JSON.stringify(dadosParaExportar, null, 2)], { type: "application/json" });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        const dataHora = new Date().toLocaleDateString().replace(/\//g, "-");
-        a.href = url;
-        a.download = `backup_completo_icd_hub_${dataHora}.json`;
-        a.click();
-        URL.revokeObjectURL(url);
-      });
-    });
-  }
-  if (inputArquivo) {
-    document.getElementById("btnImportar")?.addEventListener("click", () => inputArquivo.click());
-    inputArquivo.addEventListener("change", (e) => {
-      const arquivo = e.target.files[0];
-      if (!arquivo) return;
-      const reader = new FileReader();
-      reader.onload = (ev) => {
-        try {
-          const dadosRestaurados = JSON.parse(ev.target.result);
-          chrome.storage.local.set(dadosRestaurados, () => {
-            alert("✅ Todas as configurações e tarifários foram restaurados!");
-            location.reload();
-          });
-        } catch (err) {
-          alert("❌ Erro ao ler o arquivo.");
-        }
-      };
-      reader.readAsText(arquivo);
-    });
-  }
   
   const seletorPosicao = document.getElementById("posicaoBarra");
   const btnSalvarPref = document.getElementById("btnSalvarPref");
@@ -786,12 +773,16 @@ function inicializarEventos() {
       if (res.emailAssunto) document.getElementById("emailAssuntoPadrao").value = res.emailAssunto;
       if (res.emailCorpo) document.getElementById("emailCorpoPadrao").value = res.emailCorpo;
     });
-    btnSalvarEmail.addEventListener("click", () => {
-      const assunto = document.getElementById("emailAssuntoPadrao").value;
-      const corpo = document.getElementById("emailCorpoPadrao").value;
-      chrome.storage.local.set({ emailAssunto: assunto, emailCorpo: corpo }, () => {
-        alert("✅ Configurações de e-mail salvas!");
-      });
+    btnSalvarEmail.addEventListener("click", async () => {
+      try {
+        const assunto = document.getElementById("emailAssuntoPadrao").value.trim();
+        const corpo = document.getElementById("emailCorpoPadrao").value.trim();
+        if (!assunto || !corpo) throw new Error("Preencha assunto e mensagem.");
+        const exemplo = Object.fromEntries(Object.keys(ICDEmailTemplate.campos).map(chave => [chave, "Exemplo"]));
+        ICDEmailTemplate.preencher(assunto, exemplo); ICDEmailTemplate.preencher(corpo, exemplo);
+        await chrome.storage.local.set({ emailAssunto: assunto, emailCorpo: corpo });
+        mostrarNotificacao("Modelo de e-mail salvo.", "success");
+      } catch (erro) { mostrarNotificacao(erro.message, "error"); }
     });
   }
   
@@ -799,37 +790,34 @@ function inicializarEventos() {
   if (btnGerarPDF) btnGerarPDF.addEventListener("click", gerarReciboPDF);
 }
 
-document.getElementById("btn-salvar-passeio")?.addEventListener("click", () => {
-  const nome = document.getElementById("nomePasseio").value;
-  const tipos = document.querySelectorAll(".tipo-ingresso");
-  const valores = document.querySelectorAll(".valor-ingresso");
-  if (!nome) return alert("Digite o nome do passeio!");
-  let ingressos = [];
-  tipos.forEach((t, i) => {
-    if (t.value && valores[i].value) {
-      ingressos.push({ tipo: t.value, valor: parseFloat(valores[i].value) });
+document.getElementById("btn-salvar-passeio")?.addEventListener("click", async () => {
+  const botao = document.getElementById("btn-salvar-passeio");
+  if (botao.disabled) return;
+  try {
+    const ingressos = Array.from(document.querySelectorAll(".linha-preco")).map(linha => ({
+      tipo: linha.querySelector(".tipo-ingresso").value,
+      valor: linha.querySelector(".valor-ingresso").value,
+    }));
+    const passeio = ICDCotacao.validarPasseio(document.getElementById("nomePasseio").value, ingressos);
+    botao.disabled = true;
+    const res = await chrome.storage.local.get(["listaPasseios"]);
+    const lista = res.listaPasseios || [];
+    if (lista.some((p, i) => i !== editPasseioIndex && ICDCotacao.busca(p.nome) === ICDCotacao.busca(passeio.nome)))
+      throw new Error("Ja existe um passeio com esse nome. Edite o cadastro existente.");
+    if (editPasseioIndex === -1) lista.push(passeio);
+    else {
+      const anterior = lista[editPasseioIndex];
+      lista[editPasseioIndex] = { ...anterior, ...passeio,
+        ...(anterior.contexto ? { contexto: { ...anterior.contexto, editadoManualmenteEm: new Date().toISOString() } } : {}) };
     }
-  });
-  if (ingressos.length === 0) return alert("Adicione pelo menos um tipo de ingresso!");
-  chrome.storage.local.get(["listaPasseios"], (res) => {
-    let lista = res.listaPasseios || [];
-    if (editPasseioIndex === -1) lista.push({ nome, ingressos });
-    else lista[editPasseioIndex] = { nome, ingressos };
-    chrome.storage.local.set({ listaPasseios: lista }, () => {
-      alert("✅ Passeio salvo com sucesso!");
-      limparFormularioPasseio();
-      renderizarListaPasseios();
-      editPasseioIndex = -1;
-      const btnSalvar = document.getElementById("btn-salvar-passeio");
-      btnSalvar.innerText = "Salvar Passeio";
-      btnSalvar.style.background = "";
-    });
-  });
+    await chrome.storage.local.set({ listaPasseios: lista });
+    limparFormularioPasseio();
+    renderizarListaPasseios();
+    mostrarNotificacao("Tarifario salvo e disponivel na calculadora.", "success");
+  } catch (erro) { mostrarNotificacao(erro.message, "error"); }
+  finally { botao.disabled = false; }
 });
 
-document.getElementById("btn-add-tipo")?.addEventListener("click", () => adicionarLinhaPreco("", ""));
-
-// ==================== FUNÇÃO AUXILIAR DE NOTIFICAÇÃO ====================
 function mostrarNotificacao(mensagem, tipo = 'info') {
   const notificacao = document.createElement('div');
   notificacao.style.cssText = `

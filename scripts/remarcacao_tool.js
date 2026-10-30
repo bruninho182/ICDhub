@@ -220,15 +220,7 @@ async function processarRemarcacao() {
 
     console.log('📊 Dados extraídos:', { voucher, email, unidade, refExterna, metodoPagamento });
 
-    if (!voucher || !email) {
-        alert(
-            `⚠️ Não foi possível encontrar os dados obrigatórios:\n\n` +
-            `🎫 Voucher: ${voucher || '❌ NÃO ENCONTRADO'}\n` +
-            `📧 E-mail: ${email || '❌ NÃO ENCONTRADO'}\n\n` +
-            `Verifique se a página carregou completamente.`
-        );
-        return;
-    }
+    if (!await ICDOperacao.pendencias('Dados pendentes da remarcação', [['Voucher', voucher], ['E-mail', email]])) return;
 
     const storage = await chrome.storage.local.get([CHAVE_OPERADOR]);
     const operador = (storage[CHAVE_OPERADOR] || '').toUpperCase().trim();
@@ -273,6 +265,14 @@ async function processarRemarcacao() {
         modo = 'Unidade não identificada — Ref. montada como "PAGO NO COD - voucher - operador"';
     }
 
+    if (!await ICDOperacao.confirmar({
+        titulo: 'Conferir remarcação',
+        descricao: 'Confirme os dados da reserva de origem antes de preparar a nova reserva. Escolha passeio, data e horário no destino.',
+        campos: [['Voucher de origem', voucher], ['E-mail', email], ['Unidade', unidade],
+            ['Pagamento', metodoPagamento], ['Regra aplicada', modo],
+            ['Referência para a nova reserva', dadosCopia.usarRefExterna ? dadosCopia.refExterna : voucher]],
+        acao: 'Preparar remarcação'
+    })) return;
     await chrome.storage.local.set({ [REMARCACAO_KEY]: dadosCopia });
 
     alert(
