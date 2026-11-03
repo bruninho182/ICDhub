@@ -157,3 +157,30 @@ test('salva português e depois espanhol no mesmo botão sem perder textos nem d
     assert.equal(a.el('novoTextoEspanhol').value, '');
   } finally { a.w.close(); }
 });
+
+test('recibo aceita Documento sem máscara e imprime Documento no texto do PDF', async () => {
+  const a = await ambiente();
+  try {
+    const tipo = a.el('reciboTipoDocumento'); const numero = a.el('reciboDocumento');
+    assert.ok([...tipo.options].some(o => o.value === 'DOCUMENTO' && o.textContent === 'Documento'));
+    tipo.value = 'DOCUMENTO'; tipo.dispatchEvent(new a.w.Event('change'));
+    numero.value = 'RG AB-12.345 / Exterior'; numero.dispatchEvent(new a.w.Event('input'));
+    assert.equal(numero.value, 'RG AB-12.345 / Exterior');
+    assert.equal(numero.hasAttribute('maxlength'), false);
+    const textos = []; let salvo;
+    a.w.jspdf = { jsPDF: function () { return new Proxy({}, { get(_target, propriedade) {
+      if (propriedade === 'text') return texto => textos.push(Array.isArray(texto) ? texto.join('\n') : texto);
+      if (propriedade === 'splitTextToSize') return texto => [texto];
+      if (propriedade === 'save') return nome => { salvo = nome; };
+      return () => {};
+    } }); } };
+    a.el('reciboNome').value = 'Cliente Teste'; a.el('reciboVoucher').value = 'TESTE';
+    a.w.gerarReciboPDF();
+    assert.match(textos.join('\n'), /portador do Documento: RG AB-12\.345 \/ Exterior/);
+    assert.equal(salvo, 'RECIBO - TESTE.pdf');
+    tipo.value = 'CPF'; tipo.dispatchEvent(new a.w.Event('change'));
+    numero.value = '12345678901'; numero.dispatchEvent(new a.w.Event('input'));
+    assert.equal(numero.value, '123.456.789-01');
+    assert.equal(numero.maxLength, 14);
+  } finally { a.w.close(); }
+});

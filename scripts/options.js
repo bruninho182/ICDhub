@@ -151,6 +151,12 @@ function configurarMascaraDocumento() {
   function aplicarMascara() {
     const tipo = selectTipoDoc.value;
 
+    if (tipo === 'DOCUMENTO') {
+      inputDoc.placeholder = "Informe o documento";
+      inputDoc.removeAttribute('maxlength');
+      return;
+    }
+
     if (tipo === 'PASSAPORTE') {
       inputDoc.value = inputDoc.value.toUpperCase().replace(/[^A-Z0-9]/g, '').substring(0, 20);
       inputDoc.placeholder = "Ex: AB123456";
@@ -504,7 +510,10 @@ function gerarReciboPDF() {
     const dataCompraFormatada = dataCompra ? dataCompra.split('-').reverse().join('/') : "___/___/____";
     const dataVisitaFormatada = dataVisita ? dataVisita.split('-').reverse().join('/') : "___/___/____";
     
-    const textoDeclaracao = `O GRUPO ICD, inscrito no CNPJ 10.335.415/0001-70, declara ter recebido os valores descritos abaixo,\nreferente ao pagamento via ${pagamento} pago por ${nomeCliente.toUpperCase()}, inscrito no ${tipoDocumento}: ${numeroDocumento}.`;
+    const identificacao = tipoDocumento === 'DOCUMENTO'
+      ? `portador do Documento: ${numeroDocumento}`
+      : `inscrito no ${tipoDocumento}: ${numeroDocumento}`;
+    const textoDeclaracao = `O GRUPO ICD, inscrito no CNPJ 10.335.415/0001-70, declara ter recebido os valores descritos abaixo,\nreferente ao pagamento via ${pagamento} pago por ${nomeCliente.toUpperCase()}, ${identificacao}.`;
     const splitTexto = doc.splitTextToSize(textoDeclaracao, 170);
     doc.text(splitTexto, 20, 55);
     

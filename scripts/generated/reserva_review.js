@@ -5,12 +5,13 @@ var ICDReservaReview;
     function conferir(reserva, opcoes) {
         return new Promise(resolve => {
             const host = document.createElement('div');
-            host.style.cssText = 'position:fixed;inset:0;z-index:2147483647';
+            const focoAnterior = document.activeElement;
+            host.style.cssText = 'position:fixed;top:16px;left:16px;width:min(440px,calc(100vw - 32px));max-height:calc(100vh - 32px);z-index:2147483647;pointer-events:none';
             const raiz = host.attachShadow({ mode: 'closed' });
             raiz.innerHTML = `<style>
         :host{font:15px system-ui;color:#172033} *{box-sizing:border-box}
-        dialog{width:min(480px,calc(100vw - 32px));max-height:90vh;overflow:auto;border:0;border-radius:16px;padding:28px;color:#172033;box-shadow:0 20px 80px #0004}
-        dialog::backdrop{background:#14213d88} h2{margin:0 0 8px;font-size:22px}
+        dialog{position:relative;margin:0;width:100%;max-height:calc(100vh - 32px);max-height:calc(100dvh - 32px);overflow:auto;overscroll-behavior:contain;pointer-events:auto;border:1px solid #dbe2ea;border-radius:16px;padding:24px;color:#172033;background:#fff;box-shadow:0 8px 32px #0003}
+        h2{margin:0 0 8px;font-size:22px}
         p{line-height:1.5;color:#526077} label{display:block;font-weight:600;margin-top:16px}
         input{display:block;width:100%;margin-top:6px;padding:11px;border:1px solid #a8b3c4;border-radius:7px;font:inherit}
         input:focus-visible,button:focus-visible{outline:3px solid #a78bfa;outline-offset:2px}
@@ -18,7 +19,7 @@ var ICDReservaReview;
         button{padding:11px 16px;border:1px solid #cbd5e1;border-radius:8px;background:white;font:inherit;cursor:pointer}
         button[type=submit]{background:#6036b5;color:white;border-color:#6036b5}
         #erros{color:#a51c30;white-space:pre-line}
-      </style><dialog aria-labelledby="titulo"><form novalidate>
+      </style><dialog aria-labelledby="titulo" aria-modal="false"><form novalidate>
         <h2 id="titulo">Conferir reserva</h2>
         <p>Revise os dados antes de disponibilizá-los para preenchimento no ICD.</p>
         <p id="avisos"></p><div id="campos"></div>
@@ -47,9 +48,28 @@ var ICDReservaReview;
             }
             const entrada = (nome) => form.elements.namedItem(nome);
             campos.forEach(campo => { entrada(campo.chave).value = reserva[campo.chave]; });
-            const encerrar = (valor) => { dialog.close(); host.remove(); resolve(valor); };
+            let encerrada = false;
+            const encerrar = (valor) => {
+                if (encerrada)
+                    return;
+                encerrada = true;
+                const devolverFoco = document.activeElement === host;
+                dialog.close();
+                host.remove();
+                if (devolverFoco && focoAnterior instanceof HTMLElement && focoAnterior.isConnected)
+                    focoAnterior.focus({ preventScroll: true });
+                resolve(valor);
+            };
             dialog.addEventListener('cancel', e => { e.preventDefault(); if (!enviando)
                 encerrar(null); });
+            dialog.addEventListener('keydown', e => {
+                if (e.key !== 'Escape')
+                    return;
+                e.preventDefault();
+                e.stopPropagation();
+                if (!enviando)
+                    encerrar(null);
+            });
             form.querySelector('button[type=button]').addEventListener('click', () => { if (!enviando)
                 encerrar(null); });
             form.addEventListener('submit', e => {
@@ -73,7 +93,9 @@ var ICDReservaReview;
                 }
             });
             document.body.appendChild(host);
-            dialog.showModal();
+            // Diálogo não modal: a reserva original continua acessível e pode ser rolada.
+            dialog.setAttribute('open', '');
+            form.querySelector('input')?.focus({ preventScroll: true });
         });
     }
     ICDReservaReview.conferir = conferir;

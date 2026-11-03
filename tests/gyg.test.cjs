@@ -201,3 +201,29 @@ test('ICD novo preserva nome GYG revisado e recebe código, email e telefone', (
     assert.equal(camposAntigos.sAge_CPF, r.gyg);
   } finally { a.w.close(); }
 });
+
+test('conferência abre na lateral esquerda sem modal e Escape cancela sem gravar', async () => {
+  const a = ambiente(fixture + '<button id="consultar">Consultar reserva</button>');
+  try {
+    a.w.HTMLDialogElement.prototype.showModal = () => { throw new Error('Não deve bloquear a página'); };
+    const abrir = a.w.document.getElementById('btn-copy-gyg'); abrir.focus();
+    const revisao = a.api.conferir(a.api.extrair(a.w.document));
+    const root = a.raiz(); const dialog = root.querySelector('dialog'); const host = root.host;
+    assert.equal(dialog.open, true);
+    assert.equal(dialog.getAttribute('aria-modal'), 'false');
+    assert.equal(host.style.left, '16px');
+    assert.equal(host.style.pointerEvents, 'none');
+    assert.notEqual(host.style.inset, '0');
+    assert.match(root.querySelector('style').textContent, /margin:0/);
+    assert.doesNotMatch(root.querySelector('style').textContent, /::backdrop/);
+    let consultou = false;
+    a.w.document.getElementById('consultar').onclick = () => { consultou = true; };
+    a.w.document.getElementById('consultar').click();
+    assert.equal(consultou, true);
+    root.querySelector('input').dispatchEvent(new a.w.KeyboardEvent('keydown', {key:'Escape',bubbles:true,cancelable:true}));
+    assert.equal(await revisao, null);
+    assert.equal(a.gravacoes.length, 0);
+    assert.equal(host.isConnected, false);
+    assert.equal(a.w.document.activeElement, abrir);
+  } finally { a.w.close(); }
+});

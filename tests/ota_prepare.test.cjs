@@ -85,9 +85,9 @@ test('data de atividade aceita horário e dia da semana sem alterar o dia local'
   } finally { a.w.close(); }
 });
 
-test('Bondinho escolhe acesso rápido apenas para a modalidade informada', async () => {
+test('Bondinho seleciona somente Acesso Rápido para Skip the Line, sem escolher Amanhecer', async () => {
   for (const [modalidade, esperado] of [
-    ['Skip the Line Ticket | Skip-the-Line Cable Car Ticket', 'Acesso rápido e amanhecer'],
+    ['Skip the Line Ticket | Skip-the-Line Cable Car Ticket', 'Acesso Rápido'],
     ['Standard Ticket | Cable Car Ticket', 'Bilhete Normal'],
     ['', 'Bilhete Normal'],
   ]) {
@@ -96,7 +96,7 @@ test('Bondinho escolhe acesso rápido apenas para a modalidade informada', async
       a.campo('Canal de venda', [], "OTA's");
       a.campo('Unidade Distribuidora', [], '000 GetYourGuide');
       a.campo('Selecione o fornecedor', ['Bondinho Pão de Açúcar'], '', () => {
-        a.campo('Selecione o passeio', ['Bilhete Normal', 'Acesso rápido e amanhecer'], '', () => {
+        a.campo('Selecione o passeio', ['Bilhete Normal', 'Amanhecer', 'Acesso rápido e amanhecer', 'Acesso Rápido'], '', () => {
           a.calendario({ mes: 9 });
         });
       });
@@ -121,12 +121,14 @@ test('outra atração com passeio obrigatório interrompe antes de escolher a da
   } finally { a.w.close(); }
 });
 
-test('Maracanã seleciona Tour Regular ou Tour Guiado antes da data', async () => {
+test('Maracanã seleciona sempre Tour Regular, inclusive Monitored Tour, antes da data', async () => {
   const titulo = 'Rio de Janeiro: Maracanã Stadium Entrance Ticket';
   for (const [passeio, modalidade, esperado] of [
     [titulo, titulo, 'Tour Regular'],
-    [titulo, `Monitored Tour | ${titulo}`, 'Tour Guiado'],
-    [`Monitored Tour | ${titulo}`, '', 'Tour Guiado'],
+    [titulo, `Monitored Tour | ${titulo}`, 'Tour Regular'],
+    [`Monitored Tour | ${titulo}`, '', 'Tour Regular'],
+    [titulo, 'Standard Ticket', 'Tour Regular'],
+    [titulo, '', 'Tour Regular'],
   ]) {
     const a = ambiente();
     try {

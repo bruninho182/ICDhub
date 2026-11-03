@@ -20,7 +20,7 @@ namespace ICDFornecedorMap {
     const chave = modalidade.normalize('NFD').replace(/[\u0300-\u036f]/g, '')
       .replace(/[–—]/g, '-').replace(/\s+/g, ' ').trim().toLowerCase();
     return chave === 'skip the line ticket | skip-the-line cable car ticket'
-      ? 'Acesso rápido e amanhecer' : 'Bilhete Normal';
+      ? 'Acesso Rápido' : 'Bilhete Normal';
   }
 
   export function modalidadeMaracana(passeio: string, modalidade: string): string {
@@ -28,7 +28,7 @@ namespace ICDFornecedorMap {
       .replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, ' ').trim().toLowerCase();
     const titulo = 'rio de janeiro: maracana stadium entrance ticket';
     const guiado = `monitored tour | ${titulo}`;
-    if (normalizar(modalidade) === guiado || normalizar(passeio) === guiado) return 'Tour Guiado';
-    return normalizar(passeio) === titulo || normalizar(modalidade) === titulo ? 'Tour Regular' : '';
+    // Regra operacional: todas as reservas deste produto usam Tour Regular no ICD.
+    return [passeio, modalidade].some(texto => [titulo, guiado].includes(normalizar(texto))) ? 'Tour Regular' : '';
   }
 }

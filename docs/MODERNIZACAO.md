@@ -305,3 +305,15 @@ Métricas exigem ativação explícita na aba Funcionalidades. A ausência da pr
 Worker PDF Civitatis corrigido para scripts/pdf.worker.min.js, sem alternativa de JavaScript remoto e com isEvalSupported false. Permissão Supabase restrita ao projeto utilizado. Descrição do manifesto atualizada. Scripts de publicação em scripts/package.cjs, comando npm run package: ZIP com 56 arquivos alcançáveis pela extensão e política local; exclui ferramentas, fontes TS, testes e mídia de documentação. Inclui logo do recibo referenciado dinamicamente. Checksum SHA-256 gerado ao lado. Instruções de publicação e categorias de dados em docs/PUBLICACAO_CHROME_STORE.md.
 
 Validação: suíte de 104 testes passou após as alterações de métricas e PDF; teste adicional do backup e seus 3 testes existentes passaram após excluir a autorização de métricas da importação (105 testes distintos verificados). Build TypeScript, sintaxe dos scripts e integridade/referências do ZIP verificados. Declarações no painel Chrome Web Store e controles de acesso do Supabase/planilha continuam a cargo do responsável; não foram modificados. Não foi feita publicação na Chrome Web Store.
+
+## 03/11/2026 — Conferência de reserva na lateral esquerda
+
+O card compartilhado de conferência de reservas passa a abrir fixo à esquerda (16 px de margem, até 440 px de largura), sem fundo escurecido nem bloqueio da página. O painel tem rolagem própria e se adapta à altura/largura da janela. O diálogo é não modal para permitir consulta e rolagem da reserva original; Cancelar e Escape preservam os dados pendentes. Escape é tratado dentro do painel, e o foco retorna ao controle de origem quando apropriado. Extração, validação e confirmação dos dados permanecem com as mesmas regras.
+
+Validação: TypeScript e os 11 testes do fluxo GetYourGuide passaram, incluindo o novo cenário de painel não modal, interação com a página e cancelamento sem gravação. Prévia visual com dados fictícios conferida no navegador; a consulta da página continua funcionando com o card aberto. ZIP 3.7 regenerado em dist/ICD-Hub-3.7.zip. Nenhuma reserva real foi alterada.
+
+## 03/11/2026 — Ajustes operacionais e versão 3.7.1
+
+As reservas do produto GetYourGuide Rio de Janeiro: Maracanã Stadium Entrance Ticket, inclusive Monitored Tour, passam a selecionar somente Tour Regular no ICD. No Bondinho, Skip the Line Ticket | Skip-the-Line Cable Car Ticket seleciona somente Acesso Rápido; a seleção é exata e não inclui Amanhecer. As demais modalidades continuam com Bilhete Normal.
+
+O gerador de recibo ganhou a opção Documento, sem máscara numérica e com o rótulo Documento no PDF. CPF, CNPJ e Passaporte permanecem disponíveis. Manifesto, pacote npm e lockfile atualizados para 3.7.1; ZIP regenerado com 56 arquivos e integridade/referências verificadas. Testes do fluxo de reservas (24) e do painel/recibo (8) passaram nas validações dos ajustes. Política de privacidade 3.7 permanece aplicável, sem mudança adicional no tratamento de dados.
