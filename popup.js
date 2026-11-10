@@ -159,5 +159,3 @@ document.getElementById('btnAbrirDashboard').addEventListener('click', () => {
   // Abre a dashboard em uma nova aba
   chrome.tabs.create({ url: chrome.runtime.getURL('dashboard/dashboard.html') });
 });
-
-

@@ -70,7 +70,7 @@ body {
   margin-bottom: 6px;
 }
 
-.login-box input[type="password"] {
+.login-box input:is(#emailDashboard, #senhaDashboard) {
   width: 100%;
   padding: 14px 16px;
   background: #0f172a;
@@ -82,7 +82,7 @@ body {
   transition: 0.3s;
 }
 
-.login-box input[type="password"]:focus {
+.login-box input:is(#emailDashboard, #senhaDashboard):focus {
   border-color: #a855f7;
   box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.2);
 }
@@ -867,5 +867,388 @@ tr.linha-desativada:hover td {
   }
   .ranking-card .nome {
     font-size: 12px;
+  }
+}
+
+/* Visão do período e tabela prioritária */
+.painel-consulta, .painel-operadores {
+  margin-bottom: 24px;
+}
+
+.painel-consulta {
+  padding: 20px;
+  border: 1px solid #334155;
+  border-radius: 16px;
+  background: #172237;
+}
+
+.consulta-cabecalho {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 10px 24px;
+  margin-bottom: 16px;
+}
+
+.consulta-cabecalho h2, .painel-operadores h2 {
+  font-size: 1.125rem;
+  margin-bottom: 6px;
+}
+
+.consulta-cabecalho p, .filtros label {
+  font-size: .875rem;
+  color: #cbd5e1;
+}
+
+.consulta-cabecalho .atualizacao, .painel-consulta .filtros {
+  margin: 0;
+}
+
+.filtros button:disabled {
+  opacity: .55;
+  cursor: default;
+}
+
+.painel-operadores tbody tr:nth-child(even) {
+  background: #243149;
+}
+
+.painel-operadores tbody td:nth-child(n+4):nth-child(-n+7) {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Identidade visual do painel master */
+body {
+  background: #101827;
+  padding: clamp(12px, 3vw, 36px);
+}
+
+.etiqueta {
+  color: #94e5d0;
+  font-size: .73rem;
+  font-weight: 700;
+  letter-spacing: .11em;
+}
+
+#telaLogin {
+  min-height: calc(100dvh - 120px);
+  background: transparent;
+}
+
+.login-layout {
+  width: min(100%, 940px);
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  overflow: hidden;
+  background: #172337;
+  border: 1px solid #33445b;
+  border-radius: 24px;
+  box-shadow: 0 24px 72px #080f1b80;
+}
+
+.login-intro {
+  display: grid;
+  align-content: center;
+  gap: 18px;
+  padding: clamp(24px, 5vw, 52px);
+  background: radial-gradient(ellipse at top left, #225b62, #182d45 72%);
+}
+
+.marca-dashboard {
+  width: 108px;
+  max-height: 64px;
+  object-fit: contain;
+  object-position: left;
+}
+
+.login-intro h1 {
+  font-size: clamp(2rem, 4vw, 3.25rem);
+  line-height: 1.05;
+  letter-spacing: -.035em;
+}
+
+.login-intro > p:not(.etiqueta) {
+  color: #d0dee9;
+  line-height: 1.6;
+}
+
+.login-periodos, .painel-acoes, .painel-navegacao {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.login-periodos span {
+  padding: 6px 10px;
+  border: 1px solid #537286;
+  border-radius: 99px;
+  font-size: .75rem;
+}
+
+.login-layout .login-box {
+  max-width: none;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  padding: clamp(24px, 5vw, 46px);
+  text-align: left;
+}
+
+.login-box h2 {
+  margin: 8px 0;
+  font-size: 1.65rem;
+}
+
+.login-box p.etiqueta {
+  color: #94e5d0;
+  margin: 0;
+}
+
+.login-box .senha-campo {
+  position: relative;
+}
+
+.login-box .senha-campo input {
+  padding-right: 82px;
+}
+
+#alternarSenha {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  padding: 6px 9px;
+  border: 0;
+  border-radius: 6px;
+  background: #263b52;
+  color: #e2edf5;
+  cursor: pointer;
+}
+
+.login-box .btn-login, .filtros #aplicarFiltro {
+  background: #80e0c5;
+  color: #102821;
+}
+
+.login-box .btn-login:hover, .filtros #aplicarFiltro:hover {
+  background: #acf0de;
+}
+
+.painel-topo {
+  gap: 18px;
+  margin-bottom: 16px;
+}
+
+.painel-identidade {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.marca-painel {
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+}
+
+.painel-identidade h1 {
+  margin-top: 4px;
+  font-size: clamp(1.55rem, 3vw, 2.3rem);
+  letter-spacing: -.025em;
+}
+
+.painel-navegacao {
+  border-bottom: 1px solid #33445b;
+  margin-bottom: 22px;
+  padding-bottom: 10px;
+}
+
+.painel-navegacao a {
+  padding: 8px 14px;
+  border-radius: 8px;
+  color: #dce8f4;
+  text-decoration: none;
+  font-size: .875rem;
+}
+
+.painel-navegacao a:hover {
+  background: #25374d;
+}
+
+.cards .card {
+  text-align: left;
+  background: #18263a;
+  border-color: #34475d;
+}
+
+.cards .card .numero {
+  color: #f1f8ff;
+  font-variant-numeric: tabular-nums;
+}
+
+.cards .card .icone {
+  color: #94e5d0;
+}
+
+.tabela-container table {
+  min-width: 860px;
+}
+
+button:focus-visible, a:focus-visible, select:focus-visible,
+input:focus-visible, .tabela-container:focus-visible {
+  outline: 2px solid #94e5d0;
+  outline-offset: 3px;
+}
+
+@media (max-width: 680px) {
+  .login-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .login-intro {
+    gap: 12px;
+  }
+
+  .painel-acoes {
+    width: 100%;
+  }
+}
+
+.login-layout .login-box p {
+  text-align: left;
+}
+
+.login-box .lembrar-sessao {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-top: 14px;
+  color: #e2edf5;
+  cursor: pointer;
+}
+
+.lembrar-sessao input {
+  accent-color: #80e0c5;
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+.login-box .aviso-sessao {
+  margin: 6px 0 14px;
+  font-size: .75rem;
+  line-height: 1.5;
+}
+
+.icd-privacidade-aviso {
+  max-width: 940px;
+  margin: 14px auto 0;
+  text-align: center;
+  font: 12px/1.6 system-ui, sans-serif;
+  color: #94a3b8;
+}
+
+#ultimaMetrica {
+  font-size: .85rem;
+  color: #a9bfd5;
+}
+
+.btn-detalhar {
+  padding: 0;
+  background: transparent;
+  border: 0;
+  color: #8ce6ce;
+  font: inherit;
+  font-weight: 700;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+#detalheOperador {
+  width: min(680px, 92vw);
+  max-height: 85vh;
+  overflow: auto;
+  padding: 24px;
+  background: #172234;
+  color: #eef5ff;
+  border: 1px solid #41546c;
+  border-radius: 16px;
+}
+
+#detalheOperador::backdrop {
+  background: rgb(0 0 0 / 60%);
+}
+
+#detalheOperador form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.operadores-cabecalho {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px 24px;
+  margin-bottom: 16px;
+}
+
+.operadores-cabecalho h2 {
+  margin: 0;
+}
+
+.operadores-busca {
+  display: grid;
+  gap: 6px;
+  width: min(100%, 280px);
+}
+
+.operadores-busca label {
+  color: #a9bfd5;
+  font-size: .85rem;
+}
+
+.operadores-busca input {
+  box-sizing: border-box;
+  width: 100%;
+  color-scheme: dark;
+  background: #1e293b;
+  border: 1px solid #41546c;
+  color: #f1f5f9;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font: inherit;
+}
+
+.operadores-busca input::placeholder {
+  color: #a9bfd5;
+}
+
+.painel-operadores tbody .linha-lider {
+  background-color: #2e201c;
+  background-image:
+    radial-gradient(ellipse at 20% 140%, #f9731666 0%, transparent 64%),
+    radial-gradient(ellipse at 70% 155%, #fb923c70 0%, transparent 66%),
+    linear-gradient(90deg, #69291f, #2e201c 50%, #69291f);
+  background-size: 150% 100%, 160% 100%, 100% 100%;
+  animation: chamas-ranking 3s ease-in-out infinite alternate;
+}
+
+.painel-operadores tbody .linha-lider td {
+  background: transparent;
+  border-bottom: 1px solid #fb923c;
+}
+
+@keyframes chamas-ranking {
+  from { background-position: 0% 100%, 100% 100%, center; }
+  to { background-position: 100% 100%, 0% 100%, center; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .painel-operadores tbody .linha-lider {
+    animation: none;
   }
 }

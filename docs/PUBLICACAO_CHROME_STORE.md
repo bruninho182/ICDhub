@@ -1,8 +1,8 @@
-# Publicação do ICD Hub 3.7.1 na Chrome Web Store
+# Publicação do ICD Hub 3.7.2 na Chrome Web Store
 
 ## Arquivo para enviar
 
-Gere o pacote com `npm run package`. O arquivo fica em `dist/ICD-Hub-3.7.1.zip`, com o manifesto na raiz. O gerador inclui apenas os arquivos usados pela extensão e uma cópia da política de privacidade; não inclui dependências de desenvolvimento, Git, testes, vídeos ou screenshots do repositório. O checksum SHA-256 acompanha o ZIP.
+Gere o pacote com `npm run package`. O arquivo fica em `dist/ICD-Hub-3.7.2.zip`, com o manifesto na raiz. O gerador inclui apenas os arquivos usados pela extensão e uma cópia da política de privacidade; não inclui dependências de desenvolvimento, Git, testes, vídeos ou screenshots do repositório. O checksum SHA-256 acompanha o ZIP.
 
 ## Política pública
 

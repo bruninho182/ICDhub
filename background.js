@@ -181,10 +181,10 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 });
 
 async function garantirAlarmes() {
+  await chrome.alarms.clear("monitorActivityBackground");
   const alarmes = [
     ["wellnessAlarm", 150],
     ["sendMetricsBackground", 1],
-    ["monitorActivityBackground", 5],
   ];
   for (const [nome, minutos] of alarmes) {
     if (!await chrome.alarms.get(nome)) {
@@ -196,7 +196,6 @@ garantirAlarmes().catch(console.error);
 chrome.runtime.onStartup.addListener(() => garantirAlarmes().catch(console.error));
 chrome.alarms.onAlarm.addListener((alarm) => {
   if (alarm.name === "sendMetricsBackground") filaMetricas.enviarTodos().catch(console.warn);
-  if (alarm.name === "monitorActivityBackground") executarMonitoramentoInatividade().catch(console.warn);
 });
 
 // ================================================================

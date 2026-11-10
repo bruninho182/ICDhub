@@ -59,13 +59,29 @@ test('falha mantém fila persistida e permite retentativa após recriar serviço
   assert.equal((await config.storage.get()).metricsQueue.length, 0);
 });
 
-test('fila antiga é enviada em lotes com operador_id', async () => {
-  let enviados;
-  const config = ambiente(async lote => { enviados = lote; }, Array.from({ length: 105 }, () => evento()));
+test('fila antiga envia mais de um lote com operador_id', async () => {
+  const tamanhos = [];
+  const config = ambiente(async lote => {
+    tamanhos.push(lote.length);
+    assert.ok(lote.every(e => e.operador_id === 'joao_silva'));
+  }, Array.from({ length: 105 }, () => evento()));
   await criarFilaMetricas(config).enviarTodos();
-  assert.equal(enviados.length, 100);
-  assert.equal(enviados[0].operador_id, 'joao_silva');
-  assert.equal((await config.storage.get()).metricsQueue.length, 5);
+  assert.deepEqual(tamanhos, [100, 5]);
+  assert.equal((await config.storage.get()).metricsQueue.length, 0);
+});
+
+test('falha em um segundo lote preserva apenas eventos ainda pendentes', async () => {
+  let chamadas = 0;
+  const config = ambiente(async () => {
+    if (++chamadas === 2) throw Error('offline');
+  }, Array.from({ length: 105 }, () => evento()));
+  const fila = criarFilaMetricas(config);
+  await assert.rejects(fila.enviarTodos(), /offline/);
+  const pendentes = (await config.storage.get()).metricsQueue;
+  assert.equal(pendentes.length, 5);
+  assert.ok(pendentes.every(e => e.detalhes.evento_id));
+  await fila.enviarTodos();
+  assert.equal((await config.storage.get()).metricsQueue.length, 0);
 });
 
 test('evento inválido não entra na fila nem bloqueia registros seguintes', async () => {
@@ -104,4 +120,15 @@ test('ausência de adesão explícita não permite novos registros nem envios de
   let envios=0;const config=ambiente(async()=>envios++);await config.storage.set({icdFuncionalidades:{}});
   const fila=criarFilaMetricas(config);assert.equal(await fila.registrar(evento()),null);await fila.enviarTodos();
   assert.equal(envios,0);assert.equal((await config.storage.get()).metricsQueue.length,0);
+});
+
+test('horário de sincronização só é salvo após confirmação do envio', async () => {
+  let falhar = true;
+  const config = ambiente(async () => { if (falhar) throw Error('offline'); }, [evento()]);
+  const fila = criarFilaMetricas(config);
+  await assert.rejects(fila.enviarTodos(), /offline/);
+  assert.equal((await config.storage.get()).metricsLastConfirmedAt, undefined);
+  falhar = false;
+  await fila.enviarTodos();
+  assert.ok(Number.isFinite(Date.parse((await config.storage.get()).metricsLastConfirmedAt)));
 });

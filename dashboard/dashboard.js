@@ -1,7 +1,5 @@
 // dashboard.js
 // ===== CONFIGURAÇÕES =====
-const SENHA_CORRETA = 'icdadmin2024rafachefe';
-const CHAVE_SALVAR_SENHA = 'dashboard_senha_salva';
 const CHAVE_OPERADORES_DESATIVADOS = 'operadores_desativados';
 
 // ================================================================
@@ -30,63 +28,127 @@ function gerarIdUnico(nome) {
 // ===== AUTENTICAÇÃO =====
 // ================================================================
 
-function validarSenha() {
-    const input = document.getElementById('senhaDashboard');
-    const erro = document.getElementById('erroLogin');
-    const lembrar = document.getElementById('lembrarSenha');
-    const senha = input.value.trim();
-    
-    if (senha === SENHA_CORRETA) {
-        sessionStorage.setItem('dashboard_autenticado', 'true');
-        
-        if (lembrar.checked) {
-            localStorage.setItem(CHAVE_SALVAR_SENHA, 'true');
-        }
-        
-        document.getElementById('telaLogin').style.display = 'none';
-        document.getElementById('conteudoDashboard').classList.add('visible');
-        
-        carregarDados();
-        
-        input.value = '';
-        erro.classList.remove('visible');
-    } else {
-        erro.classList.add('visible');
-        input.value = '';
-        input.focus();
-        input.select();
+const supabase = new URL(SUPABASE_URL).origin;
+let sessaoMaster = null;
+let consultaAtual = 0;
+const chaveSessaoLembrada = 'icd_dashboard_sessao_master';
+
+function lerSessaoLembrada() {
+    try {
+        const dados = JSON.parse(localStorage.getItem(chaveSessaoLembrada));
+        return dados?.id && dados.token && dados.renovacao && Number.isFinite(dados.expiraEm) ? dados : null;
+    } catch {
+        return null;
     }
 }
 
-function sair() {
-    sessionStorage.removeItem('dashboard_autenticado');
-    localStorage.removeItem(CHAVE_SALVAR_SENHA);
-    
-    document.getElementById('telaLogin').style.display = 'flex';
-    document.getElementById('conteudoDashboard').classList.remove('visible');
-    document.getElementById('senhaDashboard').focus();
+function salvarSessaoLembrada(sessao) {
+    const { id, email, token, renovacao, expiraEm } = sessao;
+    localStorage.setItem(chaveSessaoLembrada, JSON.stringify({ id, email, token, renovacao, expiraEm }));
 }
 
-function verificarAutenticacao() {
-    if (sessionStorage.getItem('dashboard_autenticado') === 'true') {
-        entrarNoDashboard();
-        return;
-    }
-    
-    if (localStorage.getItem(CHAVE_SALVAR_SENHA) === 'true') {
-        sessionStorage.setItem('dashboard_autenticado', 'true');
-        entrarNoDashboard();
-        return;
-    }
-    
-    document.getElementById('telaLogin').style.display = 'flex';
-    document.getElementById('senhaDashboard').focus();
-}
-
-function entrarNoDashboard() {
+function abrirDashboard() {
     document.getElementById('telaLogin').style.display = 'none';
     document.getElementById('conteudoDashboard').classList.add('visible');
-    carregarDados();
+}
+
+async function restaurarSessaoLembrada() {
+    const dados = lerSessaoLembrada();
+    if (!dados) return;
+    const botao = document.getElementById('btnLogin');
+    document.getElementById('emailDashboard').value = dados.email;
+    document.getElementById('lembrarSessao').checked = true;
+    botao.disabled = true;
+    botao.textContent = 'Restaurando sessão…';
+    sessaoMaster = { ...dados, lembrada: true, renovando: null };
+    try {
+        await carregarDados(true);
+        if (sessaoMaster?.id === dados.id) abrirDashboard();
+    } catch (erro) {
+        if (/Sessão encerrada|acesso master/.test(erro.message) && lerSessaoLembrada()?.id === dados.id) {
+            localStorage.removeItem(chaveSessaoLembrada);
+        }
+        sessaoMaster = null;
+        mostrarErroLogin(erro.message);
+    } finally {
+        botao.disabled = false;
+        botao.textContent = 'Entrar no painel';
+    }
+}
+
+function mostrarErroLogin(mensagem) {
+    const erro = document.getElementById('erroLogin');
+    erro.textContent = mensagem;
+    erro.classList.toggle('visible', Boolean(mensagem));
+}
+
+async function validarSenha() {
+    const email = document.getElementById('emailDashboard');
+    const senha = document.getElementById('senhaDashboard');
+    const botao = document.getElementById('btnLogin');
+    if (botao.disabled) return;
+    if (!email.value.trim() || !senha.value) {
+        mostrarErroLogin('Informe seu e-mail e sua senha.');
+        return;
+    }
+    botao.disabled = true;
+    botao.textContent = 'Entrando…';
+    mostrarErroLogin('');
+    try {
+        const resposta = await fetch(supabase + '/auth/v1/token?grant_type=password', {
+            method: 'POST',
+            headers: { apikey: SUPABASE_KEY, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: email.value.trim(), password: senha.value }),
+            signal: AbortSignal.timeout(15000)
+        });
+        if (!resposta.ok) throw new Error(resposta.status === 400 || resposta.status === 401
+            ? 'Confira seu e-mail e sua senha.' : 'Não foi possível entrar no Supabase. Tente novamente.');
+        const sessao = await resposta.json();
+        if (!sessao.access_token) throw new Error('O Supabase não retornou uma sessão válida.');
+        sessaoMaster = {
+            token: sessao.access_token,
+            renovacao: sessao.refresh_token,
+            expiraEm: Date.now() + (sessao.expires_in || 3600) * 1000,
+            renovando: null,
+            id: crypto.randomUUID(),
+            email: email.value.trim(),
+            lembrada: false
+        };
+        await carregarDados(true);
+        if (!sessaoMaster) return;
+        if (document.getElementById('lembrarSessao').checked && sessaoMaster.renovacao) {
+            salvarSessaoLembrada(sessaoMaster);
+            sessaoMaster.lembrada = true;
+        } else {
+            localStorage.removeItem(chaveSessaoLembrada);
+        }
+        abrirDashboard();
+    } catch (erro) {
+        sessaoMaster = null;
+        mostrarErroLogin(erro.message);
+    } finally {
+        senha.value = '';
+        botao.disabled = false;
+        botao.textContent = 'Entrar no painel';
+    }
+}
+
+async function sair() {
+    const sessao = sessaoMaster;
+    sessaoMaster = null;
+    if (sessao?.id && lerSessaoLembrada()?.id === sessao.id) localStorage.removeItem(chaveSessaoLembrada);
+    consultaAtual++;
+    dadosAtuais = [];
+    intervaloExibido = null;
+    document.getElementById('telaLogin').style.display = 'flex';
+    document.getElementById('conteudoDashboard').classList.remove('visible');
+    document.getElementById('emailDashboard').focus();
+    if (!sessao) return;
+    await sessao.renovando?.catch(() => {});
+    fetch(supabase + '/auth/v1/logout?scope=local', {
+        method: 'POST', headers: { apikey: SUPABASE_KEY, Authorization: 'Bearer ' + sessao.token },
+        signal: AbortSignal.timeout(15000)
+    }).catch(() => {});
 }
 
 // ================================================================
@@ -128,7 +190,7 @@ function toggleOperadorDesativado(id, nome) {
 // ================================================================
 
 function agruparPorOperador(dados) {
-    const agrupado = {};
+    const agrupado = Object.create(null);
     
     dados.forEach(d => {
         let id = d.operador_id;
@@ -159,12 +221,10 @@ function agruparPorOperador(dados) {
             };
         }
         
-        if (!agrupado[id].desativado) {
-            if (d.tipo === 'whatsapp') agrupado[id].whatsapp++;
-            else if (d.tipo === 'email') agrupado[id].email++;
-            else if (d.tipo === 'voucher') agrupado[id].voucher++;
-            agrupado[id].total = agrupado[id].whatsapp + agrupado[id].email + agrupado[id].voucher;
-        }
+        agrupado[id].whatsapp += Number(d.whatsapp);
+        agrupado[id].email += Number(d.email);
+        agrupado[id].voucher += Number(d.voucher);
+        agrupado[id].total = agrupado[id].whatsapp + agrupado[id].email + agrupado[id].voucher;
         
         const ts = new Date(d.timestamp);
         if (!agrupado[id].ultimo || ts > new Date(agrupado[id].ultimo)) {
@@ -263,7 +323,7 @@ function renderizarTop3(ranking) {
             onmouseover="this.style.transform='scale(1.05)'" 
             onmouseout="this.style.transform='scale(1)'">
                 <div style="font-size: ${fontSize}; margin-bottom: 4px;">${op.medalha}</div>
-                <div style="font-weight:700; color:#f1f5f9; font-size:14px;">${op.nome}</div>
+                <div style="font-weight:700; color:#f1f5f9; font-size:14px;">${escaparDashboard(op.nome)}</div>
                 <div style="color:${cor}; font-weight:600; font-size:12px;">${label}</div>
                 <div style="color:#94a3b8; font-size:11px; margin-top:4px;">
                     📊 ${op.total} atividades
@@ -286,59 +346,215 @@ function renderizarTop3(ranking) {
 // ================================================================
 
 let dadosAtuais = [];
-let filtroPeriodo = 'semana';
+let intervaloExibido = null;
+let filtroPeriodo = 'hoje';
 let dataInicio = null;
 let dataFim = null;
 
-async function carregarDados() {
-  try {
-    const response = await fetch(`${SUPABASE_URL}?select=*&order=timestamp.desc`, {
-      headers: {
-        'apikey': SUPABASE_KEY,
-        'Authorization': `Bearer ${SUPABASE_KEY}`
-      }
-    });
-    
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-    const dados = await response.json();
-    
-    dadosAtuais = filtrarPorPeriodo(dados);
-    renderizar(dadosAtuais);
-    carregarAlertas();
-    carregarStatusChefe();
-    document.getElementById('ultimaAtualizacao').textContent =
-      `Última atualização: ${new Date().toLocaleString()}`;
-  } catch (error) {
-    console.error('Erro ao carregar dashboard:', error);
-    document.getElementById('tabelaCorpo').innerHTML =
-      `<tr><td colspan="9" style="text-align:center; color:#ef4444;">Erro ao carregar dados. Verifique a conexão com o Supabase.</td></tr>`;
-  }
+const fusoDashboard = 'America/Sao_Paulo';
+const dataSaoPaulo = new Intl.DateTimeFormat('sv-SE', {timeZone: fusoDashboard, year: 'numeric', month: '2-digit', day: '2-digit'});
+
+function intervaloDashboard(periodo, agora = new Date(), inicio = dataInicio, fim = dataFim) {
+    const hoje = dataSaoPaulo.format(agora);
+    const dia = new Date(hoje + 'T00:00:00Z');
+    const deslocar = (data, dias) => new Date(Date.parse(data + 'T00:00:00Z') + dias * 86400000).toISOString().slice(0, 10);
+    let primeiroDia = hoje;
+    let ultimoDia = hoje;
+    if (periodo === 'semana') primeiroDia = deslocar(hoje, -((dia.getUTCDay() + 6) % 7));
+    if (periodo === 'mes') primeiroDia = hoje.slice(0, 7) + '-01';
+    if (periodo === 'ano') primeiroDia = hoje.slice(0, 4) + '-01-01';
+    if (periodo === 'personalizado') {
+        primeiroDia = inicio;
+        ultimoDia = fim;
+    }
+    const duracao = Date.parse(ultimoDia + 'T00:00:00Z') - Date.parse(primeiroDia + 'T00:00:00Z');
+    if (!Number.isFinite(duracao) || duracao < 0 || duracao >= 366 * 86400000) {
+        throw new Error('Selecione um intervalo válido de até 366 dias.');
+    }
+    return { p_inicio: primeiroDia, p_fim_exclusivo: deslocar(ultimoDia, 1) };
 }
 
-function filtrarPorPeriodo(dados) {
-  const agora = new Date();
-  let limite = new Date();
-  
-  switch(filtroPeriodo) {
-    case 'hoje':
-      limite.setHours(0, 0, 0, 0);
-      break;
-    case 'semana':
-      limite.setDate(agora.getDate() - 7);
-      break;
-    case 'mes':
-      limite.setMonth(agora.getMonth() - 1);
-      break;
-    case 'personalizado':
-      if (dataInicio && dataFim) {
-        return dados.filter(d => new Date(d.timestamp) >= new Date(dataInicio) && new Date(d.timestamp) <= new Date(dataFim));
-      }
-      return dados;
-    default:
-      return dados;
-  }
-  
-  return dados.filter(d => new Date(d.timestamp) >= limite);
+async function tokenDashboard(sessao, forcar = false) {
+    if (sessao !== sessaoMaster) throw new Error('Sessão encerrada. Entre novamente.');
+    if (!forcar && sessao.expiraEm - Date.now() > 60000) return sessao.token;
+    if (!sessao.renovacao) throw new Error('Sessão encerrada. Entre novamente.');
+    if (!sessao.renovando) {
+        const renovar = async () => {
+            if (sessao !== sessaoMaster) throw new Error('Sessão encerrada. Entre novamente.');
+            if (sessao.lembrada) {
+                const salva = lerSessaoLembrada();
+                if (salva?.id !== sessao.id) throw new Error('Sessão encerrada. Entre novamente.');
+                if (salva.renovacao !== sessao.renovacao) {
+                    Object.assign(sessao, salva);
+                    if (sessao.expiraEm - Date.now() > 60000) return sessao.token;
+                }
+            }
+            const resposta = await fetch(supabase + '/auth/v1/token?grant_type=refresh_token', {
+                method: 'POST',
+                headers: { apikey: SUPABASE_KEY, 'Content-Type': 'application/json' },
+                body: JSON.stringify({ refresh_token: sessao.renovacao }),
+                signal: AbortSignal.timeout(15000)
+            });
+            if ([400, 401, 403].includes(resposta.status)) throw new Error('Sessão encerrada. Entre novamente.');
+            if (!resposta.ok) throw new Error('Não foi possível renovar a sessão agora.');
+            const nova = await resposta.json();
+            if (!nova.access_token || !nova.refresh_token) throw new Error('Sessão encerrada. Entre novamente.');
+            sessao.token = nova.access_token;
+            sessao.renovacao = nova.refresh_token;
+            sessao.expiraEm = Date.now() + (nova.expires_in || 3600) * 1000;
+            if (sessao.lembrada && sessao === sessaoMaster && lerSessaoLembrada()?.id === sessao.id) {
+                salvarSessaoLembrada(sessao);
+            }
+            return sessao.token;
+        };
+        const tarefa = sessao.lembrada && navigator.locks
+            ? navigator.locks.request(chaveSessaoLembrada, renovar) : renovar();
+        sessao.renovando = tarefa.finally(() => { sessao.renovando = null; });
+    }
+    return sessao.renovando;
+}
+
+async function consultarMetricas(sessao, intervalo) {
+    const consultar = token => {
+        if (sessao !== sessaoMaster) throw new Error('Sessão encerrada. Entre novamente.');
+        return fetch(supabase + '/rest/v1/rpc/icd_dashboard_metricas', {
+            method: 'POST',
+            headers: { apikey: SUPABASE_KEY, Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
+            body: JSON.stringify(intervalo),
+            signal: AbortSignal.timeout(20000)
+        });
+    };
+    const token = await tokenDashboard(sessao);
+    const resposta = await consultar(token);
+    if (resposta.status !== 401 || !sessao.renovacao) return resposta;
+    return consultar(token === sessao.token ? await tokenDashboard(sessao, true) : sessao.token);
+}
+
+function validarResumoMetricas(dados) {
+    if (!Array.isArray(dados) || dados.some(linha =>
+        !linha || typeof linha.dia !== 'string' || !Number.isFinite(Date.parse(linha.timestamp)) ||
+        [linha.whatsapp, linha.email, linha.voucher].some(total => !Number.isSafeInteger(total) || total < 0))) {
+        throw new Error('O Supabase retornou métricas em um formato inesperado.');
+    }
+}
+
+function intervalosComparacao(periodo, intervalo) {
+    const inicio = new Date(intervalo.p_inicio + 'T00:00:00Z');
+    const fim = new Date(intervalo.p_fim_exclusivo + 'T00:00:00Z');
+    const anterior = new Date(inicio);
+    if (periodo === 'semana') anterior.setUTCDate(anterior.getUTCDate() - 7);
+    else anterior.setUTCMonth(anterior.getUTCMonth() - 1);
+    const duracao = Math.min(fim - inicio - 86400000, inicio - anterior);
+    if (duracao <= 0) return null;
+    const iso = data => new Date(data).toISOString().slice(0, 10);
+    return {
+        atual: { p_inicio: intervalo.p_inicio, p_fim_exclusivo: iso(+inicio + duracao) },
+        anterior: { p_inicio: iso(anterior), p_fim_exclusivo: iso(+anterior + duracao) }
+    };
+}
+
+let comparacaoIndividual;
+
+async function carregarComparacao(sessao, periodo, intervalo, dados, atual) {
+    comparacaoIndividual = null;
+    const painel = document.getElementById('comparacaoOperadores');
+    painel.hidden = !['semana', 'mes'].includes(periodo);
+    if (painel.hidden) return;
+    const corpo = painel.querySelector('tbody');
+    const status = document.getElementById('comparacaoStatus');
+    corpo.replaceChildren();
+    status.textContent = 'Consultando período anterior…';
+    const janelas = intervalosComparacao(periodo, intervalo);
+    if (!janelas) {
+        status.textContent = 'A comparação estará disponível após o primeiro dia completo do período.';
+        return;
+    }
+    try {
+        const resposta = await consultarMetricas(sessao, janelas.anterior);
+        if (!resposta.ok) throw new Error();
+        const historico = await resposta.json();
+        if (!atual()) return;
+        validarResumoMetricas(historico);
+        const recentes = agruparPorOperador(dados.filter(linha => linha.dia < janelas.atual.p_fim_exclusivo));
+        const anteriores = agruparPorOperador(historico);
+        for (const id of new Set([...Object.keys(recentes), ...Object.keys(anteriores)])) {
+            const agora = recentes[id]?.total || 0;
+            const antes = anteriores[id]?.total || 0;
+            const diferenca = agora - antes;
+            const linha = corpo.insertRow();
+            for (const valor of [recentes[id]?.nome || anteriores[id].nome, agora, antes, diferenca > 0 ? '+' + diferenca : diferenca]) {
+                linha.insertCell().textContent = valor;
+            }
+        }
+        const faixa = janela => {
+            const inicio = janela.p_inicio.split('-').reverse().join('/');
+            const fim = new Date(Date.parse(janela.p_fim_exclusivo + 'T00:00:00Z') - 86400000)
+                .toLocaleDateString('pt-BR', { timeZone: 'UTC' });
+            return inicio + ' a ' + fim;
+        };
+        comparacaoIndividual = { recentes, anteriores, faixaAtual: faixa(janelas.atual), faixaAnterior: faixa(janelas.anterior) };
+        status.textContent = 'Atual: ' + faixa(janelas.atual) + ' · Anterior: ' + faixa(janelas.anterior)
+            + (corpo.rows.length ? '' : ' · Sem registros.');
+    } catch {
+        if (atual()) status.textContent = 'Não foi possível carregar a comparação.';
+    }
+}
+
+async function carregarDados(entrada = false) {
+    const sessao = sessaoMaster;
+    if (!sessao) return;
+    const consulta = ++consultaAtual;
+    const atual = () => consulta === consultaAtual && sessao === sessaoMaster;
+    const status = document.getElementById('ultimaAtualizacao');
+    const exportar = document.getElementById('exportarCSV');
+    exportar.disabled = true;
+    status.textContent = 'Consultando métricas…';
+    try {
+        const intervalo = intervaloDashboard(filtroPeriodo);
+        const periodo = filtroPeriodo;
+        const resposta = await consultarMetricas(sessao, intervalo);
+        if (resposta.status === 401 || resposta.status === 403) {
+            throw new Error(entrada ? 'Esta conta precisa de acesso master no Supabase.' : 'Sessão encerrada ou acesso master removido. Entre novamente.');
+        }
+        if (resposta.status === 404) throw new Error('Instale a função do dashboard no Supabase.');
+        if (!resposta.ok) throw new Error('Falha ao consultar as métricas. Tente novamente.');
+        const dados = await resposta.json();
+        if (!atual()) return;
+        validarResumoMetricas(dados);
+        dadosAtuais = dados;
+        intervaloExibido = intervalo;
+        const primeiro = intervalo.p_inicio.split('-').reverse().join('/');
+        const ultimo = new Date(Date.parse(intervalo.p_fim_exclusivo + 'T00:00:00Z') - 86400000)
+            .toLocaleDateString('pt-BR', { timeZone: 'UTC' });
+        document.getElementById('periodoExibido').textContent =
+            (primeiro === ultimo ? primeiro : primeiro + ' a ' + ultimo) + ' · horário de São Paulo';
+        const ultimaAtividade = dados.reduce((maisRecente, linha) => Math.max(maisRecente, Date.parse(linha.timestamp)), 0);
+        document.getElementById('ultimaMetrica').textContent = ultimaAtividade
+            ? 'Última atividade registrada no período: ' + new Date(ultimaAtividade).toLocaleString('pt-BR', { timeZone: fusoDashboard })
+            : 'Nenhuma atividade registrada no período.';
+        renderizar(dadosAtuais);
+        carregarAlertas();
+        carregarStatusChefe();
+        void carregarComparacao(sessao, periodo, intervalo, dados, atual);
+        status.textContent = 'Última atualização em ' + new Date().toLocaleString('pt-BR', {timeZone: fusoDashboard});
+    } catch (erro) {
+        if (!atual()) return;
+        if (entrada) throw erro;
+        if (erro.message.startsWith('Sessão encerrada')) {
+            sair();
+            mostrarErroLogin(erro.message);
+        } else {
+            status.textContent = erro.message + ' Exibindo a última consulta bem-sucedida.';
+        }
+    } finally {
+        if (atual()) exportar.disabled = !dadosAtuais.length;
+    }
+}
+
+function escaparDashboard(valor) {
+    return String(valor).replace(/[&<>"']/g, caractere => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    })[caractere]);
 }
 
 function renderizar(dados) {
@@ -353,18 +569,18 @@ function renderizar(dados) {
   renderizarTop3(ranking);
   
   // ===== CARDS =====
-  const operadoresAtivos = operadores.filter(op => !op.desativado);
-  const totalOps = operadoresAtivos.length;
+  const totalOps = operadores.length;
   
   document.getElementById('totalOperadores').textContent = totalOps;
-  document.getElementById('totalWhatsapp').textContent = operadoresAtivos.reduce((s, op) => s + op.whatsapp, 0);
-  document.getElementById('totalEmails').textContent = operadoresAtivos.reduce((s, op) => s + op.email, 0);
-  document.getElementById('totalVouchers').textContent = operadoresAtivos.reduce((s, op) => s + op.voucher, 0);
+  document.getElementById('totalWhatsapp').textContent = operadores.reduce((s, op) => s + op.whatsapp, 0);
+  document.getElementById('totalEmails').textContent = operadores.reduce((s, op) => s + op.email, 0);
+  document.getElementById('totalVouchers').textContent = operadores.reduce((s, op) => s + op.voucher, 0);
 
   // ===== TABELA =====
   const tbody = document.getElementById('tabelaCorpo');
   if (operadores.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="9" style="text-align:center; color:#64748b;">Nenhuma atividade registrada no período.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="10" style="text-align:center; color:#64748b;">Nenhuma atividade registrada no período.</td></tr>`;
+    atualizarGraficos([]);
     return;
   }
 
@@ -378,8 +594,8 @@ function renderizar(dados) {
   let html = '';
   sorted.forEach(op => {
     const desativado = op.desativado;
-    const ultimo = op.ultimo ? new Date(op.ultimo).toLocaleString() : 'Nunca';
-    const ultimoTimestamp = op.ultimoTimestamp;
+    const ultimo = op.ultimo ? new Date(op.ultimo).toLocaleString('pt-BR', {timeZone: fusoDashboard}) : 'Nunca';
+    const ultimoTimestamp = periodoIncluiHoje() ? op.ultimoTimestamp : null;
     
     // ===== STATUS E BADGES =====
     let badgeInativo = '';
@@ -413,6 +629,11 @@ function renderizar(dados) {
     }
     
     // ===== RANKING (posição) =====
+    if (!periodoIncluiHoje()) {
+      badgeInativo = '<span>—</span>';
+      tempoLabel = '—';
+    }
+
     let rankingDisplay = '';
     if (!desativado && op.posicao) {
       if (op.posicao <= 3) {
@@ -427,8 +648,8 @@ function renderizar(dados) {
     // ===== BOTÃO DE TOGGLE =====
     const toggleBtn = `
       <button class="btn-toggle ${desativado ? 'desativado' : 'ativado'}" 
-              data-operador-id="${op.id}"
-              data-operador-nome="${op.nome.replace(/"/g, '&quot;')}"
+              data-operador-id="${escaparDashboard(op.id)}"
+              data-operador-nome="${escaparDashboard(op.nome)}"
               data-acao="toggle-desativar"
               title="${desativado ? 'Reativar funcionário' : 'Desativar funcionário (folga)'}">
         ${desativado ? '✅ Reativar' : '⛔ Desativar'}
@@ -436,30 +657,36 @@ function renderizar(dados) {
     `;
     
     // ===== TABELA COM COLUNA DE RANKING =====
-    html += `<tr class="${desativado ? 'linha-desativada' : ''}">
+    html += `<tr class="${desativado ? 'linha-desativada' : op.posicao === 1 ? 'linha-lider' : ''}">
       <td style="text-align:center; width:50px;">${rankingDisplay}</td>
       <td>
-        <strong>${op.nome}</strong>
-        <br><small style="color:#64748b; font-size:10px;">ID: ${op.id}</small>
+        <button type="button" class="btn-detalhar" data-detalhar="${escaparDashboard(op.id)}">${escaparDashboard(op.nome)}</button>
+        <br><small style="color:#64748b; font-size:10px;">ID: ${escaparDashboard(op.id)}</small>
         ${desativado ? '<br><small style="color:#94a3b8; font-size:10px;">⛔ Em folga</small>' : ''}
       </td>
       <td>${badgeInativo || '<span class="status-offline">🔴 Offline</span>'}</td>
-      <td>${desativado ? '--' : op.whatsapp}</td>
-      <td>${desativado ? '--' : op.email}</td>
-      <td>${desativado ? '--' : op.voucher}</td>
-      <td><strong>${desativado ? '--' : op.total}</strong></td>
+      <td>${op.whatsapp}</td>
+      <td>${op.email}</td>
+      <td>${op.voucher}</td>
+      <td><strong>${op.total}</strong></td>
       <td>${ultimo}</td>
       <td><span class="${tempoClass}">${tempoLabel}</span></td>
       <td>${toggleBtn}</td>
     </tr>`;
   });
   tbody.innerHTML = html;
+  filtrarOperadores();
   
   // ===== DELEGAÇÃO DE EVENTOS =====
   const newTbody = tbody.cloneNode(true);
   tbody.parentNode.replaceChild(newTbody, tbody);
   
   document.querySelector('.tabela-container table tbody').addEventListener('click', function(e) {
+    const detalhe = e.target.closest('[data-detalhar]');
+    if (detalhe) {
+      abrirDetalheOperador(agrupado[detalhe.dataset.detalhar]);
+      return;
+    }
     const target = e.target.closest('.btn-toggle');
     if (!target) return;
     
@@ -481,10 +708,17 @@ function renderizar(dados) {
 // ===== ALERTAS DE INATIVIDADE =====
 // ================================================================
 
+function periodoIncluiHoje() {
+    const hoje = dataSaoPaulo.format(new Date());
+    return intervaloExibido && hoje >= intervaloExibido.p_inicio && hoje < intervaloExibido.p_fim_exclusivo;
+}
+
 function carregarAlertas() {
     const container = document.getElementById('alertasContainer');
     if (!container) return;
-    
+    container.hidden = !periodoIncluiHoje();
+    if (container.hidden) return;
+
     if (!dadosAtuais || dadosAtuais.length === 0) {
         container.innerHTML = `
             <div class="alerta-ok">
@@ -535,7 +769,7 @@ function carregarAlertas() {
                 <i class="fas fa-exclamation-triangle"></i>
                 <div>
                     <strong>🚨 CRÍTICO:</strong> 
-                    <span class="destaque">${nomes}</span> 
+                    <span class="destaque">${escaparDashboard(nomes)}</span>
                     está(ão) inativo(s) há mais de 60 minutos!
                     <span style="display:block; font-size:12px; color:#fca5a5; margin-top:4px;">
                         Última atividade: ${tempos}
@@ -553,7 +787,7 @@ function carregarAlertas() {
                 <i class="fas fa-clock"></i>
                 <div>
                     <strong>⚠️ ATENÇÃO:</strong> 
-                    <span class="destaque">${nomes}</span> 
+                    <span class="destaque">${escaparDashboard(nomes)}</span>
                     está(ão) inativo(s) há mais de 30 minutos!
                     <span style="display:block; font-size:12px; color:#fcd34d; margin-top:4px;">
                         Última atividade: ${tempos}
@@ -586,6 +820,7 @@ function carregarAlertas() {
 // ================================================================
 
 function verificarInatividadePopUp() {
+    if (!periodoIncluiHoje()) return;
     chrome.storage.local.get(['isChefe'], (res) => {
         if (!res.isChefe) return;
         if (!dadosAtuais || dadosAtuais.length === 0) return;
@@ -705,7 +940,7 @@ function mostrarFeedback(mensagem, tipo = 'info') {
         gap: 10px;
         animation: fadeIn 0.3s ease;
     `;
-    feedback.innerHTML = `<i class="fas ${icones[tipo]}"></i> ${mensagem}`;
+    feedback.innerHTML = `<i class="fas ${icones[tipo]}"></i> ${escaparDashboard(mensagem)}`;
     
     container.prepend(feedback);
     
@@ -731,9 +966,7 @@ function atualizarGraficos(operadores) {
         return;
     }
     
-    const ativos = operadores.filter(op => !op.desativado);
-    
-    if (ativos.length === 0) {
+    if (operadores.length === 0) {
         containerBarras.innerHTML = '<div class="sem-dados">Sem dados para exibir</div>';
         containerPizza.innerHTML = '<div class="sem-dados">Sem dados para exibir</div>';
         return;
@@ -741,15 +974,15 @@ function atualizarGraficos(operadores) {
     
     // ===== GRÁFICO DE BARRAS =====
     const dias = {};
-    ativos.forEach(op => {
+    operadores.forEach(op => {
         op.atividades.forEach(d => {
-            const data = new Date(d.timestamp).toLocaleDateString('pt-BR');
+            const data = d.dia.split('-').reverse().join('/');
             if (!dias[data]) {
                 dias[data] = { whatsapp: 0, email: 0, voucher: 0 };
             }
-            if (d.tipo === 'whatsapp') dias[data].whatsapp++;
-            else if (d.tipo === 'email') dias[data].email++;
-            else if (d.tipo === 'voucher') dias[data].voucher++;
+            dias[data].whatsapp += Number(d.whatsapp);
+            dias[data].email += Number(d.email);
+            dias[data].voucher += Number(d.voucher);
         });
     });
     
@@ -792,9 +1025,9 @@ function atualizarGraficos(operadores) {
     containerBarras.innerHTML = htmlBarras;
     
     // ===== GRÁFICO DE ROSCA =====
-    const totalWhatsapp = ativos.reduce((s, op) => s + op.whatsapp, 0);
-    const totalEmail = ativos.reduce((s, op) => s + op.email, 0);
-    const totalVoucher = ativos.reduce((s, op) => s + op.voucher, 0);
+    const totalWhatsapp = operadores.reduce((s, op) => s + op.whatsapp, 0);
+    const totalEmail = operadores.reduce((s, op) => s + op.email, 0);
+    const totalVoucher = operadores.reduce((s, op) => s + op.voucher, 0);
     const totalGeral = totalWhatsapp + totalEmail + totalVoucher;
     
     if (totalGeral === 0) {
@@ -885,27 +1118,108 @@ function atualizarGraficos(operadores) {
 // ===== EVENTOS =====
 // ================================================================
 
-document.getElementById('aplicarFiltro').addEventListener('click', () => {
-  filtroPeriodo = document.getElementById('filtroPeriodo').value;
-  if (filtroPeriodo === 'personalizado') {
-    dataInicio = document.getElementById('dataInicio').value;
-    dataFim = document.getElementById('dataFim').value;
-    document.getElementById('dataInicio').style.display = 'inline';
-    document.getElementById('dataFim').style.display = 'inline';
-    if (!dataInicio || !dataFim) {
-      alert('Selecione as datas de início e fim.');
-      return;
+document.getElementById('filtroPeriodo').addEventListener('change', e => {
+    for (const id of ['dataInicio', 'dataFim']) {
+        document.getElementById(id).style.display = e.target.value === 'personalizado' ? 'inline' : 'none';
     }
-  } else {
-    document.getElementById('dataInicio').style.display = 'none';
-    document.getElementById('dataFim').style.display = 'none';
-  }
-  carregarDados();
 });
+
+document.getElementById('aplicarFiltro').addEventListener('click', () => {
+    const periodo = document.getElementById('filtroPeriodo').value;
+    const inicio = document.getElementById('dataInicio').value;
+    const fim = document.getElementById('dataFim').value;
+    try {
+        intervaloDashboard(periodo, new Date(), inicio, fim);
+    } catch (erro) {
+        document.getElementById('ultimaAtualizacao').textContent = erro.message;
+        return;
+    }
+    filtroPeriodo = periodo;
+    dataInicio = inicio;
+    dataFim = fim;
+    carregarDados();
+});
+
+function baixarCSV(linhas, nome) {
+  const texto = linhas.map(linha => linha.map(valor => {
+    const bruto = String(valor ?? '');
+    const seguro = /^[\s]*[=+@-]|^[\t\r\n]/.test(bruto) ? "'" + bruto : bruto;
+    return '"' + seguro.replaceAll('"', '""') + '"';
+  }).join(';')).join('\r\n');
+  const url = URL.createObjectURL(new Blob(['\uFEFF', texto], { type: 'text/csv;charset=utf-8;' }));
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = nome + '.csv';
+  link.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function filtrarOperadores() {
+  const normalizar = texto => texto.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+  const busca = normalizar(document.getElementById('buscarOperador').value.trim());
+  const botoes = [...document.querySelectorAll('#tabelaCorpo [data-detalhar]')];
+  let encontrados = 0;
+  for (const botao of botoes) {
+    const corresponde = normalizar(botao.textContent + ' ' + botao.dataset.detalhar).includes(busca);
+    botao.closest('tr').hidden = !corresponde;
+    encontrados += Number(corresponde);
+  }
+  document.getElementById('buscaSemResultado').hidden = !busca || encontrados > 0;
+}
+
+document.getElementById('buscarOperador').addEventListener('input', filtrarOperadores);
+
+function abrirDetalheOperador(operador) {
+  const recebimento = operador.atividades.reduce((maximo, linha) =>
+    Math.max(maximo, Date.parse(linha.recebido_em) || 0), 0);
+  document.getElementById('detalheSincronizacao').textContent = recebimento
+    ? 'Último recebimento pelo Supabase no período: ' + new Date(recebimento).toLocaleString('pt-BR', { timeZone: fusoDashboard })
+    : 'Horário de recebimento indisponível para os registros deste período.';
+  const comparacao = document.getElementById('detalheComparacao');
+  comparacao.textContent = 'Comparação individual disponível para semana e mês com dados comparáveis.';
+  if (comparacaoIndividual) {
+    const { recentes, anteriores, faixaAtual, faixaAnterior } = comparacaoIndividual;
+    const diferencas = [['WhatsApp', 'whatsapp'], ['E-mails', 'email'], ['Vouchers', 'voucher']].map(([rotulo, campo]) => {
+      const atual = recentes[operador.id]?.[campo] || 0;
+      const anterior = anteriores[operador.id]?.[campo] || 0;
+      const delta = atual - anterior;
+      return rotulo + ' ' + atual + ' × ' + anterior + ' (' + (delta > 0 ? '+' : '') + delta + ')';
+    });
+    comparacao.textContent = 'Atual (' + faixaAtual + ') × anterior (' + faixaAnterior + '): ' + diferencas.join(' · ');
+  }
+  const dialogo = document.getElementById('detalheOperador');
+  const dias = new Map();
+  for (const linha of operador.atividades) {
+    const totais = dias.get(linha.dia) || [0, 0, 0];
+    totais[0] += Number(linha.whatsapp);
+    totais[1] += Number(linha.email);
+    totais[2] += Number(linha.voucher);
+    dias.set(linha.dia, totais);
+  }
+  const linhas = [...dias.keys()].sort().map(dia => {
+    const totais = dias.get(dia);
+    return [dia.split('-').reverse().join('/'), ...totais, totais.reduce((soma, valor) => soma + valor, 0)];
+  });
+  const intervalo = intervaloExibido;
+  dialogo.querySelector('h2').textContent = operador.nome;
+  dialogo.querySelector('p').textContent = document.getElementById('periodoExibido').textContent;
+  const corpo = dialogo.querySelector('tbody');
+  corpo.replaceChildren();
+  for (const linha of linhas) {
+    const tr = corpo.insertRow();
+    for (const valor of linha) tr.insertCell().textContent = valor;
+  }
+  dialogo.querySelector('[data-exportar]').onclick = () => baixarCSV(
+    [['Operador', 'Data', 'WhatsApp', 'E-mails', 'Vouchers', 'Total'],
+      ...linhas.map(linha => [operador.nome, ...linha])],
+    'metricas_' + operador.id.replace(/[^a-z0-9_-]/gi, '_') + '_' + intervalo.p_inicio
+  );
+  dialogo.showModal();
+}
 
 document.getElementById('exportarCSV').addEventListener('click', () => {
   if (!dadosAtuais.length) return alert('Sem dados para exportar.');
-  let csv = 'Posicao,Operador,Operador_ID,Status,WhatsApp,E-mails,Vouchers,Total,Ultima_Atividade,Tempo_Inativo\n';
+  const linhas = [['Posição', 'Operador', 'Operador ID', 'Status', 'WhatsApp', 'E-mails', 'Vouchers', 'Total', 'Última atividade', 'Tempo inativo']];
   
   // Recalcula ranking para exportação
   const agrupado = agruparPorOperador(dadosAtuais);
@@ -915,20 +1229,18 @@ document.getElementById('exportarCSV').addEventListener('click', () => {
   const todos = [...ranking, ...desativados];
   
   todos.forEach(op => {
-    const status = op.desativado ? 'Desativado' : 
+    const status = !periodoIncluiHoje() ? '—' : op.desativado ? 'Desativado' :
                    op.ultimoTimestamp ? (new Date() - op.ultimoTimestamp < 30*60000 ? 'Online' : 'Offline') : 'Offline';
-    const tempo = op.ultimoTimestamp ? 
+    const tempo = periodoIncluiHoje() && op.ultimoTimestamp ?
                   (() => { const diff = Math.floor((new Date() - op.ultimoTimestamp)/60000); return diff < 30 ? `${diff} min` : `${Math.floor(diff/60)}h ${diff%60}min`; })() : 
                   'Nunca';
     const posicao = op.desativado ? '⛔' : (op.posicao || '--');
-    csv += `${posicao},${op.nome},${op.id},${status},${op.whatsapp},${op.email},${op.voucher},${op.total},${op.ultimo || 'Nunca'},${tempo}\n`;
+    linhas.push([posicao, op.nome, op.id, status, op.whatsapp, op.email, op.voucher, op.total,
+      op.ultimo ? new Date(op.ultimo).toLocaleString('pt-BR', { timeZone: fusoDashboard }) : 'Nunca', tempo]);
   });
   
-  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-  const link = document.createElement('a');
-  link.href = URL.createObjectURL(blob);
-  link.download = `ranking_${new Date().toISOString().slice(0,10)}.csv`;
-  link.click();
+  const fim = new Date(Date.parse(intervaloExibido.p_fim_exclusivo + 'T00:00:00Z') - 86400000).toISOString().slice(0, 10);
+  baixarCSV(linhas, 'metricas_' + intervaloExibido.p_inicio + '_ate_' + fim);
 });
 
 // ================================================================
@@ -936,10 +1248,17 @@ document.getElementById('exportarCSV').addEventListener('click', () => {
 // ================================================================
 
 function inicializarEventos() {
-    const btnLogin = document.getElementById('btnLogin');
-    if (btnLogin) {
-        btnLogin.addEventListener('click', validarSenha);
-    }
+    document.getElementById('formLogin').addEventListener('submit', evento => {
+        evento.preventDefault();
+        validarSenha();
+    });
+    document.getElementById('alternarSenha').addEventListener('click', evento => {
+        const senha = document.getElementById('senhaDashboard');
+        const mostrar = senha.type === 'password';
+        senha.type = mostrar ? 'text' : 'password';
+        evento.currentTarget.textContent = mostrar ? 'Ocultar' : 'Mostrar';
+        evento.currentTarget.setAttribute('aria-pressed', String(mostrar));
+    });
     
     const btnSair = document.getElementById('btnSair');
     if (btnSair) {
@@ -951,17 +1270,16 @@ function inicializarEventos() {
         btnModoChefe.addEventListener('click', toggleModoChefe);
     }
 
-    const senhaInput = document.getElementById('senhaDashboard');
-    if (senhaInput) {
-        senhaInput.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') {
-                validarSenha();
-            }
-        });
-    }
 }
 
-verificarAutenticacao();
+localStorage.removeItem('dashboard_senha_salva');
+sessionStorage.removeItem('dashboard_autenticado');
+window.addEventListener('storage', evento => {
+    if (evento.key === chaveSessaoLembrada && sessaoMaster?.lembrada && lerSessaoLembrada()?.id !== sessaoMaster.id) {
+        void sair();
+    }
+});
+void restaurarSessaoLembrada();
 
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', inicializarEventos);
@@ -970,14 +1288,14 @@ if (document.readyState === 'loading') {
 }
 
 setInterval(() => {
-    if (sessionStorage.getItem('dashboard_autenticado') === 'true') {
+    if (sessaoMaster && !document.getElementById('btnLogin').disabled) {
         carregarDados();
         verificarInatividadePopUp();
     }
 }, 30000);
 
 setInterval(() => {
-    if (sessionStorage.getItem('dashboard_autenticado') === 'true') {
+    if (sessaoMaster && !document.getElementById('btnLogin').disabled) {
         verificarInatividadePopUp();
     }
 }, 10000);
@@ -993,7 +1311,6 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 console.log('✅ Dashboard carregado com sucesso!');
-console.log('🔑 Senha: icdadmin2024rafachefe');
 console.log('📌 Funcionários em folga são ignorados nos alertas!');
 console.log('🆔 Agrupamento por operador_id (fallback para nome)');
 console.log('🏆 Ranking de produtividade com medalhas ativo!');

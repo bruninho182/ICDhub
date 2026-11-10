@@ -668,56 +668,21 @@ chrome.storage.onChanged.addListener((changes) => {
 // ================================================================
 // ===== MONITOR DE MENSAGENS ENVIADAS (CONTAGEM POR TECLA ENTER) =
 // ================================================================
-function iniciarMonitorWhatsApp() {
-    console.log("📊 Monitor de WhatsApp iniciado...");
-    
-    function capturarEnter(event) {
-        if (event.key === 'Enter' && !event.shiftKey) {
-            const target = event.target;
-            if (target && target.getAttribute('contenteditable') === 'true' && 
-                target.getAttribute('data-tab') === '10') {
-                
-                const texto = target.innerText || '';
-                
-                if (window.METRICS) {
-                    let contato = 'desconhecido';
-                    const header = document.querySelector('[data-testid="conversation-info-header"]');
-                    if (header) {
-                        const span = header.querySelector('span');
-                        if (span) contato = span.innerText;
-                    }
-                    
-                    window.METRICS.registrar('whatsapp', {
-                        tamanho: texto.length,
-                        metodo: 'enter'
-                    });
-                    
-                    console.log('📊 Ação de WhatsApp registrada sem conteúdo da conversa.');
-                }
-            }
-        }
-    }
-    
-    document.removeEventListener('keydown', capturarEnter);
-    document.addEventListener('keydown', capturarEnter, true);
-    console.log("✅ Monitor de ENTER ativado!");
+function registrarEnvioWhatsApp(editor, metodo) {
+    const texto = (editor?.innerText || editor?.textContent || '').trim();
+    if (texto) window.METRICS?.registrar('whatsapp', { tamanho: texto.length, metodo });
 }
 
-if (document.readyState === 'complete') {
-    iniciarMonitorWhatsApp();
-} else {
-    window.addEventListener('load', iniciarMonitorWhatsApp);
-}
+document.addEventListener('keydown', evento => {
+    if (evento.key !== 'Enter' || evento.shiftKey || evento.ctrlKey || evento.altKey ||
+        evento.metaKey || evento.repeat || evento.isComposing) return;
+    const editor = evento.target.closest?.('footer [contenteditable="true"][role="textbox"], div[contenteditable="true"][data-tab="10"]');
+    registrarEnvioWhatsApp(editor, 'enter');
+}, true);
 
-setTimeout(iniciarMonitorWhatsApp, 3000);
-setTimeout(iniciarMonitorWhatsApp, 5000);
-
-const observer = new MutationObserver(() => {
-    const textarea = document.querySelector('div[contenteditable="true"][data-tab="10"]');
-    if (textarea && !window._enterMonitorActive) {
-        window._enterMonitorActive = true;
-        iniciarMonitorWhatsApp();
-    }
-});
-
-observer.observe(document.body, { childList: true, subtree: true });
+document.addEventListener('click', evento => {
+    const botao = evento.target.closest?.('footer button, footer [role="button"]');
+    if (!botao?.matches('[data-testid="compose-btn-send"]') && !botao?.querySelector('[data-icon="send"]')) return;
+    const editor = botao.closest('footer').querySelector('[contenteditable="true"][role="textbox"], [contenteditable="true"][data-tab="10"]');
+    registrarEnvioWhatsApp(editor, 'click');
+}, true);

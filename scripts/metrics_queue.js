@@ -30,10 +30,15 @@ function criarFilaMetricas({ storage, enviar }) {
     envioAtual = exclusivo(async () => {
       // Sanear também a fila de versões anteriores, inclusive se o envio estiver desligado ou falhar.
       const fila = await ler(); await storage.set({ [chave]: fila });
-      if (!await habilitada()) return;
-      const lote = fila.slice(0, 100); if (!lote.length) return;
-      await enviar(lote);
-      await storage.set({ [chave]: fila.slice(lote.length) });
+      // Limita o trabalho de cada execução e confirma cada lote separadamente.
+      let pendentes = fila;
+      for (let numero = 0; numero < 3 && pendentes.length; numero++) {
+        if (!await habilitada()) return;
+        const lote = pendentes.slice(0, 100);
+        await enviar(lote);
+        pendentes = pendentes.slice(lote.length);
+        await storage.set({ [chave]: pendentes, metricsLastConfirmedAt: new Date().toISOString() });
+      }
     }).finally(() => { envioAtual = null; });
     return envioAtual;
   }

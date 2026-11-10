@@ -11,7 +11,7 @@
   <!-- ===== FONTES E ÍCONES ===== -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-  <img src="/icon.png" alt="">
+
   
   <!-- ===== CSS EXTERNO ===== -->
   <link rel="stylesheet" href="dashboard.css">
@@ -19,73 +19,144 @@
 <body>
 
 <!-- ===== TELA DE LOGIN ===== -->
-<div id="telaLogin">
-  <div class="login-box">
-    <div class="logo">
-      <img src="../icons/logo-icd.png" alt="ICD Hub" onerror="this.style.display='none'">
-    </div>
-    <h1>🔐 Dashboard ICD</h1>
-    <p>Painel de desempenho dos operadores</p>
-    
-    <label for="senhaDashboard">Senha de acesso</label>
-    <input type="password" id="senhaDashboard" placeholder="Digite a senha..." autofocus>
-    
-    <div class="grupo-lembrar">
-      <input type="checkbox" id="lembrarSenha">
-      <label for="lembrarSenha"><i class="fas fa-check-circle"></i> Lembrar senha</label>
-    </div>
-    
-    <button class="btn-login" id="btnLogin">
-      <i class="fas fa-unlock-alt"></i> Entrar
-    </button>
-    
-    <div id="erroLogin" class="erro">
-      <i class="fas fa-exclamation-circle"></i> Senha incorreta! Tente novamente.
-    </div>
+<main id="telaLogin">
+  <div class="login-layout">
+    <section class="login-intro" aria-labelledby="tituloApresentacao">
+      <img src="../icons/logo-icd.png" alt="ICD Hub" class="marca-dashboard">
+      <p class="etiqueta">ICD HUB · OPERAÇÕES</p>
+      <h1 id="tituloApresentacao">Desempenho da equipe</h1>
+      <p>Consulte as atividades por operador e acompanhe a evolução da equipe ao longo do tempo.</p>
+      <div class="login-periodos"><span>Diário</span><span>Semanal</span><span>Mensal</span><span>Anual</span></div>
+    </section>
+    <form class="login-box" id="formLogin">
+      <p class="etiqueta">ACESSO MASTER</p>
+      <h2>Entre no painel</h2>
+      <p>Use as credenciais da sua conta master.</p>
+
+      <label for="emailDashboard">E-mail</label>
+      <input type="email" id="emailDashboard" autocomplete="username" required autofocus>
+      <label for="senhaDashboard">Senha</label>
+      <div class="senha-campo">
+        <input type="password" id="senhaDashboard" autocomplete="current-password" required>
+        <button id="alternarSenha" type="button" aria-controls="senhaDashboard" aria-pressed="false">Mostrar</button>
+      </div>
+
+      <label class="lembrar-sessao">
+        <input type="checkbox" id="lembrarSessao" aria-describedby="avisoSessao">
+        Manter conectado neste navegador
+      </label>
+      <p id="avisoSessao" class="aviso-sessao">Use em um computador de confiança. Para remover o acesso salvo, clique em Sair.</p>
+      <button type="submit" class="btn-login" id="btnLogin">Entrar no painel</button>
+      <p id="erroLogin" class="erro" role="alert"></p>
+    </form>
   </div>
-</div>
+</main>
 
 <!-- ===== CONTEÚDO DO DASHBOARD ===== -->
 <div id="conteudoDashboard">
   <div class="container">
     <!-- HEADER -->
-    <header>
-      <div class="left">
-        <h1><i class="fas fa-chart-line"></i> Dashboard de Desempenho</h1>
-        <span class="badge-admin"><i class="fas fa-crown"></i> ADMIN</span>
-        <button id="btnModoChefe" class="btn-chefe">
-          <i class="fas fa-crown"></i> <span id="statusChefe">Ativar Notificações por Pop-Up</span>
-        </button>
+    <header class="painel-topo">
+      <div class="painel-identidade">
+        <img src="../icon.png" alt="" class="marca-painel">
+        <div>
+          <p class="etiqueta">ICD HUB · PAINEL MASTER</p>
+          <h1>Desempenho da equipe</h1>
+        </div>
       </div>
-      <button class="btn-sair" id="btnSair">
-        <i class="fas fa-sign-out-alt"></i> Sair
-      </button>
+      <div class="painel-acoes">
+        <button id="btnModoChefe" class="btn-chefe" type="button">
+          <i class="fas fa-bell" aria-hidden="true"></i> <span id="statusChefe">Ativar alertas</span>
+        </button>
+        <button class="btn-sair" id="btnSair" type="button">Sair</button>
+      </div>
     </header>
+    <nav class="painel-navegacao" aria-label="Seções do dashboard">
+      <a href="#resumoDesempenho">Resumo</a>
+      <a href="#metricasOperadores">Operadores</a>
+      <a href="#evolucaoDesempenho">Gráficos</a>
+    </nav>
 
     <!-- ===== ALERTAS DE INATIVIDADE ===== -->
     <div id="alertasContainer"></div>
 
     <!-- ===== FILTROS ===== -->
-    <div class="filtros">
-      <select id="filtroPeriodo">
-        <option value="hoje">📅 Hoje</option>
-        <option value="semana" selected>📊 Última Semana</option>
-        <option value="mes">📈 Último Mês</option>
-        <option value="personalizado">📆 Personalizado</option>
-      </select>
-      <input type="date" id="dataInicio" style="display:none;">
-      <input type="date" id="dataFim" style="display:none;">
-      <button id="aplicarFiltro"><i class="fas fa-filter"></i> Aplicar</button>
-      <button id="exportarCSV" class="btn-export"><i class="fas fa-file-csv"></i> Exportar CSV</button>
-    </div>
+    <section id="resumoDesempenho" class="painel-consulta" aria-label="Consulta de desempenho">
+      <div class="consulta-cabecalho">
+        <div>
+          <h2>Resumo do período</h2>
+          <p id="periodoExibido">Horário de São Paulo</p>
+      <p id="ultimaMetrica"></p>
+        </div>
+        <p class="atualizacao" id="ultimaAtualizacao" role="status" aria-live="polite">Aguardando consulta</p>
+      </div>
+      <div class="filtros">
+        <label for="filtroPeriodo">Período</label>
+        <select id="filtroPeriodo">
+          <option value="hoje">📅 Hoje</option>
+          <option value="semana">📊 Semana atual</option>
+          <option value="mes">📈 Mês atual</option>
+          <option value="ano">🗓️ Ano atual</option>
+          <option value="personalizado">📆 Personalizado</option>
+        </select>
+        <input type="date" id="dataInicio" aria-label="Data inicial" style="display:none;">
+        <input type="date" id="dataFim" aria-label="Data final" style="display:none;">
+        <button id="aplicarFiltro"><i class="fas fa-filter"></i> Consultar</button>
+        <button id="exportarCSV" class="btn-export"><i class="fas fa-file-csv"></i> Exportar CSV</button>
+      </div>
+    </section>
 
     <!-- ===== CARDS ===== -->
     <div class="cards" id="cardsResumo">
-      <div class="card"><div class="icone"><i class="fas fa-user"></i></div><div class="numero" id="totalOperadores">0</div><div class="rotulo">Operadores Ativos</div></div>
-      <div class="card"><div class="icone"><i class="fas fa-comment-dots"></i></div><div class="numero" id="totalWhatsapp">0</div><div class="rotulo">Mensagens WhatsApp</div></div>
-      <div class="card"><div class="icone"><i class="fas fa-envelope"></i></div><div class="numero" id="totalEmails">0</div><div class="rotulo">E-mails Enviados</div></div>
-      <div class="card"><div class="icone"><i class="fas fa-ticket-alt"></i></div><div class="numero" id="totalVouchers">0</div><div class="rotulo">Vouchers Emitidos</div></div>
+      <div class="card"><div class="icone"><i class="fas fa-user"></i></div><div class="numero" id="totalOperadores">0</div><div class="rotulo">Operadores com registros</div></div>
+      <div class="card"><div class="icone"><i class="fas fa-comment-dots"></i></div><div class="numero" id="totalWhatsapp">0</div><div class="rotulo">Ações no WhatsApp</div></div>
+      <div class="card"><div class="icone"><i class="fas fa-envelope"></i></div><div class="numero" id="totalEmails">0</div><div class="rotulo">Ações de e-mail</div></div>
+      <div class="card"><div class="icone"><i class="fas fa-ticket-alt"></i></div><div class="numero" id="totalVouchers">0</div><div class="rotulo">Ações de voucher</div></div>
     </div>
+
+    <!-- ===== TABELA ===== -->
+    <section id="metricasOperadores" class="painel-operadores" aria-label="Métricas por operador">
+      <div class="operadores-cabecalho">
+        <h2>Métricas por operador</h2>
+        <div class="operadores-busca">
+          <label for="buscarOperador">Buscar operador</label>
+          <input id="buscarOperador" type="search" placeholder="Nome ou ID">
+        </div>
+      </div>
+      <p id="buscaSemResultado" role="status" hidden>Nenhum operador encontrado.</p>
+      <div class="tabela-container" tabindex="0" role="region" aria-label="Tabela de métricas por operador">
+        <table>
+          <thead>
+            <tr>
+              <th style="width:50px; text-align:center;">🏆</th>
+              <th>Operador</th>
+              <th>Status</th>
+              <th><i class="fas fa-comment-dots"></i> WhatsApp</th>
+              <th><i class="fas fa-envelope"></i> E-mails</th>
+              <th><i class="fas fa-ticket-alt"></i> Vouchers</th>
+              <th><i class="fas fa-star" style="color:#fbbf24;"></i> Total</th>
+              <th>Último registro no período</th>
+              <th>Tempo Inativo</th>
+              <th>Ação</th>
+            </tr>
+          </thead>
+          <tbody id="tabelaCorpo">
+            <tr><td colspan="10" style="text-align:center; padding:30px; color:#64748b;">Carregando dados...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="comparacaoOperadores" class="painel-operadores" hidden>
+      <h2>Comparação por operador</h2>
+      <p id="comparacaoStatus" class="atualizacao" role="status"></p>
+      <div class="tabela-container">
+        <table aria-label="Comparação de ações por operador">
+          <thead><tr><th>Operador</th><th>Período atual</th><th>Período anterior</th><th>Diferença</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
 
     <!-- ===== RANKING TOP 3 ===== -->
     <div class="ranking-container">
@@ -99,7 +170,7 @@
     </div>
 
     <!-- ===== GRÁFICOS ===== -->
-    <div class="graficos-container">
+    <div id="evolucaoDesempenho" class="graficos-container">
       <div class="grafico-box">
         <h3><i class="fas fa-chart-bar"></i> Atividades por Dia</h3>
         <div id="graficoBarras" class="grafico-barras">
@@ -114,29 +185,7 @@
       </div>
     </div>
 
-    <!-- ===== TABELA ===== -->
-    <div class="tabela-container">
-      <table>
-        <thead>
-          <tr>
-            <th style="width:50px; text-align:center;">🏆</th>
-            <th>Operador</th>
-            <th>Status</th>
-            <th><i class="fas fa-comment-dots"></i> WhatsApp</th>
-            <th><i class="fas fa-envelope"></i> E-mails</th>
-            <th><i class="fas fa-ticket-alt"></i> Vouchers</th>
-            <th><i class="fas fa-star" style="color:#fbbf24;"></i> Total</th>
-            <th>Última Atividade</th>
-            <th>Tempo Inativo</th>
-            <th>Ação</th>
-          </tr>
-        </thead>
-        <tbody id="tabelaCorpo">
-          <tr><td colspan="10" style="text-align:center; padding:30px; color:#64748b;">Carregando dados...</td></tr>
-        </tbody>
-      </table>
-    </div>
-    <div class="atualizacao" id="ultimaAtualizacao">Última atualização: --</div>
+
   </div>
 </div>
 
@@ -149,8 +198,22 @@
 </div>
 
 <!-- ===== JAVASCRIPT EXTERNO ===== -->
-<p class="icd-privacidade-aviso" style="font:12px/1.5 system-ui;color:#94a3b8;margin:14px 0">As métricas ficam desligadas até você ativá-las em Funcionalidades. Ao ativar, nome do operador, tipos de ações e horários são enviados ao Supabase para o dashboard. <a href="https://bruninho182.github.io/pp-ICDHUB/" target="_blank" rel="noopener noreferrer" style="color:#c4b5fd">Política de privacidade</a></p>
+<p class="icd-privacidade-aviso">As métricas ficam desligadas até você ativá-las em Funcionalidades. Ao ativar, nome do operador, tipos de ações e horários são enviados ao Supabase para o dashboard. <a href="https://bruninho182.github.io/pp-ICDHUB/" target="_blank" rel="noopener noreferrer" style="color:#c4b5fd">Política de privacidade</a></p>
 <script src="dashboard.js"></script>
 
+<dialog id="detalheOperador" aria-labelledby="tituloDetalheOperador">
+  <h2 id="tituloDetalheOperador"></h2>
+  <p></p>
+  <p id="detalheSincronizacao"></p>
+  <p id="detalheComparacao"></p>
+  <table>
+    <thead><tr><th>Data</th><th>WhatsApp</th><th>E-mails</th><th>Vouchers</th><th>Total</th></tr></thead>
+    <tbody></tbody>
+  </table>
+  <form method="dialog">
+    <button type="button" class="btn-export" data-exportar>Exportar CSV do operador</button>
+    <button class="btn-export">Fechar</button>
+  </form>
+</dialog>
 </body>
 </html>
